@@ -7,7 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Modal,
-  Image,
+  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -177,9 +177,6 @@ export default function SearchScreen({ visible, onClose, onSelectKeyword }) {
     </Modal>
   );
 }
-
-// React Native SafeAreaView helper
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 const styles = StyleSheet.create({
   safeArea: {
