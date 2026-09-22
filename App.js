@@ -28,6 +28,7 @@ import SearchScreen from './src/screens/SearchScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
+import VoucherScreen from './src/screens/VoucherScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
@@ -36,6 +37,8 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isVoucherOpen, setIsVoucherOpen] = useState(false);
+  const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -184,10 +187,20 @@ export default function App() {
         visible={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={cartItems}
+        onOpenVoucher={() => setIsVoucherOpen(true)}
+        selectedVoucher={selectedVoucher}
         onCompleteCheckout={() => {
           clearCart();
+          setSelectedVoucher(null);
           setIsCartOpen(false);
         }}
+      />
+
+      {/* Voucher Selection Screen Modal */}
+      <VoucherScreen
+        visible={isVoucherOpen}
+        onClose={() => setIsVoucherOpen(false)}
+        onSelectVoucher={(voucher) => setSelectedVoucher(voucher)}
       />
 
       {/* Bottom 5-Tab Navigation Bar */}

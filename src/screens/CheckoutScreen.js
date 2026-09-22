@@ -14,7 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 
-export default function CheckoutScreen({ visible, onClose, cartItems = [], onCompleteCheckout }) {
+export default function CheckoutScreen({
+  visible,
+  onClose,
+  cartItems = [],
+  onCompleteCheckout,
+  onOpenVoucher,
+  selectedVoucher = null,
+}) {
   const defaultItems = [
     {
       id: 'c1',
@@ -44,12 +51,15 @@ export default function CheckoutScreen({ visible, onClose, cartItems = [], onCom
     (sum, item) => sum + item.price * item.quantity,
     0
   );
+  const voucherDiscount = selectedVoucher ? selectedVoucher.discountAmount : 0;
+  const finalTotal = Math.max(0, subtotal - voucherDiscount);
+
   const totalItemCount = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handlePilihPembayaran = () => {
     Alert.alert(
       '💳 Pilih Metode Pembayaran',
-      `Total Pembayaran: ${formatRupiah(subtotal)}\n\nSilakan pilih pembayaran:`,
+      `Total Pembayaran: ${formatRupiah(finalTotal)}\n\nSilakan pilih pembayaran:`,
       [
         {
           text: 'BCA Virtual Account',
@@ -75,7 +85,7 @@ export default function CheckoutScreen({ visible, onClose, cartItems = [], onCom
     Alert.alert(
       '🎉 Pesanan Berhasil!',
       `Terima kasih! Pesanan Anda telah diproses menggunakan ${method}.\nTotal: ${formatRupiah(
-        subtotal
+        finalTotal
       )}`,
       [
         {
@@ -174,7 +184,9 @@ export default function CheckoutScreen({ visible, onClose, cartItems = [], onCom
 
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Voucher</Text>
-              <Text style={styles.summaryValue}>Rp 0</Text>
+              <Text style={[styles.summaryValue, voucherDiscount > 0 && { color: '#D91E28', fontWeight: '800' }]}>
+                {voucherDiscount > 0 ? `- ${formatRupiah(voucherDiscount)}` : 'Rp 0'}
+              </Text>
             </View>
 
             <View style={styles.summaryRow}>
@@ -192,7 +204,7 @@ export default function CheckoutScreen({ visible, onClose, cartItems = [], onCom
 
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total Pembayaran</Text>
-              <Text style={styles.totalValue}>{formatRupiah(subtotal)}</Text>
+              <Text style={styles.totalValue}>{formatRupiah(finalTotal)}</Text>
             </View>
           </View>
 
@@ -202,13 +214,23 @@ export default function CheckoutScreen({ visible, onClose, cartItems = [], onCom
               <Text style={styles.voucherHeaderTitle}>Pakai voucher lebih HEMAT!</Text>
             </View>
             <View style={styles.voucherBody}>
-              <TouchableOpacity style={styles.voucherInputRow} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.voucherInputRow}
+                onPress={onOpenVoucher}
+                activeOpacity={0.7}
+              >
                 <Ionicons name="ticket-outline" size={22} color="#0284C7" />
-                <Text style={styles.voucherInputText}>Pilih/masukkan kode vouchermu</Text>
+                <Text style={styles.voucherInputText} numberOfLines={1}>
+                  {selectedVoucher ? selectedVoucher.title : 'Pilih/masukkan kode vouchermu'}
+                </Text>
                 <Ionicons name="chevron-forward" size={20} color="#0284C7" />
               </TouchableOpacity>
               <View style={styles.solidDivider} />
-              <TouchableOpacity style={styles.lihatVoucherBtn} activeOpacity={0.7}>
+              <TouchableOpacity
+                style={styles.lihatVoucherBtn}
+                onPress={onOpenVoucher}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.lihatVoucherText}>Lihat semua voucher</Text>
               </TouchableOpacity>
             </View>
