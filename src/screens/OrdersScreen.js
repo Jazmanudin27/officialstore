@@ -20,9 +20,12 @@ export default function OrdersScreen({
   cartCount = 0,
   onAddToCart,
   onGoToShop,
+  user,
+  onOpenAuth,
 }) {
   const [activeTab, setActiveTab] = useState('semua');
   const [refreshing, setRefreshing] = useState(false);
+  const isLoggedIn = !!user;
 
   // Sample real-life order history data
   const [orders, setOrders] = useState([
@@ -213,139 +216,162 @@ export default function OrdersScreen({
         </View>
       </View>
 
-      {/* Filter Status Tabs */}
-      <View style={styles.tabsContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsScroll}
-        >
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <TouchableOpacity
-                key={tab.id}
-                style={[styles.tabItem, isActive && styles.tabActive]}
-                onPress={() => setActiveTab(tab.id)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
-      {/* Orders List Content */}
-      <ScrollView
-        style={styles.orderList}
-        contentContainerStyle={styles.orderListContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D91E28']} />
-        }
-      >
-        {filteredOrders.length === 0 ? (
-          <View style={styles.emptyState}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="receipt-outline" size={48} color="#94A3B8" />
-            </View>
-            <Text style={styles.emptyTitle}>Belum Ada Pesanan</Text>
-            <Text style={styles.emptySub}>
-              Tidak ada riwayat transaksi pada kategori ini saat ini.
-            </Text>
-            <TouchableOpacity
-              style={styles.shopNowBtn}
-              onPress={onGoToShop}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="cart-outline" size={18} color={COLORS.white} />
-              <Text style={styles.shopNowBtnText}>Mulai Belanja Sekarang</Text>
-            </TouchableOpacity>
+      {!isLoggedIn ? (
+        /* GUEST / NOT LOGGED IN STATE */
+        <View style={styles.emptyState}>
+          <View style={styles.emptyIconCircle}>
+            <Ionicons name="receipt-outline" size={48} color="#D91E28" />
           </View>
-        ) : (
-          filteredOrders.map((order) => (
-            <View key={order.id} style={styles.orderCard}>
-              {/* Card Header: Type & Status */}
-              <View style={styles.cardHeader}>
-                <View style={styles.typeBadgeRow}>
-                  <Ionicons
-                    name={order.type === 'pickup' ? 'storefront-outline' : 'bicycle-outline'}
-                    size={16}
-                    color="#0284C7"
-                  />
-                  <Text style={styles.typeBadgeText}>{order.typeLabel}</Text>
-                </View>
-
-                <View style={[styles.statusBadge, { backgroundColor: order.statusBg }]}>
-                  <Text style={[styles.statusBadgeText, { color: order.statusColor }]}>
-                    {order.statusLabel}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Order Metadata */}
-              <View style={styles.metaRow}>
-                <Text style={styles.orderIdText}>{order.id}</Text>
-                <Text style={styles.orderDateText}>{order.date}</Text>
-              </View>
-
-              <View style={styles.divider} />
-
-              {/* Products List in this order */}
-              {order.items.map((item, idx) => (
-                <View key={idx} style={styles.productRow}>
-                  <Image source={{ uri: item.image }} style={styles.productImage} />
-                  <View style={styles.productDetails}>
-                    <Text style={styles.productName} numberOfLines={2}>
-                      {item.name}
+          <Text style={styles.emptyTitle}>Belum Masuk Akun</Text>
+          <Text style={styles.emptySub}>
+            Silakan masuk atau daftar terlebih dahulu untuk melihat riwayat transaksi dan melacak pesanan Anda.
+          </Text>
+          <TouchableOpacity
+            style={styles.shopNowBtn}
+            onPress={onOpenAuth}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="log-in-outline" size={20} color={COLORS.white} />
+            <Text style={styles.shopNowBtnText}>Masuk / Daftar Sekarang</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          {/* Filter Status Tabs */}
+          <View style={styles.tabsContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tabsScroll}
+            >
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <TouchableOpacity
+                    key={tab.id}
+                    style={[styles.tabItem, isActive && styles.tabActive]}
+                    onPress={() => setActiveTab(tab.id)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
+                      {tab.label}
                     </Text>
-                    <Text style={styles.productVariant}>Varian: {item.variant}</Text>
-                    <View style={styles.productPriceRow}>
-                      <Text style={styles.productPrice}>
-                        {formatRupiah(item.price)}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Orders List Content */}
+          <ScrollView
+            style={styles.orderList}
+            contentContainerStyle={styles.orderListContent}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D91E28']} />
+            }
+          >
+            {filteredOrders.length === 0 ? (
+              <View style={styles.emptyState}>
+                <View style={styles.emptyIconCircle}>
+                  <Ionicons name="receipt-outline" size={48} color="#94A3B8" />
+                </View>
+                <Text style={styles.emptyTitle}>Belum Ada Pesanan</Text>
+                <Text style={styles.emptySub}>
+                  Tidak ada riwayat transaksi pada kategori ini saat ini.
+                </Text>
+                <TouchableOpacity
+                  style={styles.shopNowBtn}
+                  onPress={onGoToShop}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="cart-outline" size={18} color={COLORS.white} />
+                  <Text style={styles.shopNowBtnText}>Mulai Belanja Sekarang</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              filteredOrders.map((order) => (
+                <View key={order.id} style={styles.orderCard}>
+                  {/* Card Header: Type & Status */}
+                  <View style={styles.cardHeader}>
+                    <View style={styles.typeBadgeRow}>
+                      <Ionicons
+                        name={order.type === 'pickup' ? 'storefront-outline' : 'bicycle-outline'}
+                        size={16}
+                        color="#0284C7"
+                      />
+                      <Text style={styles.typeBadgeText}>{order.typeLabel}</Text>
+                    </View>
+
+                    <View style={[styles.statusBadge, { backgroundColor: order.statusBg }]}>
+                      <Text style={[styles.statusBadgeText, { color: order.statusColor }]}>
+                        {order.statusLabel}
                       </Text>
-                      <Text style={styles.productQty}>x{item.quantity}</Text>
+                    </View>
+                  </View>
+
+                  {/* Order Metadata */}
+                  <View style={styles.metaRow}>
+                    <Text style={styles.orderIdText}>{order.id}</Text>
+                    <Text style={styles.orderDateText}>{order.date}</Text>
+                  </View>
+
+                  <View style={styles.divider} />
+
+                  {/* Products List in this order */}
+                  {order.items.map((item, idx) => (
+                    <View key={idx} style={styles.productRow}>
+                      <Image source={{ uri: item.image }} style={styles.productImage} />
+                      <View style={styles.productDetails}>
+                        <Text style={styles.productName} numberOfLines={2}>
+                          {item.name}
+                        </Text>
+                        <Text style={styles.productVariant}>Varian: {item.variant}</Text>
+                        <View style={styles.productPriceRow}>
+                          <Text style={styles.productPrice}>
+                            {formatRupiah(item.price)}
+                          </Text>
+                          <Text style={styles.productQty}>x{item.quantity}</Text>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+
+                  <View style={styles.divider} />
+
+                  {/* Order Total & Actions */}
+                  <View style={styles.cardFooter}>
+                    <View>
+                      <Text style={styles.totalLabel}>Total Pembayaran</Text>
+                      <Text style={styles.totalValue}>{formatRupiah(order.totalAmount)}</Text>
+                    </View>
+
+                    <View style={styles.actionButtonsRow}>
+                      {order.status === 'dikirim' && (
+                        <TouchableOpacity
+                          style={styles.trackBtn}
+                          onPress={() => handleTrackOrder(order)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={styles.trackBtnText}>Lacak</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      <TouchableOpacity
+                        style={styles.reorderBtn}
+                        onPress={() => handleReorder(order)}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="repeat" size={14} color={COLORS.white} />
+                        <Text style={styles.reorderBtnText}>Beli Lagi</Text>
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </View>
-              ))}
-
-              <View style={styles.divider} />
-
-              {/* Order Total & Actions */}
-              <View style={styles.cardFooter}>
-                <View>
-                  <Text style={styles.totalLabel}>Total Pembayaran</Text>
-                  <Text style={styles.totalValue}>{formatRupiah(order.totalAmount)}</Text>
-                </View>
-
-                <View style={styles.actionButtonsRow}>
-                  {order.status === 'dikirim' && (
-                    <TouchableOpacity
-                      style={styles.trackBtn}
-                      onPress={() => handleTrackOrder(order)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={styles.trackBtnText}>Lacak</Text>
-                    </TouchableOpacity>
-                  )}
-
-                  <TouchableOpacity
-                    style={styles.reorderBtn}
-                    onPress={() => handleReorder(order)}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="repeat" size={14} color={COLORS.white} />
-                    <Text style={styles.reorderBtnText}>Beli Lagi</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          ))
-        )}
-      </ScrollView>
+              ))
+            )}
+          </ScrollView>
+        </>
+      )}
     </SafeAreaView>
   );
 }

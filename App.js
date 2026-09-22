@@ -242,6 +242,8 @@ export default function App() {
             cartCount={totalCartCount}
             onAddToCart={addToCart}
             onGoToShop={() => setActiveTab('belanja')}
+            user={currentUser}
+            onOpenAuth={() => setIsAuthOpen(true)}
           />
         );
       case 'akun':
