@@ -37,6 +37,7 @@ import ProductDetailModal from './src/screens/ProductDetailModal';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import AdminAuthScreen from './src/screens/AdminAuthScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
+import { storage } from './src/utils/storage';
 
 export default function App() {
   const { width } = useWindowDimensions();
@@ -46,6 +47,52 @@ export default function App() {
   const [adminUser, setAdminUser] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Restore active sessions on page load / mount
+  useEffect(() => {
+    try {
+      const savedAdmin = storage.getItem('official_store_admin_session');
+      if (savedAdmin) {
+        setAdminUser(JSON.parse(savedAdmin));
+      }
+      const savedUser = storage.getItem('official_store_user_session');
+      if (savedUser) {
+        setCurrentUser(JSON.parse(savedUser));
+      }
+    } catch (e) {
+      console.warn('Session restore warning:', e);
+    }
+  }, []);
+
+  const handleSaveAdminSession = (data) => {
+    setAdminUser(data);
+    try {
+      storage.setItem('official_store_admin_session', JSON.stringify(data));
+    } catch (e) {
+      console.warn('Save admin session error:', e);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setAdminUser(null);
+    try {
+      storage.removeItem('official_store_admin_session');
+    } catch (e) {
+      console.warn('Remove admin session error:', e);
+    }
+  };
+
+  const handleSaveUserSession = (userData) => {
+    setCurrentUser(userData);
+    try {
+      storage.setItem('official_store_user_session', JSON.stringify(userData));
+    } catch (e) {
+      console.warn('Save user session error:', e);
+    }
+    if (userData?.role === 'admin') {
+      handleSaveAdminSession(userData);
+    }
+  };
 
   // Deteksi Domain / URL khusus Admin (misal: admin.aspartech.com atau ?admin=1 atau /admin)
   const isAdminDomain = (() => {
@@ -306,7 +353,7 @@ export default function App() {
     if (!adminUser) {
       return (
         <AdminAuthScreen
-          onLoginSuccess={(adm) => setAdminUser(adm)}
+          onLoginSuccess={(adm) => handleSaveAdminSession(adm)}
           isStandaloneDomain={true}
         />
       );
@@ -315,7 +362,7 @@ export default function App() {
       <AdminDashboardScreen
         visible={true}
         adminUser={adminUser}
-        onLogout={() => setAdminUser(null)}
+        onLogout={handleAdminLogout}
         showGoToStore={false}
         onRefreshProducts={handleRefresh}
       />
@@ -435,11 +482,8 @@ export default function App() {
         visible={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         onLoginSuccess={(userData) => {
-          setCurrentUser(userData);
+          handleSaveUserSession(userData);
           setIsAuthOpen(false);
-          if (userData.role === 'admin') {
-            setAdminUser(userData);
-          }
           if (userData.alamat) {
             setSelectedAddress({
               id: 'user_addr',
@@ -485,7 +529,7 @@ export default function App() {
             onRefreshProducts={handleRefresh}
             adminUser={adminUser || currentUser}
             onLogout={() => {
-              setAdminUser(null);
+              handleAdminLogout();
               setIsAdminOpen(false);
             }}
           />
@@ -500,7 +544,7 @@ export default function App() {
               </TouchableOpacity>
               <AdminAuthScreen
                 onLoginSuccess={(adm) => {
-                  setAdminUser(adm);
+                  handleSaveAdminSession(adm);
                 }}
               />
             </SafeAreaView>
