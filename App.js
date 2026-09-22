@@ -27,8 +27,10 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
+import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -121,6 +123,9 @@ export default function App() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ExpoStatusBar style="light" backgroundColor={COLORS.primaryRed} />
+
+      {/* Animated E-Commerce Splash Screen */}
+      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
       {/* Top Red Collapsible Header Bar */}
       <Header
