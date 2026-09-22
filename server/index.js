@@ -147,10 +147,10 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
 
     if (!user) {
-      return res.json({
-        status: 'ok',
+      return res.status(400).json({
+        status: 'error',
         isRegistered: false,
-        message: 'Nomor HP belum terdaftar. Silakan lengkapi formulir registrasi.',
+        message: 'Anda belum terdaftar, silahkan daftar terlebih dahulu.',
         data: { phone: cleanPhone },
       });
     }

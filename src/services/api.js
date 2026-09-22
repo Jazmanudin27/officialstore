@@ -106,20 +106,28 @@ export const apiService = {
         body: JSON.stringify({ phone, otp }),
       });
       const json = await response.json();
-      if (json.status === 'ok') return json;
-      throw new Error(json.message || 'Verifikasi OTP gagal');
+      if (json.status === 'ok' && json.data && json.data.user) return json;
+      throw new Error(json.message || 'Anda belum terdaftar, silahkan daftar terlebih dahulu.');
     } catch (error) {
-      console.warn('ℹ️ Auth API offline, verifikasi lokal:', error.message);
+      console.warn('ℹ️ Auth API response / status:', error.message);
+      if (error.message && error.message.includes('terdaftar')) {
+        throw error;
+      }
+      // Demo offline fallback (hanya untuk nomor terdaftar resmi 0895238888200)
+      const cleanDigits = phone.replace(/[^0-9]/g, '');
       if (otp === '123456') {
+        if (cleanDigits !== '62895238888200' && cleanDigits !== '0895238888200') {
+          throw new Error('Anda belum terdaftar, silahkan daftar terlebih dahulu.');
+        }
         return {
           status: 'ok',
           message: 'Login Berhasil (Demo Mode)',
           data: {
             user: {
               id: 1,
-              namaLengkap: 'Pelanggan Official Store',
-              phone,
-              alamat: 'Jl. Pasir Bokor, Cipawitra, Mangkubumi, Tasikmalaya',
+              namaLengkap: 'Ade Fitri Nuraeni',
+              phone: '62895238888200',
+              alamat: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya',
               poin: 500,
               role: 'buyer',
             },

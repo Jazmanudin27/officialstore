@@ -7,6 +7,7 @@ import {
   StyleSheet,
   SafeAreaView,
   Alert,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -24,14 +25,21 @@ export default function ProfileScreen({
   const isLoggedIn = !!user;
 
   const handleLogoutConfirm = () => {
-    Alert.alert(
-      'Konfirmasi Keluar',
-      'Apakah Anda yakin ingin keluar dari akun Official Store?',
-      [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Keluar', style: 'destructive', onPress: onLogout },
-      ]
-    );
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Apakah Anda yakin ingin keluar dari akun Official Store?');
+      if (confirmed && onLogout) {
+        onLogout();
+      }
+    } else {
+      Alert.alert(
+        'Konfirmasi Keluar',
+        'Apakah Anda yakin ingin keluar dari akun Official Store?',
+        [
+          { text: 'Batal', style: 'cancel' },
+          { text: 'Keluar', style: 'destructive', onPress: onLogout },
+        ]
+      );
+    }
   };
 
   return (

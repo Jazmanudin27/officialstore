@@ -275,17 +275,7 @@ export default function App() {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setSelectedAddress({
-      id: 'addr1',
-      title: 'Rumah',
-      isUtama: true,
-      recipient: 'Pelanggan',
-      phone: '0895238888200',
-      addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
-      addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
-      note: 'Patokan Rafasya Cell',
-      isPickup: false,
-    });
+    setSelectedAddress(null);
   };
 
   return (

@@ -123,10 +123,9 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
         }
         handleClose();
       } else if (result && result.isRegistered === false) {
-        // Nomor belum terdaftar, alihkan ke tab registrasi
         Alert.alert(
-          'Nomor Belum Terdaftar',
-          'Nomor HP Anda belum terdaftar. Silakan lengkapi nama dan alamat untuk mendaftar.'
+          'Anda Belum Terdaftar',
+          'Anda belum terdaftar, silahkan daftar terlebih dahulu.'
         );
         setAuthMode('register');
         setStep('input');
@@ -134,7 +133,16 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
         throw new Error(result.message || 'Verifikasi OTP gagal.');
       }
     } catch (err) {
-      Alert.alert('Verifikasi Gagal', err.message || 'Kode OTP tidak cocok.');
+      if (err.message && err.message.includes('terdaftar')) {
+        Alert.alert(
+          'Anda Belum Terdaftar',
+          'Anda belum terdaftar, silahkan daftar terlebih dahulu.'
+        );
+        setAuthMode('register');
+        setStep('input');
+      } else {
+        Alert.alert('Verifikasi Gagal', err.message || 'Kode OTP tidak cocok.');
+      }
     } finally {
       setIsLoading(false);
     }
