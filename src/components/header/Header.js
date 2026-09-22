@@ -16,6 +16,7 @@ export default function Header({
   openChat,
   openNotification,
   openAddress,
+  selectedAddress,
   isScrolled,
   openSearch,
 }) {
@@ -71,19 +72,27 @@ export default function Header({
         <View>
           {/* Top Address & Action Bar */}
           <View style={styles.topRow}>
-            <View style={styles.addressContainer}>
+            <TouchableOpacity
+              style={styles.addressContainer}
+              onPress={openAddress}
+              activeOpacity={0.7}
+            >
               <Text style={styles.addressLabel}>Alamat kirim:</Text>
-              <TouchableOpacity style={styles.addressSelector} onPress={openAddress} activeOpacity={0.7}>
-                <Text style={styles.addressTitle}>Rumah</Text>
-                <View style={styles.utamaBadge}>
-                  <Text style={styles.utamaText}>Utama</Text>
-                </View>
+              <View style={styles.addressSelector}>
+                <Text style={styles.addressTitle}>
+                  {selectedAddress?.title || 'Rumah'}
+                </Text>
+                {selectedAddress?.isUtama && (
+                  <View style={styles.utamaBadge}>
+                    <Text style={styles.utamaText}>Utama</Text>
+                  </View>
+                )}
                 <Ionicons name="chevron-down" size={16} color={COLORS.white} />
-              </TouchableOpacity>
+              </View>
               <Text style={styles.addressSub} numberOfLines={1}>
-                Jl. Pasir Bokor, Kp. Gunung Jambe,...
+                {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe,...'}
               </Text>
-            </View>
+            </TouchableOpacity>
 
             {/* Right Action Icons */}
             <View style={styles.actionRow}>

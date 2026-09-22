@@ -11,9 +11,22 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 
-export default function AddressModal({ visible, onClose, onSelectAddress }) {
+export default function AddressModal({
+  visible,
+  onClose,
+  onSelectAddress,
+  selectedAddress,
+}) {
   const [fulfillmentMode, setFulfillmentMode] = useState('delivery');
-  const [selectedAddressId, setSelectedAddressId] = useState('addr1');
+  const [selectedAddressId, setSelectedAddressId] = useState(
+    selectedAddress?.id || 'addr1'
+  );
+
+  React.useEffect(() => {
+    if (selectedAddress?.id) {
+      setSelectedAddressId(selectedAddress.id);
+    }
+  }, [selectedAddress]);
 
   const addresses = [
     {
@@ -67,79 +80,82 @@ export default function AddressModal({ visible, onClose, onSelectAddress }) {
           <Text style={styles.headerTitle}>Cara Belanja</Text>
         </View>
 
-        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
-          {/* Fulfillment Toggle (Delivery vs Pickup) */}
-          <View style={styles.modeToggleContainer}>
-            <TouchableOpacity
-              style={[
-                styles.modeBtn,
-                fulfillmentMode === 'delivery' && styles.modeBtnActive,
-              ]}
-              onPress={() => setFulfillmentMode('delivery')}
-              activeOpacity={0.8}
-            >
-              <Text
+        <View style={styles.bodyWrapper}>
+          <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+            {/* Fulfillment Toggle (Delivery vs Pickup) */}
+            <View style={styles.modeToggleContainer}>
+              <TouchableOpacity
                 style={[
-                  styles.modeText,
-                  fulfillmentMode === 'delivery' && styles.modeTextActive,
+                  styles.modeBtn,
+                  fulfillmentMode === 'delivery' && styles.modeBtnActive,
                 ]}
+                onPress={() => setFulfillmentMode('delivery')}
+                activeOpacity={0.8}
               >
-                Delivery
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.modeBtn,
-                fulfillmentMode === 'pickup' && styles.modeBtnActive,
-              ]}
-              onPress={() => setFulfillmentMode('pickup')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.modeText,
-                  fulfillmentMode === 'pickup' && styles.modeTextActive,
-                ]}
-              >
-                Pickup
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Delivery Benefit Card Banner */}
-          <TouchableOpacity style={styles.benefitCard} activeOpacity={0.7}>
-            <View style={styles.benefitLeft}>
-              <View style={styles.motorCircle}>
-                <Ionicons name="bicycle" size={20} color="#D91E28" />
-              </View>
-              <Text style={styles.benefitText}>Lihat benefit delivery di sini</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#0284C7" />
-          </TouchableOpacity>
-
-          {/* Section Header: Daftar Alamat */}
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>Daftar Alamat</Text>
-            <TouchableOpacity style={styles.tambahAlamatBtn} activeOpacity={0.7}>
-              <Ionicons name="add" size={16} color="#0284C7" />
-              <Text style={styles.tambahAlamatText}>Tambah Alamat</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Address Cards List */}
-          <View style={styles.addressList}>
-            {addresses.map((item) => {
-              const isSelected = item.id === selectedAddressId;
-
-              return (
-                <View
-                  key={item.id}
+                <Text
                   style={[
-                    styles.addressCard,
-                    isSelected && styles.addressCardSelected,
+                    styles.modeText,
+                    fulfillmentMode === 'delivery' && styles.modeTextActive,
                   ]}
                 >
+                  Delivery
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.modeBtn,
+                  fulfillmentMode === 'pickup' && styles.modeBtnActive,
+                ]}
+                onPress={() => setFulfillmentMode('pickup')}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.modeText,
+                    fulfillmentMode === 'pickup' && styles.modeTextActive,
+                  ]}
+                >
+                  Pickup
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Delivery Benefit Card Banner */}
+            <TouchableOpacity style={styles.benefitCard} activeOpacity={0.7}>
+              <View style={styles.benefitLeft}>
+                <View style={styles.motorCircle}>
+                  <Ionicons name="bicycle" size={20} color="#D91E28" />
+                </View>
+                <Text style={styles.benefitText}>Lihat benefit delivery di sini</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#0284C7" />
+            </TouchableOpacity>
+
+            {/* Section Header: Daftar Alamat */}
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Daftar Alamat</Text>
+              <TouchableOpacity style={styles.tambahAlamatBtn} activeOpacity={0.7}>
+                <Ionicons name="add" size={16} color="#0284C7" />
+                <Text style={styles.tambahAlamatText}>Tambah Alamat</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Address Cards List */}
+            <View style={styles.addressList}>
+              {addresses.map((item) => {
+                const isSelected = item.id === selectedAddressId;
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.addressCard,
+                      isSelected && styles.addressCardSelected,
+                    ]}
+                    onPress={() => !isSelected && handleSelect(item)}
+                    activeOpacity={isSelected ? 1 : 0.75}
+                  >
                   {/* Selected Address Ribbon */}
                   {isSelected && (
                     <View style={styles.selectedRibbon}>
@@ -213,11 +229,12 @@ export default function AddressModal({ visible, onClose, onSelectAddress }) {
                       </TouchableOpacity>
                     </View>
                   )}
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
         </ScrollView>
+        </View>
       </SafeAreaView>
     </Modal>
   );
@@ -225,6 +242,10 @@ export default function AddressModal({ visible, onClose, onSelectAddress }) {
 
 const styles = StyleSheet.create({
   safeArea: {
+    flex: 1,
+    backgroundColor: '#D91E28',
+  },
+  bodyWrapper: {
     flex: 1,
     backgroundColor: '#F8FAFC',
   },

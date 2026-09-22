@@ -22,6 +22,7 @@ export default function CartModal({
   onClearCart,
   onCheckout,
   onOpenAddress,
+  selectedAddress,
 }) {
   const [selectAll, setSelectAll] = useState(true);
 
@@ -69,32 +70,42 @@ export default function CartModal({
 
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
           {/* Shipping Address Box */}
-          <View style={styles.addressCard}>
+          <TouchableOpacity
+            style={styles.addressCard}
+            onPress={onOpenAddress}
+            activeOpacity={0.8}
+          >
             <View style={styles.addressLeft}>
               <View style={styles.truckIconBox}>
                 <Ionicons name="bicycle" size={24} color="#D91E28" />
               </View>
               <View style={styles.addressDetails}>
                 <View style={styles.addressTitleRow}>
-                  <Text style={styles.addressTitle}>Rumah - Ade Fitri Nuraeni</Text>
-                  <View style={styles.utamaBadge}>
-                    <Text style={styles.utamaText}>Utama</Text>
-                  </View>
+                  <Text style={styles.addressTitle}>
+                    {selectedAddress?.title || 'Rumah'} - {selectedAddress?.recipient || 'Ade Fitri Nuraeni'}
+                  </Text>
+                  {selectedAddress?.isUtama && (
+                    <View style={styles.utamaBadge}>
+                      <Text style={styles.utamaText}>Utama</Text>
+                    </View>
+                  )}
                 </View>
                 <Text style={styles.addressSub} numberOfLines={1}>
-                  Jl. Pasir Bokor, Kp. Gunung Jambe...
+                  {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe...'}
                 </Text>
-                <View style={styles.noteRow}>
-                  <Ionicons name="document-text-outline" size={13} color="#64748B" />
-                  <Text style={styles.noteText}>Patokan Rafasya Cell</Text>
-                </View>
+                {selectedAddress?.note ? (
+                  <View style={styles.noteRow}>
+                    <Ionicons name="document-text-outline" size={13} color="#64748B" />
+                    <Text style={styles.noteText}>{selectedAddress.note}</Text>
+                  </View>
+                ) : null}
               </View>
             </View>
 
-            <TouchableOpacity style={styles.gantiBtn} onPress={onOpenAddress} activeOpacity={0.7}>
+            <View style={styles.gantiBtn}>
               <Text style={styles.gantiBtnText}>Ganti</Text>
-            </TouchableOpacity>
-          </View>
+            </View>
+          </TouchableOpacity>
 
           {/* Yellow Promo Box "Tebus Murah!" */}
           <View style={styles.promoBox}>

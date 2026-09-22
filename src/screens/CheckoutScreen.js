@@ -22,6 +22,7 @@ export default function CheckoutScreen({
   onOpenVoucher,
   onOpenAddress,
   selectedVoucher = null,
+  selectedAddress,
 }) {
   const defaultItems = [
     {
@@ -238,36 +239,46 @@ export default function CheckoutScreen({
           </View>
 
           {/* Delivery Address Card */}
-          <View style={styles.addressCardContainer}>
+          <TouchableOpacity
+            style={styles.addressCardContainer}
+            onPress={onOpenAddress}
+            activeOpacity={0.85}
+          >
             <View style={styles.addressHeaderRow}>
               <View style={styles.addressHeaderLeft}>
                 <Ionicons name="bicycle" size={20} color="#D91E28" />
                 <Text style={styles.addressHeaderTitle}>Kirim ke Alamat</Text>
-                <View style={styles.utamaRedBadge}>
-                  <Text style={styles.utamaRedBadgeText}>Utama</Text>
-                </View>
+                {selectedAddress?.isUtama && (
+                  <View style={styles.utamaRedBadge}>
+                    <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                  </View>
+                )}
               </View>
-              <TouchableOpacity onPress={onOpenAddress} activeOpacity={0.7}>
+              <View>
                 <Text style={styles.gantiAlamatText}>Ganti Alamat</Text>
-              </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.addressCardBody}>
               <View style={styles.addressInfoBox}>
                 <View style={styles.addressBodyTopRow}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.recipientTitle}>Rumah - Ade Fitri Nuraeni</Text>
-                    <Text style={styles.recipientAddress} numberOfLines={1}>
-                      Jl. Pasir Bokor, Kp. Gunung Jambe, RT/R...
+                    <Text style={styles.recipientTitle}>
+                      {selectedAddress?.title || 'Rumah'} - {selectedAddress?.recipient || 'Ade Fitri Nuraeni'}
                     </Text>
-                    <View style={styles.patokanRow}>
-                      <Ionicons name="document-text-outline" size={13} color="#64748B" />
-                      <Text style={styles.patokanText}>Patokan Rafasya Cell</Text>
-                    </View>
+                    <Text style={styles.recipientAddress} numberOfLines={1}>
+                      {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/R...'}
+                    </Text>
+                    {selectedAddress?.note ? (
+                      <View style={styles.patokanRow}>
+                        <Ionicons name="document-text-outline" size={13} color="#64748B" />
+                        <Text style={styles.patokanText}>{selectedAddress.note}</Text>
+                      </View>
+                    ) : null}
                   </View>
-                  <TouchableOpacity style={styles.detailBtn} activeOpacity={0.7}>
+                  <View style={styles.detailBtn}>
                     <Text style={styles.detailBtnText}>Detail</Text>
-                  </TouchableOpacity>
+                  </View>
                 </View>
 
                 {/* Lobby Notice */}
@@ -282,7 +293,7 @@ export default function CheckoutScreen({
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
 
           {/* Warning Location Text */}
           <Text style={styles.warningLocationText}>

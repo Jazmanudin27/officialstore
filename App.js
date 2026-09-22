@@ -15,7 +15,6 @@ import { useFavorites } from './src/hooks/useFavorites';
 
 // Components
 import Header from './src/components/header/Header';
-import StickyPromoBanner from './src/components/promo/StickyPromoBanner';
 import CartModal from './src/components/cart/CartModal';
 import BottomNavigation from './src/components/navigation/BottomNavigation';
 
@@ -42,11 +41,75 @@ export default function App() {
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
+  const [selectedAddress, setSelectedAddress] = useState({
+    id: 'addr1',
+    title: 'Rumah',
+    isUtama: true,
+    recipient: 'Ade Fitri Nuraeni',
+    phone: '0895238888200',
+    addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
+    addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
+    note: 'Patokan Rafasya Cell',
+  });
+  const [addressReturnTarget, setAddressReturnTarget] = useState(null);
+  const [voucherReturnTarget, setVoucherReturnTarget] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Address and modal flow handlers (avoids modal-over-modal collision on iOS/Web/Android)
+  const handleOpenAddressFromHome = () => {
+    setAddressReturnTarget(null);
+    setIsAddressOpen(true);
+  };
+
+  const handleOpenAddressFromCart = () => {
+    setIsCartOpen(false);
+    setAddressReturnTarget('cart');
+    setIsAddressOpen(true);
+  };
+
+  const handleOpenAddressFromCheckout = () => {
+    setIsCheckoutOpen(false);
+    setAddressReturnTarget('checkout');
+    setIsAddressOpen(true);
+  };
+
+  const handleCloseAddress = () => {
+    setIsAddressOpen(false);
+    if (addressReturnTarget === 'cart') {
+      setIsCartOpen(true);
+    } else if (addressReturnTarget === 'checkout') {
+      setIsCheckoutOpen(true);
+    }
+    setAddressReturnTarget(null);
+  };
+
+  const handleSelectAddress = (addr) => {
+    setSelectedAddress(addr);
+    handleCloseAddress();
+  };
+
+  const handleOpenVoucher = () => {
+    setIsCheckoutOpen(false);
+    setVoucherReturnTarget('checkout');
+    setIsVoucherOpen(true);
+  };
+
+  const handleCloseVoucher = () => {
+    setIsVoucherOpen(false);
+    if (voucherReturnTarget === 'checkout') {
+      setIsCheckoutOpen(true);
+    }
+    setVoucherReturnTarget(null);
+  };
+
+  const handleSelectVoucher = (voucher) => {
+    setSelectedVoucher(voucher);
+    handleCloseVoucher();
+  };
 
   // Inject Base64 Ionicons font on Web to guarantee 100% icon rendering offline/online
   useEffect(() => {
@@ -159,7 +222,8 @@ export default function App() {
           openCart={() => setIsCartOpen(true)}
           openChat={() => setIsChatOpen(true)}
           openNotification={() => setIsNotificationOpen(true)}
-          openAddress={() => setIsAddressOpen(true)}
+          openAddress={handleOpenAddressFromHome}
+          selectedAddress={selectedAddress}
           isScrolled={isScrolled}
           openSearch={() => setIsSearchOpen(true)}
         />
@@ -189,9 +253,6 @@ export default function App() {
         onClose={() => setIsNotificationOpen(false)}
       />
 
-      {/* Sticky Bottom Floating Banner (HARGA SUPER!) (Home tab only) */}
-      {activeTab === 'home' && <StickyPromoBanner onOpen={() => setIsCartOpen(true)} />}
-
       {/* Cart Modal View */}
       <CartModal
         visible={isCartOpen}
@@ -201,7 +262,8 @@ export default function App() {
         onRemoveItem={removeFromCart}
         onClearCart={clearCart}
         onCheckout={() => setIsCheckoutOpen(true)}
-        onOpenAddress={() => setIsAddressOpen(true)}
+        onOpenAddress={handleOpenAddressFromCart}
+        selectedAddress={selectedAddress}
       />
 
       {/* Ringkasan Pesanan / Checkout Screen Modal */}
@@ -209,9 +271,10 @@ export default function App() {
         visible={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={cartItems}
-        onOpenVoucher={() => setIsVoucherOpen(true)}
-        onOpenAddress={() => setIsAddressOpen(true)}
+        onOpenVoucher={handleOpenVoucher}
+        onOpenAddress={handleOpenAddressFromCheckout}
         selectedVoucher={selectedVoucher}
+        selectedAddress={selectedAddress}
         onCompleteCheckout={() => {
           clearCart();
           setSelectedVoucher(null);
@@ -222,14 +285,16 @@ export default function App() {
       {/* Voucher Selection Screen Modal */}
       <VoucherScreen
         visible={isVoucherOpen}
-        onClose={() => setIsVoucherOpen(false)}
-        onSelectVoucher={(voucher) => setSelectedVoucher(voucher)}
+        onClose={handleCloseVoucher}
+        onSelectVoucher={handleSelectVoucher}
       />
 
       {/* Cara Belanja / Ganti Alamat Screen Modal */}
       <AddressModal
         visible={isAddressOpen}
-        onClose={() => setIsAddressOpen(false)}
+        onClose={handleCloseAddress}
+        onSelectAddress={handleSelectAddress}
+        selectedAddress={selectedAddress}
       />
 
       {/* Bottom 5-Tab Navigation Bar */}
