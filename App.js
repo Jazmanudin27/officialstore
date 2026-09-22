@@ -27,6 +27,7 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import SearchScreen from './src/screens/SearchScreen';
 import ChatScreen from './src/screens/ChatScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
+import CheckoutScreen from './src/screens/CheckoutScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -174,6 +176,18 @@ export default function App() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         onClearCart={clearCart}
+        onCheckout={() => setIsCheckoutOpen(true)}
+      />
+
+      {/* Ringkasan Pesanan / Checkout Screen Modal */}
+      <CheckoutScreen
+        visible={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        cartItems={cartItems}
+        onCompleteCheckout={() => {
+          clearCart();
+          setIsCartOpen(false);
+        }}
       />
 
       {/* Bottom 5-Tab Navigation Bar */}

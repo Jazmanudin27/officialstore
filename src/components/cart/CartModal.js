@@ -20,6 +20,7 @@ export default function CartModal({
   onUpdateQuantity,
   onRemoveItem,
   onClearCart,
+  onCheckout,
 }) {
   const [selectAll, setSelectAll] = useState(true);
 
@@ -198,7 +199,13 @@ export default function CartModal({
 
         {/* Sticky Bottom Bar */}
         <View style={styles.bottomBarContainer}>
-          <TouchableOpacity style={styles.bottomBarBtn} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={styles.bottomBarBtn}
+            onPress={() => {
+              if (onCheckout) onCheckout();
+            }}
+            activeOpacity={0.85}
+          >
             <Text style={styles.bottomBarTotal}>{formatRupiah(totalPrice)}</Text>
             <Text style={styles.bottomBarAction}>Selanjutnya</Text>
           </TouchableOpacity>
