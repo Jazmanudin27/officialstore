@@ -29,6 +29,7 @@ import ChatScreen from './src/screens/ChatScreen';
 import NotificationScreen from './src/screens/NotificationScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
 import VoucherScreen from './src/screens/VoucherScreen';
+import PromoScreen from './src/screens/PromoScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
@@ -97,6 +98,14 @@ export default function App() {
       case 'explore':
         return <ExploreScreen onAddToCart={addToCart} />;
       case 'promo':
+        return (
+          <PromoScreen
+            onAddToCart={addToCart}
+            openSearch={() => setIsSearchOpen(true)}
+            openCart={() => setIsCartOpen(true)}
+            cartCount={totalCartCount}
+          />
+        );
       case 'wishlist':
         return (
           <WishlistScreen
