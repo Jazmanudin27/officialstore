@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../../constants/theme';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -8,13 +9,16 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function Header({ searchQuery, setSearchQuery, cartCount, openCart, isScrolled }) {
-  // Trigger smooth layout transition when collapsing/expanding
   React.useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, [isScrolled]);
 
   return (
-    <View style={[styles.headerBackground, isScrolled && styles.headerCompact]}>
+    <LinearGradient
+      colors={isScrolled ? ['#D91E28', '#DC2626'] : ['#B91C1C', '#D91E28', '#EF4444', '#F8FAFC']}
+      locations={isScrolled ? [0, 1] : [0, 0.45, 0.85, 1]}
+      style={[styles.headerBackground, isScrolled && styles.headerCompact]}
+    >
       {isScrolled ? (
         /* COMPACT / COLLAPSED HEADER STATE (On Scroll Down) */
         <View style={styles.compactRow}>
@@ -125,16 +129,15 @@ export default function Header({ searchQuery, setSearchQuery, cartCount, openCar
           </View>
         </View>
       )}
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   headerBackground: {
-    backgroundColor: COLORS.primaryRed,
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 14,
+    paddingBottom: 24,
     zIndex: 100,
   },
   headerCompact: {
@@ -154,6 +157,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionRowCompact: {
     flexDirection: 'row',
@@ -241,6 +249,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 42,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   searchIcon: {
     marginRight: 8,
