@@ -303,6 +303,8 @@ app.get('/api/products', async (req, res) => {
         COALESCE(v.nama_varian, p.nama_produk) AS name,
         p.nama_produk AS parentName,
         c.nama_kategori AS category,
+        v.satuan AS satuan,
+        v.ukuran_atau_isi AS ukuran,
         v.harga AS price,
         v.harga_coret AS originalPrice,
         v.berat_gram AS weight,

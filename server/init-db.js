@@ -24,15 +24,15 @@ async function initDatabase() {
     await connection.query(schemaSql);
     console.log('✅ Skema tabel berhasil dibuat/diverifikasi.');
 
-    // 3. Cek apakah tabel products sudah memiliki data
+    // 3. Cek apakah tabel products sudah memiliki 16 produk lengkap
     const [rows] = await connection.query('SELECT COUNT(*) as count FROM officialstore.products');
-    if (rows[0].count === 0) {
-      console.log('🌱 Tabel produk masih kosong. Memasukkan data awal (seed)...');
+    if (rows[0].count < 16) {
+      console.log(`🌱 Memperbarui data 16 produk resmi & 32 varian satuan (PCS/DUS)...`);
       const seedSql = fs.readFileSync(path.join(__dirname, 'seed.sql'), 'utf-8');
       await connection.query(seedSql);
-      console.log('✅ Data awal produk (AIDA, Saus Swan, dll) berhasil dimasukkan!');
+      console.log('✅ 16 Produk Induk & 32 Varian Satuan (PCS / DUS) berhasil dimasukkan ke database!');
     } else {
-      console.log(`ℹ️ Data produk sudah ada (${rows[0].count} produk). Tidak perlu re-seed.`);
+      console.log(`ℹ️ Data 16 produk sudah lengkap (${rows[0].count} produk).`);
     }
 
     console.log('🎉 Inisialisasi database officialstore selesai dengan sukses!');
