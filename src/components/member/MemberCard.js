@@ -67,12 +67,8 @@ export default function MemberCard() {
 
       <View style={styles.divider} />
 
-      {/* Bottom Wallet & Barcode Buttons */}
+      {/* Bottom Barcode Button */}
       <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.gopayBtn} activeOpacity={0.7}>
-          <Ionicons name="chevron-forward" size={14} color="#0284C7" />
-        </TouchableOpacity>
-
         <TouchableOpacity style={styles.barcodeBtn} activeOpacity={0.8}>
           <Ionicons name="barcode-outline" size={18} color="#0284C7" />
           <Text style={styles.barcodeText}>Barcode Member</Text>
@@ -198,30 +194,20 @@ const styles = StyleSheet.create({
   },
   bottomActions: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingBottom: 12,
-    gap: 8,
-  },
-  gopayBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  gopayText: {
-    color: '#0284C7',
-    fontSize: 12,
-    fontWeight: '700',
   },
   barcodeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
     borderWidth: 1,
     borderColor: '#0284C7',
     borderRadius: 16,
-    paddingHorizontal: 12,
+    paddingHorizontal: 20,
     paddingVertical: 6,
   },
   barcodeText: {
