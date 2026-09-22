@@ -799,9 +799,33 @@ app.put('/api/admin/orders/:id', async (req, res) => {
   }
 });
 
+// Auto-verify & create store_settings table if not existing
+async function ensureStoreSettingsTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS store_settings (
+          setting_id INT AUTO_INCREMENT PRIMARY KEY,
+          nama_toko VARCHAR(150) DEFAULT 'Official Store Tasikmalaya',
+          slogan VARCHAR(255) DEFAULT 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+          logo_url TEXT,
+          alamat_utama TEXT,
+          nomor_whatsapp VARCHAR(20) DEFAULT '62895238888200',
+          jam_operasional VARCHAR(100) DEFAULT '07:00 - 22:00 WIB',
+          latitude DECIMAL(10, 8) DEFAULT -7.351200,
+          longitude DECIMAL(11, 8) DEFAULT 108.214500,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (err) {
+    console.warn('ensureStoreSettingsTable warning:', err.message);
+  }
+}
+ensureStoreSettingsTable();
+
 // 16. Admin: Get & Update Store Settings
 app.get('/api/admin/settings', async (req, res) => {
   try {
+    await ensureStoreSettingsTable();
     const [rows] = await pool.query('SELECT * FROM store_settings ORDER BY setting_id ASC LIMIT 1');
     const settings = rows.length > 0 ? rows[0] : {
       nama_toko: 'Official Store Tasikmalaya',
@@ -822,46 +846,41 @@ app.get('/api/admin/settings', async (req, res) => {
 
 app.put('/api/admin/settings', async (req, res) => {
   try {
+    await ensureStoreSettingsTable();
     const {
-      nama_toko,
-      slogan,
-      logo_url,
-      alamat_utama,
-      nomor_whatsapp,
-      jam_operasional,
-      latitude,
-      longitude,
+      nama_toko = 'Official Store Tasikmalaya',
+      slogan = 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+      logo_url = '',
+      alamat_utama = '',
+      nomor_whatsapp = '',
+      jam_operasional = '07:00 - 22:00 WIB',
+      latitude = -7.3512,
+      longitude = 108.2145,
     } = req.body;
 
+    const latNum = parseFloat(latitude) || -7.3512;
+    const lngNum = parseFloat(longitude) || 108.2145;
+
     const [rows] = await pool.query('SELECT setting_id FROM store_settings LIMIT 1');
-    if (rows.length > 0) {
+    if (rows && rows.length > 0) {
       await pool.query(
         `UPDATE store_settings SET 
-          nama_toko = COALESCE(?, nama_toko),
-          slogan = COALESCE(?, slogan),
-          logo_url = COALESCE(?, logo_url),
-          alamat_utama = COALESCE(?, alamat_utama),
-          nomor_whatsapp = COALESCE(?, nomor_whatsapp),
-          jam_operasional = COALESCE(?, jam_operasional),
-          latitude = COALESCE(?, latitude),
-          longitude = COALESCE(?, longitude)
+          nama_toko = ?,
+          slogan = ?,
+          logo_url = ?,
+          alamat_utama = ?,
+          nomor_whatsapp = ?,
+          jam_operasional = ?,
+          latitude = ?,
+          longitude = ?
         WHERE setting_id = ?`,
-        [nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latitude, longitude, rows[0].setting_id]
+        [nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latNum, lngNum, rows[0].setting_id]
       );
     } else {
       await pool.query(
         `INSERT INTO store_settings (nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latitude, longitude)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          nama_toko || 'Official Store Tasikmalaya',
-          slogan || 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
-          logo_url || null,
-          alamat_utama || null,
-          nomor_whatsapp || '62895238888200',
-          jam_operasional || '07:00 - 22:00 WIB',
-          latitude || -7.351200,
-          longitude || 108.214500,
-        ]
+        [nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latNum, lngNum]
       );
     }
 
@@ -893,10 +912,12 @@ app.post('/api/admin/stores', async (req, res) => {
     }
 
     const finalCode = code || `CAB-${Date.now().toString().slice(-4)}`;
+    const latNum = parseFloat(lat) || -7.3512;
+    const lngNum = parseFloat(lng) || 108.2145;
 
     const [result] = await pool.query(
       'INSERT INTO stores (kode_toko, nama_toko, alamat_toko, nomor_telepon, jam_operasional, latitude, longitude, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)',
-      [finalCode, name, address, phone, hours, lat, lng]
+      [finalCode, name, address, phone, hours, latNum, lngNum]
     );
 
     res.json({
@@ -914,6 +935,8 @@ app.put('/api/admin/stores/:id', async (req, res) => {
   try {
     const storeId = req.params.id;
     const { code, name, address, phone, hours, lat, lng, active } = req.body;
+    const latNum = lat !== undefined ? parseFloat(lat) || -7.3512 : null;
+    const lngNum = lng !== undefined ? parseFloat(lng) || 108.2145 : null;
 
     await pool.query(
       `UPDATE stores SET 
@@ -926,7 +949,7 @@ app.put('/api/admin/stores/:id', async (req, res) => {
         longitude = COALESCE(?, longitude),
         status_aktif = COALESCE(?, status_aktif)
       WHERE store_id = ?`,
-      [code || null, name || null, address || null, phone || null, hours || null, lat || null, lng || null, active !== undefined ? active : null, storeId]
+      [code || null, name || null, address || null, phone || null, hours || null, latNum, lngNum, active !== undefined ? active : null, storeId]
     );
 
     res.json({ status: 'ok', message: 'Data cabang berhasil diperbarui!' });
