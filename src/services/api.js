@@ -1,7 +1,19 @@
 import { PRODUCTS, GRID_CATEGORIES } from '../data/mockProducts';
 
-// BASE_URL disesuaikan otomatis (jika di browser memakai relative URL, jika mobile menggunakan konfigurasi)
-const BASE_URL = typeof window !== 'undefined' && window.location ? '' : 'http://localhost:5000';
+// BASE_URL disesuaikan otomatis untuk Web (Metro/Dev/Production) & Mobile
+const getApiBaseUrl = () => {
+  if (typeof window !== 'undefined' && window.location) {
+    const { hostname, port, protocol } = window.location;
+    // Jika di-access via Metro / Expo Web (port 8081, 19006, 3000, 8082, dst)
+    if (port && port !== '5000' && port !== '80' && port !== '443') {
+      return `${protocol}//${hostname}:5000`;
+    }
+    return '';
+  }
+  return 'http://localhost:5000';
+};
+
+const BASE_URL = getApiBaseUrl();
 
 // Local cache state for Store Settings (Demo mode / Fallback sync)
 let _cachedStoreSettings = {

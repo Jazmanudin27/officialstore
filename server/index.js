@@ -895,9 +895,10 @@ app.put('/api/admin/settings', async (req, res) => {
       longitude: lngNum,
     };
 
-    res.json({ status: 'ok', message: 'Pengaturan toko berhasil disimpan!', data: updatedSettings });
+    console.log('⚙️ [DB UPDATE] store_settings successfully updated in MySQL:', updatedSettings);
+    res.json({ status: 'ok', message: 'Pengaturan toko berhasil disimpan ke database!', data: updatedSettings });
   } catch (error) {
-    console.error('Error updating store settings:', error);
+    console.error('❌ Error updating store settings in DB:', error);
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
