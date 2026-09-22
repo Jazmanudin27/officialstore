@@ -10,12 +10,15 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
 import { apiService } from '../services/api';
 
 export default function AuthModal({ visible, onClose, onLoginSuccess }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
   const [step, setStep] = useState('input'); // 'input' | 'otp'
 
@@ -198,8 +201,8 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
   if (!visible) return null;
 
   return (
-    <View style={styles.overlayContainer}>
-      <SafeAreaView style={styles.safeArea}>
+    <View style={isDesktop ? styles.desktopOverlay : styles.overlayContainer}>
+      <SafeAreaView style={isDesktop ? styles.desktopModalCard : styles.safeArea}>
         {/* Top Header */}
         <View style={styles.header}>
           <TouchableOpacity
@@ -451,6 +454,31 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
 }
 
 const styles = StyleSheet.create({
+  desktopOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999999,
+    elevation: 99999,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  desktopModalCard: {
+    width: 480,
+    maxHeight: '85%',
+    backgroundColor: '#D91E28',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
   overlayContainer: {
     position: 'absolute',
     top: 0,

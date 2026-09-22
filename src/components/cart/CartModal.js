@@ -8,6 +8,7 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../../utils/formatters';
@@ -27,6 +28,8 @@ export default function CartModal({
   onSelectAddress,
   onStartShopping,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [selectAll, setSelectAll] = useState(true);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
@@ -41,9 +44,15 @@ export default function CartModal({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.safeArea}>
-        {/* Top Solid Red Header */}
+    <Modal
+      visible={visible}
+      animationType={isDesktop ? 'fade' : 'slide'}
+      transparent={isDesktop}
+      onRequestClose={onClose}
+    >
+      <View style={isDesktop ? styles.desktopOverlay : { flex: 1 }}>
+        <View style={isDesktop ? styles.desktopModalCard : styles.safeArea}>
+          {/* Top Solid Red Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
             <Ionicons name="arrow-back" size={24} color={COLORS.white} />
@@ -256,7 +265,6 @@ export default function CartModal({
           </>
         )}
 
-        {/* Address Selection Full Screen Overlay inside Cart */}
         <AddressModal
           visible={isAddressModalOpen}
           onClose={() => setIsAddressModalOpen(false)}
@@ -266,12 +274,32 @@ export default function CartModal({
             if (onSelectAddress) onSelectAddress(addr);
           }}
         />
-      </SafeAreaView>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  desktopOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  desktopModalCard: {
+    width: 600,
+    maxHeight: '88%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',

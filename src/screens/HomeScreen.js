@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, useWindowDimensions } from 'react-native';
 import MemberCard from '../components/member/MemberCard';
 import PromoBanner from '../components/promo/PromoBanner';
 import CategoryGrid from '../components/category/CategoryGrid';
@@ -21,6 +21,8 @@ export default function HomeScreen({
   onSelectProduct,
   user,
 }) {
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 1024 ? 5 : width >= 768 ? 3 : 2;
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
   const handleScroll = (event) => {
@@ -42,9 +44,10 @@ export default function HomeScreen({
 
   return (
     <FlatList
+      key={`home-grid-${numColumns}`}
       data={products}
       keyExtractor={(item) => item.id}
-      numColumns={2}
+      numColumns={numColumns}
       style={styles.container}
       onScroll={handleScroll}
       scrollEventThrottle={16}

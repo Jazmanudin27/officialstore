@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { View, Text, FlatList, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ProductCard from '../components/product/ProductCard';
 import { PRODUCTS } from '../data/mockProducts';
 import { COLORS } from '../constants/theme';
 
 export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onToggleFavorite, onSelectProduct }) {
+  const { width } = useWindowDimensions();
+  const numColumns = width >= 1024 ? 5 : width >= 768 ? 3 : 2;
   const favProducts = PRODUCTS.filter((p) => favorites.includes(p.id));
 
   return (
@@ -19,9 +21,10 @@ export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onT
         </View>
       ) : (
         <FlatList
+          key={`wishlist-grid-${numColumns}`}
           data={favProducts}
           keyExtractor={(item) => item.id}
-          numColumns={2}
+          numColumns={numColumns}
           renderItem={({ item }) => (
             <ProductCard
               product={item}

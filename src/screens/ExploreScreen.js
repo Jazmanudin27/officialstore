@@ -8,6 +8,7 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
@@ -29,6 +30,11 @@ export default function ExploreScreen({
   refreshing = false,
   onSelectProduct,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+  const numColumns = width >= 1024 ? 4 : width >= 768 ? 3 : 2;
+  const itemWidthPercent = `${100 / numColumns}%`;
+
   const [activeTab, setActiveTab] = useState('rutin'); // 'rutin' | 'favorit'
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [internalRefreshing, setInternalRefreshing] = useState(false);
@@ -71,27 +77,29 @@ export default function ExploreScreen({
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Top Solid Red Header (Matching Theme) */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Daftar Belanja</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={openSearch} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="search-outline" size={22} color={COLORS.white} />
-          </TouchableOpacity>
+      {/* Top Solid Red Header (Mobile Only) */}
+      {!isDesktop && (
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Daftar Belanja</Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={openSearch} style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="search-outline" size={22} color={COLORS.white} />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={openCart} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
-            {cartCount > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+            <TouchableOpacity onPress={openCart} style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
+              {cartCount > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{cartCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Top Tabs: Belanja Rutin vs Belanja Favorit */}
-      <View style={styles.tabsRow}>
+      <View style={[styles.tabsRow, isDesktop && styles.desktopTabsRow]}>
         <TouchableOpacity
           style={[styles.tabItem, activeTab === 'rutin' && styles.tabActive]}
           onPress={() => setActiveTab('rutin')}
@@ -128,21 +136,50 @@ export default function ExploreScreen({
         </TouchableOpacity>
       </View>
 
-      {/* Main Content Area */}
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={isPullRefreshing}
-            onRefresh={handlePullDownRefresh}
-            colors={['#D91E28', '#0284C7']}
-            tintColor="#D91E28"
-            title="Memuat data belanja..."
-            titleColor="#64748B"
-          />
-        }
-      >
+      {/* Main Layout Container (2-Column on Desktop) */}
+      <View style={[styles.mainLayoutWrapper, isDesktop && styles.desktopLayoutRow]}>
+        {/* Desktop Left Sidebar Category Navigation */}
+        {isDesktop && activeTab === 'rutin' && (
+          <View style={styles.desktopSidebar}>
+            <Text style={styles.sidebarTitle}>Kategori Produk</Text>
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat.name;
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[styles.sidebarCatItem, isSelected && styles.sidebarCatItemActive]}
+                  onPress={() => setSelectedCategory(cat.name)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons
+                    name={cat.icon}
+                    size={18}
+                    color={isSelected ? '#D91E28' : '#64748B'}
+                    style={{ marginRight: 10 }}
+                  />
+                  <Text style={[styles.sidebarCatText, isSelected && styles.sidebarCatTextActive]}>
+                    {cat.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        <ScrollView
+          style={[styles.container, isDesktop && { flex: 1 }]}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isPullRefreshing}
+              onRefresh={handlePullDownRefresh}
+              colors={['#D91E28', '#0284C7']}
+              tintColor="#D91E28"
+              title="Memuat data belanja..."
+              titleColor="#64748B"
+            />
+          }
+        >
         {activeTab === 'favorit' ? (
           /* =================================================== */
           /* TAB 2: BELANJA FAVORIT (PRODUK YANG DI-KLIK LOVE)   */
@@ -179,7 +216,7 @@ export default function ExploreScreen({
             ) : (
               <View style={styles.productGridRow}>
                 {favoriteProducts.map((item) => (
-                  <View key={item.id} style={styles.gridItemWrapper}>
+                  <View key={item.id} style={[styles.gridItemWrapper, { width: itemWidthPercent }]}>
                     <ProductCard
                       product={item}
                       onAddToCart={onAddToCart}
@@ -328,7 +365,7 @@ export default function ExploreScreen({
 
               <View style={styles.productGridRow}>
                 {filteredProducts.map((product) => (
-                  <View key={product.id} style={styles.gridItemWrapper}>
+                  <View key={product.id} style={[styles.gridItemWrapper, { width: itemWidthPercent }]}>
                     <ProductCard
                       product={product}
                       onAddToCart={onAddToCart}
@@ -344,7 +381,8 @@ export default function ExploreScreen({
             </View>
           </>
         )}
-      </ScrollView>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -353,6 +391,54 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+  },
+  mainLayoutWrapper: {
+    flex: 1,
+  },
+  desktopLayoutRow: {
+    flexDirection: 'row',
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  desktopSidebar: {
+    width: 240,
+    backgroundColor: '#FFFFFF',
+    borderRightWidth: 1,
+    borderRightColor: '#E2E8F0',
+    padding: 16,
+  },
+  sidebarTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginBottom: 16,
+  },
+  sidebarCatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  sidebarCatItemActive: {
+    backgroundColor: '#FEF2F2',
+  },
+  sidebarCatText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  sidebarCatTextActive: {
+    color: '#D91E28',
+    fontWeight: '800',
+  },
+  desktopTabsRow: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
   },
   header: {
     flexDirection: 'row',

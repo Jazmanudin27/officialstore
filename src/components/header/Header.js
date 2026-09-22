@@ -1,5 +1,15 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+  useWindowDimensions,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../../constants/theme';
@@ -11,7 +21,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 export default function Header({
   searchQuery,
   setSearchQuery,
-  cartCount,
+  cartCount = 0,
   openCart,
   openChat,
   openNotification,
@@ -19,11 +29,186 @@ export default function Header({
   selectedAddress,
   isScrolled,
   openSearch,
+  activeTab = 'home',
+  setActiveTab = () => {},
+  user = null,
+  onOpenAuth = () => {},
+  favoriteCount = 0,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
   React.useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, [isScrolled]);
 
+  const navTabs = [
+    { id: 'home', label: 'Beranda', icon: 'home-outline' },
+    { id: 'belanja', label: 'Belanja', icon: 'storefront-outline' },
+    { id: 'promo', label: 'Promo Spesial', icon: 'pricetag-outline' },
+    { id: 'pesanan', label: 'Pesanan Saya', icon: 'document-text-outline' },
+    { id: 'wishlist', label: 'Wishlist', icon: 'heart-outline' },
+    { id: 'akun', label: 'Akun Saya', icon: 'person-outline' },
+  ];
+
+  if (isDesktop) {
+    return (
+      <View style={styles.desktopContainer}>
+        {/* Top Desktop Gradient Header */}
+        <LinearGradient
+          colors={['#B91C1C', '#D91E28', '#EF4444']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.desktopHeaderBackground}
+        >
+          <View style={styles.desktopInnerContent}>
+            {/* Left: Brand Logo & Delivery Selector */}
+            <View style={styles.desktopLeftSection}>
+              <TouchableOpacity
+                style={styles.brandLogoContainer}
+                onPress={() => setActiveTab('home')}
+                activeOpacity={0.8}
+              >
+                <View style={styles.brandIconCircle}>
+                  <Ionicons name="bag-handle" size={20} color="#D91E28" />
+                </View>
+                <View>
+                  <Text style={styles.brandTitle}>OFFICIAL STORE</Text>
+                  <Text style={styles.brandSubtitle}>Supermarket Belanja Online</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Delivery Address Dropdown */}
+              <TouchableOpacity
+                style={styles.desktopAddressBox}
+                onPress={openAddress}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="location" size={16} color="#FFE4E6" />
+                <View style={{ flexShrink: 1 }}>
+                  <Text style={styles.desktopAddressLabel}>Dikirim ke:</Text>
+                  <Text style={styles.desktopAddressValue} numberOfLines={1}>
+                    {selectedAddress ? selectedAddress.title : 'Pilih Alamat Kirim'}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-down" size={14} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Center: Search Bar */}
+            <View style={styles.desktopSearchSection}>
+              <TouchableOpacity
+                style={styles.desktopSearchBar}
+                onPress={openSearch}
+                activeOpacity={0.9}
+              >
+                <Ionicons name="search-outline" size={20} color={COLORS.textGray} style={{ marginRight: 8 }} />
+                <Text style={styles.desktopSearchPlaceholder} numberOfLines={1}>
+                  {searchQuery || 'Cari bumbu Aida, saus Swan, minyak goreng...'}
+                </Text>
+                <View style={styles.searchButtonBadge}>
+                  <Text style={styles.searchButtonText}>Cari</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Right: Actions & User Auth */}
+            <View style={styles.desktopRightSection}>
+              <TouchableOpacity style={styles.desktopActionBtn} onPress={openChat} activeOpacity={0.7}>
+                <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
+                <Text style={styles.desktopActionLabel}>Chat</Text>
+                <View style={styles.desktopBadge}>
+                  <Text style={styles.badgeText}>1</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.desktopActionBtn} onPress={openNotification} activeOpacity={0.7}>
+                <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
+                <Text style={styles.desktopActionLabel}>Notifikasi</Text>
+                <View style={styles.desktopBadge}>
+                  <Text style={styles.badgeText}>6</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.desktopActionBtn}
+                onPress={() => setActiveTab('wishlist')}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="heart-outline" size={22} color={COLORS.white} />
+                <Text style={styles.desktopActionLabel}>Wishlist</Text>
+                {favoriteCount > 0 && (
+                  <View style={styles.desktopBadge}>
+                    <Text style={styles.badgeText}>{favoriteCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* Cart Button */}
+              <TouchableOpacity style={styles.desktopCartBtn} onPress={openCart} activeOpacity={0.85}>
+                <Ionicons name="bag-handle" size={20} color="#D91E28" />
+                <Text style={styles.desktopCartBtnText}>Keranjang</Text>
+                {cartCount > 0 && (
+                  <View style={styles.desktopCartBadge}>
+                    <Text style={styles.desktopCartBadgeText}>{cartCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* User Account / Login */}
+              {user ? (
+                <TouchableOpacity
+                  style={styles.desktopUserBtn}
+                  onPress={() => setActiveTab('akun')}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.desktopUserAvatar}>
+                    <Ionicons name="person" size={16} color="#D91E28" />
+                  </View>
+                  <Text style={styles.desktopUserName} numberOfLines={1}>
+                    {user.namaLengkap || user.phone}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity style={styles.desktopLoginBtn} onPress={onOpenAuth} activeOpacity={0.85}>
+                  <Text style={styles.desktopLoginBtnText}>Masuk / Daftar</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Secondary Navigation Links Bar */}
+        <View style={styles.desktopNavRow}>
+          <View style={styles.desktopNavInner}>
+            {navTabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <TouchableOpacity
+                  key={tab.id}
+                  style={[styles.desktopNavItem, isActive && styles.desktopNavItemActive]}
+                  onPress={() => setActiveTab(tab.id)}
+                  activeOpacity={0.75}
+                >
+                  <Ionicons
+                    name={tab.icon}
+                    size={18}
+                    color={isActive ? '#D91E28' : '#475569'}
+                    style={{ marginRight: 6 }}
+                  />
+                  <Text style={[styles.desktopNavText, isActive && styles.desktopNavTextActive]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  /* MOBILE HEADER VIEW */
   return (
     <LinearGradient
       colors={isScrolled ? ['#D91E28', '#DC2626'] : ['#B91C1C', '#D91E28', '#EF4444', '#F8FAFC']}
@@ -33,7 +218,6 @@ export default function Header({
       {isScrolled ? (
         /* COMPACT / COLLAPSED HEADER STATE (On Scroll Down) */
         <View style={styles.compactRow}>
-          {/* Search Input inline left */}
           <TouchableOpacity style={styles.compactSearchBar} onPress={openSearch} activeOpacity={0.9}>
             <Ionicons name="search-outline" size={18} color={COLORS.textGray} style={styles.searchIcon} />
             <Text style={styles.searchPlaceholder} numberOfLines={1}>
@@ -41,7 +225,6 @@ export default function Header({
             </Text>
           </TouchableOpacity>
 
-          {/* Action Icons inline right */}
           <View style={styles.actionRowCompact}>
             <TouchableOpacity style={styles.iconBtn} onPress={openChat} activeOpacity={0.7}>
               <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
@@ -70,7 +253,6 @@ export default function Header({
       ) : (
         /* FULL / EXPANDED HEADER STATE (At Top) */
         <View>
-          {/* Top Address & Action Bar */}
           <View style={styles.topRow}>
             <TouchableOpacity
               style={styles.addressContainer}
@@ -108,7 +290,6 @@ export default function Header({
               </Text>
             </TouchableOpacity>
 
-            {/* Right Action Icons */}
             <View style={styles.actionRow}>
               <TouchableOpacity style={styles.iconBtn} onPress={openChat} activeOpacity={0.7}>
                 <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
@@ -135,7 +316,6 @@ export default function Header({
             </View>
           </View>
 
-          {/* Search Input Bar with Scan & Heart Icons */}
           <View style={styles.searchRow}>
             <TouchableOpacity style={styles.searchBar} onPress={openSearch} activeOpacity={0.9}>
               <Ionicons name="search-outline" size={20} color={COLORS.textGray} style={styles.searchIcon} />
@@ -159,6 +339,245 @@ export default function Header({
 }
 
 const styles = StyleSheet.create({
+  // Desktop Header Styles
+  desktopContainer: {
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    zIndex: 1000,
+  },
+  desktopHeaderBackground: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  desktopInnerContent: {
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
+  desktopLeftSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  brandLogoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  brandIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  brandTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+  },
+  brandSubtitle: {
+    color: '#FEE2E2',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  desktopAddressBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 6,
+    maxWidth: 180,
+  },
+  desktopAddressLabel: {
+    color: '#FEE2E2',
+    fontSize: 9,
+    fontWeight: '500',
+  },
+  desktopAddressValue: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  desktopSearchSection: {
+    flex: 1,
+    maxWidth: 520,
+  },
+  desktopSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingLeft: 14,
+    paddingRight: 4,
+    height: 42,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  desktopSearchPlaceholder: {
+    flex: 1,
+    color: COLORS.textGray,
+    fontSize: 14,
+  },
+  searchButtonBadge: {
+    backgroundColor: '#D91E28',
+    paddingHorizontal: 16,
+    height: 34,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  desktopRightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  desktopActionBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    paddingHorizontal: 4,
+  },
+  desktopActionLabel: {
+    color: '#FEE2E2',
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  desktopBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: COLORS.yellowBadge,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  desktopCartBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 14,
+    height: 38,
+    borderRadius: 20,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  desktopCartBtnText: {
+    color: '#D91E28',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  desktopCartBadge: {
+    backgroundColor: '#D91E28',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 10,
+  },
+  desktopCartBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 11,
+  },
+  desktopUserBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+    maxWidth: 130,
+  },
+  desktopUserAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopUserName: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  desktopLoginBtn: {
+    backgroundColor: '#FEF08A',
+    paddingHorizontal: 14,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  desktopLoginBtnText: {
+    color: '#991B1B',
+    fontWeight: '800',
+    fontSize: 12,
+  },
+  desktopNavRow: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingHorizontal: 24,
+  },
+  desktopNavInner: {
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  desktopNavItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  desktopNavItemActive: {
+    borderBottomColor: '#D91E28',
+    backgroundColor: '#FEF2F2',
+  },
+  desktopNavText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#475569',
+  },
+  desktopNavTextActive: {
+    color: '#D91E28',
+    fontWeight: '800',
+  },
+
+  // Mobile Header Styles
   headerBackground: {
     paddingHorizontal: 16,
     paddingTop: 8,
@@ -299,3 +718,4 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
 });
+

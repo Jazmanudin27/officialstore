@@ -11,6 +11,7 @@ import {
   Share,
   Alert,
   StatusBar,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
@@ -29,6 +30,8 @@ export default function ProductDetailModal({
   cartCount = 0,
   onBuyNow,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [selectedTab, setSelectedTab] = useState('deskripsi'); // 'deskripsi' | 'ulasan'
   const [selectedSatuan, setSelectedSatuan] = useState(product?.satuan || 'PCS');
   const [qtyInput, setQtyInput] = useState(1);
@@ -67,12 +70,13 @@ export default function ProductDetailModal({
   return (
     <Modal
       visible={visible}
-      animationType="slide"
-      transparent={false}
+      animationType={isDesktop ? 'fade' : 'slide'}
+      transparent={isDesktop}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={isDesktop ? styles.desktopOverlay : { flex: 1 }}>
+        <View style={isDesktop ? styles.desktopModalCard : styles.safeArea}>
+          <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
         {/* Header Bar */}
         <View style={styles.header}>
@@ -375,12 +379,32 @@ export default function ProductDetailModal({
             <Text style={styles.buyNowText}>Beli Sekarang</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  desktopOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  desktopModalCard: {
+    width: 650,
+    maxHeight: '88%',
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: COLORS.white,

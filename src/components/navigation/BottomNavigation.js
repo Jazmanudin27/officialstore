@@ -1,9 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
 export default function BottomNavigation({ activeTab, setActiveTab }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
+  if (isDesktop) return null;
+
   const tabs = [
     { id: 'home', label: 'Beranda', icon: 'home', outlineIcon: 'home-outline' },
     { id: 'belanja', label: 'Belanja', icon: 'storefront', outlineIcon: 'storefront-outline' },

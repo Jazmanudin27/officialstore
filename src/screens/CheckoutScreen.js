@@ -9,6 +9,7 @@ import {
   Modal,
   SafeAreaView,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
@@ -28,6 +29,8 @@ export default function CheckoutScreen({
   onSelectAddress,
   onSelectVoucher,
 }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [internalVoucher, setInternalVoucher] = useState(selectedVoucher);
@@ -48,34 +51,29 @@ export default function CheckoutScreen({
     },
     {
       id: 'c2',
-      name: 'Ultra Milk Susu UHT Coklat Kotak 250 ml',
-      price: 8400,
-      quantity: 1,
-      image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&q=80',
-    },
-    {
-      id: 'c3',
-      name: 'Bimoli Minyak Goreng Pouch 2 L',
-      price: 42800,
-      quantity: 1,
-      image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80',
+      name: 'Indomie Goreng Spesial 85 g',
+      price: 3100,
+      quantity: 2,
+      image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&q=80',
     },
   ];
 
   const displayItems = cartItems.length > 0 ? cartItems : defaultItems;
-  const subtotal = displayItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const voucherDiscount = activeVoucher ? activeVoucher.discountAmount : 0;
-  const finalTotal = Math.max(0, subtotal - voucherDiscount);
 
+  const totalProductPrice = displayItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const deliveryFee = selectedAddress?.isPickup ? 0 : 12000;
   const totalItemCount = displayItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const discountAmount = activeVoucher ? activeVoucher.discountAmount : 0;
+  const finalTotal = Math.max(0, totalProductPrice + deliveryFee - discountAmount);
+
+  const subtotal = totalProductPrice;
+  const voucherDiscount = discountAmount;
 
   const handlePilihPembayaran = () => {
     Alert.alert(
-      '💳 Pilih Metode Pembayaran',
-      `Total Pembayaran: ${formatRupiah(finalTotal)}\n\nSilakan pilih pembayaran:`,
+      'Pilih Metode Pembayaran',
+      `Total Pembayaran: ${formatRupiah(finalTotal)}`,
       [
         {
           text: 'BCA Virtual Account',
@@ -116,15 +114,21 @@ export default function CheckoutScreen({
   };
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.safeArea}>
-        {/* Top Solid Red Header */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Ringkasan Pesanan</Text>
-        </View>
+    <Modal
+      visible={visible}
+      animationType={isDesktop ? 'fade' : 'slide'}
+      transparent={isDesktop}
+      onRequestClose={onClose}
+    >
+      <View style={isDesktop ? styles.desktopOverlay : { flex: 1 }}>
+        <View style={isDesktop ? styles.desktopModalCard : styles.safeArea}>
+          {/* Top Solid Red Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Ringkasan Pesanan</Text>
+          </View>
 
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
           {/* Products Count Header */}
@@ -391,12 +395,32 @@ export default function CheckoutScreen({
             if (onSelectVoucher) onSelectVoucher(v);
           }}
         />
-      </SafeAreaView>
+        </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  desktopOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  desktopModalCard: {
+    width: 620,
+    maxHeight: '88%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',

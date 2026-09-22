@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, StatusBar, Platform } from 'react-native';
+import { StyleSheet, View, SafeAreaView, StatusBar, Platform, useWindowDimensions } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 
 // Base64 Embedded Font Data for Web (Bulletproof vector icon rendering)
@@ -37,6 +37,8 @@ import ProductDetailModal from './src/screens/ProductDetailModal';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const [showSplash, setShowSplash] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -183,6 +185,11 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setSelectedAddress(null);
+  };
+
   // Render view based on Active Bottom Tab
   const renderTabContent = () => {
     switch (activeTab) {
@@ -273,11 +280,6 @@ export default function App() {
     }
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setSelectedAddress(null);
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ExpoStatusBar style="light" backgroundColor={COLORS.primaryRed} />
@@ -285,8 +287,8 @@ export default function App() {
       {/* Animated E-Commerce Splash Screen */}
       {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
-      {/* Top Red Collapsible Header Bar (Only visible on Home tab) */}
-      {activeTab === 'home' && (
+      {/* Header (Continuous on Desktop, Home-only on Mobile) */}
+      {(isDesktop || activeTab === 'home') && (
         <Header
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -298,12 +300,18 @@ export default function App() {
           selectedAddress={selectedAddress}
           isScrolled={isScrolled}
           openSearch={() => setIsSearchOpen(true)}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
           user={currentUser}
+          onOpenAuth={() => setIsAuthOpen(true)}
+          favoriteCount={favoriteCount}
         />
       )}
 
-      {/* Active Screen View */}
-      <View style={styles.mainContent}>{renderTabContent()}</View>
+      {/* Active Screen View (Centered Container on Desktop) */}
+      <View style={[styles.mainContent, isDesktop && styles.desktopMainWrapper]}>
+        {renderTabContent()}
+      </View>
 
       {/* Interactive Search Screen Modal */}
       <SearchScreen
@@ -440,5 +448,14 @@ const styles = StyleSheet.create({
   mainContent: {
     flex: 1,
     backgroundColor: '#F8FAFC',
+  },
+  desktopMainWrapper: {
+    maxWidth: 1240,
+    width: '100%',
+    alignSelf: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
   },
 });

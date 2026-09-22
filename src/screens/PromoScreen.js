@@ -8,12 +8,18 @@ import {
   StyleSheet,
   SafeAreaView,
   FlatList,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 
 export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCount = 0, onSelectProduct }) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+  const numColumns = width >= 1024 ? 4 : width >= 768 ? 3 : 2;
+  const itemWidthPercent = `${100 / numColumns}%`;
+
   const [activePromoTab, setActivePromoTab] = useState('harga_spesial');
   const [selectedFilter, setSelectedFilter] = useState('rekomendasi');
 
@@ -176,22 +182,24 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Top Red Header Bar */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Promo</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity onPress={openSearch} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="search-outline" size={22} color={COLORS.white} />
-          </TouchableOpacity>
+      {/* Top Red Header Bar (Mobile Only) */}
+      {!isDesktop && (
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Promo</Text>
+          <View style={styles.headerActions}>
+            <TouchableOpacity onPress={openSearch} style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="search-outline" size={22} color={COLORS.white} />
+            </TouchableOpacity>
 
-          <TouchableOpacity onPress={openCart} style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cartCount || 3}</Text>
-            </View>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={openCart} style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cartCount || 3}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
 
       {/* Main Promo Categories Scroll Tabs */}
       <View style={styles.tabsContainer}>
