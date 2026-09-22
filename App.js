@@ -32,6 +32,7 @@ import VoucherScreen from './src/screens/VoucherScreen';
 import PromoScreen from './src/screens/PromoScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
 import AddressModal from './src/screens/AddressModal';
+import AuthModal from './src/screens/AuthModal';
 import ProductDetailModal from './src/screens/ProductDetailModal';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
