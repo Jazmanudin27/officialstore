@@ -168,6 +168,24 @@ export default function App() {
     return matchesCategory && matchesSearch;
   });
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const data = await apiService.getProducts();
+      if (data && data.length > 0) {
+        setProductList(data);
+      }
+    } catch (e) {
+      console.warn('Error refreshing data:', e);
+    } finally {
+      setTimeout(() => {
+        setRefreshing(false);
+      }, 700);
+    }
+  };
+
   // Render view based on Active Bottom Tab
   const renderTabContent = () => {
     switch (activeTab) {
@@ -181,6 +199,8 @@ export default function App() {
             openSearch={() => setIsSearchOpen(true)}
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
           />
         );
       case 'promo':
@@ -217,6 +237,8 @@ export default function App() {
             onToggleFavorite={toggleFavorite}
             onSelectCategory={setSelectedCategory}
             onScrollStateChange={setIsScrolled}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
           />
         );
     }

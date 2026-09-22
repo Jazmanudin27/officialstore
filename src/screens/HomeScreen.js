@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import MemberCard from '../components/member/MemberCard';
 import PromoBanner from '../components/promo/PromoBanner';
 import CategoryGrid from '../components/category/CategoryGrid';
@@ -15,11 +15,27 @@ export default function HomeScreen({
   onToggleFavorite,
   onSelectCategory,
   onScrollStateChange,
+  onRefresh,
+  refreshing = false,
 }) {
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+
   const handleScroll = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     onScrollStateChange(offsetY > 35);
   };
+
+  const handlePullDownRefresh = async () => {
+    setInternalRefreshing(true);
+    if (onRefresh) {
+      await onRefresh();
+    }
+    setTimeout(() => {
+      setInternalRefreshing(false);
+    }, 800);
+  };
+
+  const isPullRefreshing = refreshing || internalRefreshing;
 
   return (
     <FlatList
@@ -29,6 +45,16 @@ export default function HomeScreen({
       style={styles.container}
       onScroll={handleScroll}
       scrollEventThrottle={16}
+      refreshControl={
+        <RefreshControl
+          refreshing={isPullRefreshing}
+          onRefresh={handlePullDownRefresh}
+          colors={['#D91E28', '#0284C7']}
+          tintColor="#D91E28"
+          title="Memuat data terbaru..."
+          titleColor="#64748B"
+        />
+      }
       ListHeaderComponent={
         <>
           {/* Member Floating Points Card */}

@@ -7,6 +7,7 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
@@ -19,8 +20,23 @@ export default function ExploreScreen({
   openSearch,
   openCart,
   cartCount = 0,
+  onRefresh,
+  refreshing = false,
 }) {
   const [activeTab, setActiveTab] = useState('rutin');
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+
+  const handlePullDownRefresh = async () => {
+    setInternalRefreshing(true);
+    if (onRefresh) {
+      await onRefresh();
+    }
+    setTimeout(() => {
+      setInternalRefreshing(false);
+    }, 800);
+  };
+
+  const isPullRefreshing = refreshing || internalRefreshing;
 
   // Produk Rutin / Sering Dibeli Berdasarkan Produk Populer
   const routineProducts = [
@@ -226,7 +242,20 @@ export default function ExploreScreen({
       </View>
 
       {/* Scrollable Content */}
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={isPullRefreshing}
+            onRefresh={handlePullDownRefresh}
+            colors={['#D91E28', '#0284C7']}
+            tintColor="#D91E28"
+            title="Memuat data belanja..."
+            titleColor="#64748B"
+          />
+        }
+      >
         {/* Section 1: Rekomendasi Untuk Kamu (Routine / Frequent Items Carousel) */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionTitle}>Rekomendasi Untuk Kamu</Text>
