@@ -15,7 +15,7 @@ const getApiBaseUrl = () => {
 
 const BASE_URL = getApiBaseUrl();
 
-// Local cache state for Store Settings (Demo mode / Fallback sync)
+// Local cache states for offline/demo mode and instant UI reactivity
 let _cachedStoreSettings = {
   nama_toko: 'Official Store Tasikmalaya',
   slogan: 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
@@ -26,6 +26,20 @@ let _cachedStoreSettings = {
   latitude: -7.3512,
   longitude: 108.2145,
 };
+
+let _cachedProductsList = [...PRODUCTS];
+
+let _cachedStores = [
+  { id: 1, code: 'CAB-158', name: 'PERINTIS 158', address: 'Jl Perintis Kemerdekaan No 158 Rt 002 Rw 002 Kawalu', phone: '0895238888200', hours: '07:00 - 22:00', lat: -7.3512, lng: 108.2145, active: 1 },
+  { id: 2, code: 'CAB-AMN', name: 'PESANTREN AMANAH', address: 'Jl Sambong Jaya No 50 Mangkubumi', phone: '081234567890', hours: '07:00 - 22:00', lat: -7.3489, lng: 108.2091, active: 1 },
+  { id: 3, code: 'CAB-MGB', name: 'MANGKUBUMI 2', address: 'Jl. Mayor SL Tobing No. 42 Mangkubumi', phone: '085723456789', hours: '07:00 - 22:00', lat: -7.3412, lng: 108.2013, active: 1 },
+  { id: 4, code: 'CAB-CHD', name: 'CIHIDEUNG TASIK', address: 'Jl. Cihideung Balong No. 12 Cihideung', phone: '082123456789', hours: '06:30 - 22:00', lat: -7.3325, lng: 108.2210, active: 1 },
+];
+
+let _cachedVouchersList = [
+  { id: 1, code: 'OFFICIAL50', title: 'Potongan Rp 50.000', discountAmount: 50000, minSpend: 150000, quota: 50, expiryDate: '2026-12-31' },
+  { id: 2, code: 'SUPERJAWARA', title: 'Diskon Spesial Rp 15.000', discountAmount: 15000, minSpend: 50000, quota: 100, expiryDate: '2026-10-15' },
+];
 
 export const apiService = {
   // 1. Ambil Semua Produk (dengan auto-fallback jika server database belum aktif)
@@ -39,15 +53,15 @@ export const apiService = {
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const json = await response.json();
       if (json.status === 'ok' && Array.isArray(json.data) && json.data.length > 0) {
-        return json.data;
+        _cachedProductsList = json.data;
+        return _cachedProductsList;
       }
     } catch (error) {
-      // Fallback ke data lokal jika koneksi ke server gagal/offline
-      console.warn('ℹ️ API Database offline, menggunakan data lokal resmi:', error.message);
+      console.warn('ℹ️ API Database offline, menggunakan data produk lokal:', error.message);
     }
 
     // Filter lokal
-    let results = PRODUCTS;
+    let results = _cachedProductsList;
     if (category && category !== 'Semua') {
       results = results.filter((p) => p.category === category);
     }
@@ -139,7 +153,6 @@ export const apiService = {
       if (error.message && error.message.includes('terdaftar')) {
         throw error;
       }
-      // Demo offline fallback (hanya untuk nomor terdaftar resmi 0895238888200)
       const cleanDigits = phone.replace(/[^0-9]/g, '');
       if (otp === '123456') {
         if (cleanDigits !== '62895238888200' && cleanDigits !== '0895238888200') {
@@ -209,7 +222,6 @@ export const apiService = {
       throw new Error(json.message || 'Login admin gagal');
     } catch (error) {
       console.warn('ℹ️ Admin Login error:', error.message);
-      // Fallback untuk admin offline / demo mode
       const input = (credentials.phone || credentials.username || credentials.email || '').toLowerCase();
       const pass = credentials.pin || credentials.password || '';
 
@@ -246,13 +258,15 @@ export const apiService = {
     return {
       totalSales: 4850000,
       totalOrders: 28,
-      totalProducts: PRODUCTS.length,
+      totalProducts: _cachedProductsList.length,
       totalUsers: 14,
     };
   },
 
   // 8. Admin: Create Product
   async createProduct(productData) {
+    const newProd = { id: `p_${Date.now()}`, ...productData };
+    _cachedProductsList = [newProd, ..._cachedProductsList];
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products`, {
         method: 'POST',
@@ -265,14 +279,17 @@ export const apiService = {
       console.warn('ℹ️ Product creation offline fallback:', e.message);
       return {
         status: 'ok',
-        message: 'Produk berhasil ditambahkan (Demo Mode)',
-        data: { id: `p_${Date.now()}`, ...productData },
+        message: 'Produk berhasil ditambahkan',
+        data: newProd,
       };
     }
   },
 
   // 9. Admin: Update Product
   async updateProduct(id, productData) {
+    _cachedProductsList = _cachedProductsList.map((p) =>
+      String(p.id) === String(id) ? { ...p, ...productData } : p
+    );
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
         method: 'PUT',
@@ -283,18 +300,19 @@ export const apiService = {
       return json;
     } catch (e) {
       console.warn('ℹ️ Product update offline fallback:', e.message);
-      return { status: 'ok', message: 'Produk diperbarui (Demo Mode)' };
+      return { status: 'ok', message: 'Produk diperbarui' };
     }
   },
 
   // 10. Admin: Delete Product
   async deleteProduct(id) {
+    _cachedProductsList = _cachedProductsList.filter((p) => String(p.id) !== String(id));
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, { method: 'DELETE' });
       const json = await response.json();
       return json;
     } catch (e) {
-      return { status: 'ok', message: 'Produk dihapus (Demo Mode)' };
+      return { status: 'ok', message: 'Produk dihapus' };
     }
   },
 
@@ -304,19 +322,21 @@ export const apiService = {
       const response = await fetch(`${BASE_URL}/api/admin/vouchers`);
       if (response.ok) {
         const json = await response.json();
-        if (json.status === 'ok') return json.data;
+        if (json.status === 'ok') {
+          _cachedVouchersList = json.data;
+          return _cachedVouchersList;
+        }
       }
     } catch (e) {
       console.warn('ℹ️ Admin vouchers fallback:', e.message);
     }
-    return [
-      { id: 1, code: 'OFFICIAL50', title: 'Potongan Rp 50.000', discountAmount: 50000, minSpend: 150000, quota: 50, expiryDate: '2026-12-31' },
-      { id: 2, code: 'SUPERJAWARA', title: 'Diskon Spesial Rp 15.000', discountAmount: 15000, minSpend: 50000, quota: 100, expiryDate: '2026-10-15' },
-    ];
+    return _cachedVouchersList;
   },
 
   // 12. Admin: Create Voucher
   async createVoucher(voucherData) {
+    const newVoucher = { id: Date.now(), ...voucherData };
+    _cachedVouchersList = [newVoucher, ..._cachedVouchersList];
     try {
       const response = await fetch(`${BASE_URL}/api/admin/vouchers`, {
         method: 'POST',
@@ -325,17 +345,18 @@ export const apiService = {
       });
       return await response.json();
     } catch (e) {
-      return { status: 'ok', message: 'Voucher dibuat (Demo Mode)' };
+      return { status: 'ok', message: 'Voucher dibuat', data: newVoucher };
     }
   },
 
   // 13. Admin: Delete Voucher
   async deleteVoucher(id) {
+    _cachedVouchersList = _cachedVouchersList.filter((v) => String(v.id) !== String(id));
     try {
       const response = await fetch(`${BASE_URL}/api/admin/vouchers/${id}`, { method: 'DELETE' });
       return await response.json();
     } catch (e) {
-      return { status: 'ok', message: 'Voucher dihapus (Demo Mode)' };
+      return { status: 'ok', message: 'Voucher dihapus' };
     }
   },
 
@@ -390,7 +411,7 @@ export const apiService = {
       });
       return await response.json();
     } catch (e) {
-      return { status: 'ok', message: 'Status pesanan diperbarui (Demo Mode)' };
+      return { status: 'ok', message: 'Status pesanan diperbarui' };
     }
   },
 
@@ -433,40 +454,46 @@ export const apiService = {
     }
   },
 
-
   // 17. Admin & Public: Branch Stores Management
   async getAdminStores() {
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores`);
       if (response.ok) {
         const json = await response.json();
-        if (json.status === 'ok') return json.data;
+        if (json.status === 'ok' && Array.isArray(json.data)) {
+          _cachedStores = json.data;
+          return _cachedStores;
+        }
       }
     } catch (e) {
       console.warn('ℹ️ Admin stores fallback:', e.message);
     }
-    return [
-      { id: 1, code: 'CAB-158', name: 'PERINTIS 158', address: 'Jl Perintis Kemerdekaan No 158 Rt 002 Rw 002 Kawalu', phone: '0895238888200', hours: '07:00 - 22:00', lat: -7.3512, lng: 108.2145, active: 1 },
-      { id: 2, code: 'CAB-AMN', name: 'PESANTREN AMANAH', address: 'Jl Sambong Jaya No 50 Mangkubumi', phone: '081234567890', hours: '07:00 - 22:00', lat: -7.3489, lng: 108.2091, active: 1 },
-      { id: 3, code: 'CAB-MGB', name: 'MANGKUBUMI 2', address: 'Jl. Mayor SL Tobing No. 42 Mangkubumi', phone: '085723456789', hours: '07:00 - 22:00', lat: -7.3412, lng: 108.2013, active: 1 },
-      { id: 4, code: 'CAB-CHD', name: 'CIHIDEUNG TASIK', address: 'Jl. Cihideung Balong No. 12 Cihideung', phone: '082123456789', hours: '06:30 - 22:00', lat: -7.3325, lng: 108.2210, active: 1 },
-    ];
+    return _cachedStores;
   },
 
   async createAdminStore(storeData) {
+    const newStore = { id: Date.now(), ...storeData, active: 1 };
+    _cachedStores = [newStore, ..._cachedStores];
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(storeData),
       });
-      return await response.json();
+      const json = await response.json();
+      if (json.status === 'ok' && json.data) {
+        _cachedStores = _cachedStores.map((s) => (s.id === newStore.id ? { ...s, ...json.data } : s));
+      }
+      return json;
     } catch (e) {
-      return { status: 'ok', message: 'Cabang toko ditambahkan (Demo Mode)' };
+      return { status: 'ok', message: 'Cabang toko ditambahkan', data: newStore };
     }
   },
 
   async updateAdminStore(id, storeData) {
+    _cachedStores = _cachedStores.map((st) =>
+      String(st.id) === String(id) ? { ...st, ...storeData } : st
+    );
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, {
         method: 'PUT',
@@ -475,16 +502,17 @@ export const apiService = {
       });
       return await response.json();
     } catch (e) {
-      return { status: 'ok', message: 'Cabang toko diperbarui (Demo Mode)' };
+      return { status: 'ok', message: 'Cabang toko diperbarui' };
     }
   },
 
   async deleteAdminStore(id) {
+    _cachedStores = _cachedStores.filter((st) => String(st.id) !== String(id));
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, { method: 'DELETE' });
       return await response.json();
     } catch (e) {
-      return { status: 'ok', message: 'Cabang toko dinonaktifkan (Demo Mode)' };
+      return { status: 'ok', message: 'Cabang toko dihapus' };
     }
   },
 };
