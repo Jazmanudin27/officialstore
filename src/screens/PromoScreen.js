@@ -242,23 +242,7 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
         </ScrollView>
       </View>
 
-      {/* Sub-Filter Pills Row */}
-      <View style={styles.filtersContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtersScroll}>
-          <TouchableOpacity style={styles.filterPillDropdown} activeOpacity={0.7}>
-            <Text style={styles.filterPillText}>Rekomendasi Promo</Text>
-            <Ionicons name="caret-down" size={12} color="#64748B" />
-          </TouchableOpacity>
 
-          <TouchableOpacity style={styles.filterPill} activeOpacity={0.7}>
-            <Text style={styles.filterPillText}>Produk Online</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.filterPill} activeOpacity={0.7}>
-            <Text style={styles.filterPillText}>Pengiriman</Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
 
       {/* Product Cards Grid (2-Column) */}
       <ScrollView style={styles.gridScrollView} contentContainerStyle={styles.gridContent}>
