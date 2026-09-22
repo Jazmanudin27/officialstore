@@ -141,17 +141,19 @@ export default function App() {
       {/* Animated E-Commerce Splash Screen */}
       {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
 
-      {/* Top Red Collapsible Header Bar */}
-      <Header
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        cartCount={totalCartCount}
-        openCart={() => setIsCartOpen(true)}
-        openChat={() => setIsChatOpen(true)}
-        openNotification={() => setIsNotificationOpen(true)}
-        isScrolled={isScrolled}
-        openSearch={() => setIsSearchOpen(true)}
-      />
+      {/* Top Red Collapsible Header Bar (Only visible on Home tab) */}
+      {activeTab === 'home' && (
+        <Header
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          cartCount={totalCartCount}
+          openCart={() => setIsCartOpen(true)}
+          openChat={() => setIsChatOpen(true)}
+          openNotification={() => setIsNotificationOpen(true)}
+          isScrolled={isScrolled}
+          openSearch={() => setIsSearchOpen(true)}
+        />
+      )}
 
       {/* Active Screen View */}
       <View style={styles.mainContent}>
@@ -177,8 +179,8 @@ export default function App() {
         onClose={() => setIsNotificationOpen(false)}
       />
 
-      {/* Sticky Bottom Floating Banner (HARGA SUPER!) */}
-      <StickyPromoBanner onOpen={() => setIsCartOpen(true)} />
+      {/* Sticky Bottom Floating Banner (HARGA SUPER!) (Home tab only) */}
+      {activeTab === 'home' && <StickyPromoBanner onOpen={() => setIsCartOpen(true)} />}
 
       {/* Cart Modal View */}
       <CartModal
