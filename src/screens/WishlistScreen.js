@@ -1,0 +1,72 @@
+import React from 'react';
+import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import ProductCard from '../components/product/ProductCard';
+import { PRODUCTS } from '../data/mockProducts';
+import { COLORS } from '../constants/theme';
+
+export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onToggleFavorite }) {
+  const favProducts = PRODUCTS.filter((p) => favorites.includes(p.id));
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>❤️ Produk Favorit Saya ({favProducts.length})</Text>
+      {favProducts.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="heart-dislike-outline" size={56} color={COLORS.border} />
+          <Text style={styles.emptyTitle}>Belum ada produk favorit</Text>
+          <Text style={styles.emptySub}>Klik ikon hati pada produk untuk menyimpannya di sini.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={favProducts}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <ProductCard
+              product={item}
+              onAddToCart={onAddToCart}
+              isFavorite={isFavorite(item.id)}
+              onToggleFavorite={onToggleFavorite}
+            />
+          )}
+          contentContainerStyle={styles.productListContent}
+        />
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: COLORS.primary,
+  },
+  title: {
+    color: COLORS.textPrimary,
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 16,
+  },
+  productListContent: {
+    paddingBottom: 20,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+    gap: 12,
+  },
+  emptyTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  emptySub: {
+    color: COLORS.textMuted,
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 30,
+  },
+});
