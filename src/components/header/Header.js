@@ -8,7 +8,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function Header({ searchQuery, setSearchQuery, cartCount, openCart, isScrolled }) {
+export default function Header({ searchQuery, setSearchQuery, cartCount, openCart, isScrolled, openSearch }) {
   React.useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, [isScrolled]);
@@ -23,16 +23,12 @@ export default function Header({ searchQuery, setSearchQuery, cartCount, openCar
         /* COMPACT / COLLAPSED HEADER STATE (On Scroll Down) */
         <View style={styles.compactRow}>
           {/* Search Input inline left */}
-          <View style={styles.compactSearchBar}>
+          <TouchableOpacity style={styles.compactSearchBar} onPress={openSearch} activeOpacity={0.9}>
             <Ionicons name="search-outline" size={18} color={COLORS.textGray} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="beli dancow fortigro"
-              placeholderTextColor={COLORS.textMuted}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+            <Text style={styles.searchPlaceholder} numberOfLines={1}>
+              {searchQuery || 'beli dancow fortigro'}
+            </Text>
+          </TouchableOpacity>
 
           {/* Action Icons inline right */}
           <View style={styles.actionRowCompact}>
@@ -108,16 +104,12 @@ export default function Header({ searchQuery, setSearchQuery, cartCount, openCar
 
           {/* Search Input Bar with Scan & Heart Icons */}
           <View style={styles.searchRow}>
-            <View style={styles.searchBar}>
+            <TouchableOpacity style={styles.searchBar} onPress={openSearch} activeOpacity={0.9}>
               <Ionicons name="search-outline" size={20} color={COLORS.textGray} style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="vitamin untuk anak"
-                placeholderTextColor={COLORS.textMuted}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
+              <Text style={styles.searchPlaceholder} numberOfLines={1}>
+                {searchQuery || 'vitamin untuk anak'}
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.squareIconBtn} activeOpacity={0.8}>
               <Ionicons name="scan-outline" size={20} color={COLORS.white} />
@@ -162,6 +154,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  searchPlaceholder: {
+    color: COLORS.textMuted,
+    fontSize: 14,
+    flex: 1,
   },
   actionRowCompact: {
     flexDirection: 'row',
@@ -257,11 +254,6 @@ const styles = StyleSheet.create({
   },
   searchIcon: {
     marginRight: 8,
-  },
-  searchInput: {
-    flex: 1,
-    color: COLORS.textDark,
-    fontSize: 14,
   },
   squareIconBtn: {
     width: 42,

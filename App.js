@@ -24,11 +24,13 @@ import HomeScreen from './src/screens/HomeScreen';
 import ExploreScreen from './src/screens/ExploreScreen';
 import WishlistScreen from './src/screens/WishlistScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import SearchScreen from './src/screens/SearchScreen';
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -123,12 +125,20 @@ export default function App() {
         cartCount={totalCartCount}
         openCart={() => setIsCartOpen(true)}
         isScrolled={isScrolled}
+        openSearch={() => setIsSearchOpen(true)}
       />
 
       {/* Active Screen View */}
       <View style={styles.mainContent}>
         {renderTabContent()}
       </View>
+
+      {/* Interactive Search Screen Modal */}
+      <SearchScreen
+        visible={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        onSelectKeyword={(keyword) => setSearchQuery(keyword)}
+      />
 
       {/* Sticky Bottom Floating Banner (HARGA SUPER!) */}
       <StickyPromoBanner onOpen={() => setIsCartOpen(true)} />
