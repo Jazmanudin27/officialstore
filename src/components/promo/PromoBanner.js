@@ -52,7 +52,7 @@ export default function PromoBanner() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     marginBottom: 16,
   },
   bannerCard: {

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
+import MemberCard from '../components/member/MemberCard';
 import PromoBanner from '../components/promo/PromoBanner';
 import CategoryGrid from '../components/category/CategoryGrid';
 import ProductCard from '../components/product/ProductCard';
@@ -28,6 +29,9 @@ export default function HomeScreen({
       scrollEventThrottle={16}
       ListHeaderComponent={
         <>
+          {/* Member Floating Points Card */}
+          <MemberCard />
+
           {/* Main Promo Carousel Banner */}
           <PromoBanner />
 
@@ -62,13 +66,12 @@ const styles = StyleSheet.create({
   productListContent: {
     paddingHorizontal: 10,
     paddingBottom: 20,
-    paddingTop: 10,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
     paddingVertical: 10,
     marginTop: 4,
   },
