@@ -30,6 +30,7 @@ import NotificationScreen from './src/screens/NotificationScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
 import VoucherScreen from './src/screens/VoucherScreen';
 import PromoScreen from './src/screens/PromoScreen';
+import AddressModal from './src/screens/AddressModal';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
+  const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -96,7 +98,14 @@ export default function App() {
     switch (activeTab) {
       case 'belanja':
       case 'explore':
-        return <ExploreScreen onAddToCart={addToCart} />;
+        return (
+          <ExploreScreen
+            onAddToCart={addToCart}
+            openSearch={() => setIsSearchOpen(true)}
+            openCart={() => setIsCartOpen(true)}
+            cartCount={totalCartCount}
+          />
+        );
       case 'promo':
         return (
           <PromoScreen

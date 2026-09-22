@@ -20,6 +20,7 @@ export default function CheckoutScreen({
   cartItems = [],
   onCompleteCheckout,
   onOpenVoucher,
+  onOpenAddress,
   selectedVoucher = null,
 }) {
   const defaultItems = [
@@ -246,7 +247,7 @@ export default function CheckoutScreen({
                   <Text style={styles.utamaRedBadgeText}>Utama</Text>
                 </View>
               </View>
-              <TouchableOpacity activeOpacity={0.7}>
+              <TouchableOpacity onPress={onOpenAddress} activeOpacity={0.7}>
                 <Text style={styles.gantiAlamatText}>Ganti Alamat</Text>
               </TouchableOpacity>
             </View>

@@ -15,6 +15,7 @@ export default function Header({
   openCart,
   openChat,
   openNotification,
+  openAddress,
   isScrolled,
   openSearch,
 }) {
@@ -72,7 +73,7 @@ export default function Header({
           <View style={styles.topRow}>
             <View style={styles.addressContainer}>
               <Text style={styles.addressLabel}>Alamat kirim:</Text>
-              <TouchableOpacity style={styles.addressSelector} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.addressSelector} onPress={openAddress} activeOpacity={0.7}>
                 <Text style={styles.addressTitle}>Rumah</Text>
                 <View style={styles.utamaBadge}>
                   <Text style={styles.utamaText}>Utama</Text>

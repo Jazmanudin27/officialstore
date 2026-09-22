@@ -21,6 +21,7 @@ export default function CartModal({
   onRemoveItem,
   onClearCart,
   onCheckout,
+  onOpenAddress,
 }) {
   const [selectAll, setSelectAll] = useState(true);
 
@@ -90,7 +91,7 @@ export default function CartModal({
               </View>
             </View>
 
-            <TouchableOpacity style={styles.gantiBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.gantiBtn} onPress={onOpenAddress} activeOpacity={0.7}>
               <Text style={styles.gantiBtnText}>Ganti</Text>
             </TouchableOpacity>
           </View>
