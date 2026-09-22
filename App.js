@@ -30,6 +30,7 @@ import NotificationScreen from './src/screens/NotificationScreen';
 import CheckoutScreen from './src/screens/CheckoutScreen';
 import VoucherScreen from './src/screens/VoucherScreen';
 import PromoScreen from './src/screens/PromoScreen';
+import OrdersScreen from './src/screens/OrdersScreen';
 import AddressModal from './src/screens/AddressModal';
 import AuthModal from './src/screens/AuthModal';
 import SplashScreen from './src/components/splash/SplashScreen';
@@ -232,6 +233,15 @@ export default function App() {
           />
         );
       case 'pesanan':
+        return (
+          <OrdersScreen
+            openSearch={() => setIsSearchOpen(true)}
+            openCart={() => setIsCartOpen(true)}
+            cartCount={totalCartCount}
+            onAddToCart={addToCart}
+            onGoToShop={() => setActiveTab('belanja')}
+          />
+        );
       case 'akun':
       case 'profile':
         return (
@@ -240,6 +250,10 @@ export default function App() {
             onOpenAuth={() => setIsAuthOpen(true)}
             onLogout={() => setCurrentUser(null)}
             onOpenAddress={() => setIsAddressOpen(true)}
+            onGoToOrders={() => setActiveTab('pesanan')}
+            openSearch={() => setIsSearchOpen(true)}
+            openCart={() => setIsCartOpen(true)}
+            cartCount={totalCartCount}
           />
         );
       case 'home':
