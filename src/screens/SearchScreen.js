@@ -208,6 +208,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: COLORS.textDark,
     fontSize: 14,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    outlineWidth: 0,
+    backgroundColor: 'transparent',
   },
   container: {
     flex: 1,

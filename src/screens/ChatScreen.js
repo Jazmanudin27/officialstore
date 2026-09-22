@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: COLORS.textDark,
+    borderWidth: 0,
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   tabsRow: {
     flexDirection: 'row',
