@@ -96,7 +96,14 @@ export default function App() {
     switch (activeTab) {
       case 'belanja':
       case 'explore':
-        return <ExploreScreen onAddToCart={addToCart} />;
+        return (
+          <ExploreScreen
+            onAddToCart={addToCart}
+            openSearch={() => setIsSearchOpen(true)}
+            openCart={() => setIsCartOpen(true)}
+            cartCount={totalCartCount}
+          />
+        );
       case 'promo':
         return (
           <PromoScreen
