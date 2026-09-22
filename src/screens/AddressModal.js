@@ -69,8 +69,10 @@ export default function AddressModal({
     onClose();
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <View style={styles.overlayContainer}>
       <SafeAreaView style={styles.safeArea}>
         {/* Top Solid Red Header */}
         <View style={styles.header}>
@@ -156,91 +158,87 @@ export default function AddressModal({
                     onPress={() => !isSelected && handleSelect(item)}
                     activeOpacity={isSelected ? 1 : 0.75}
                   >
-                  {/* Selected Address Ribbon */}
-                  {isSelected && (
-                    <View style={styles.selectedRibbon}>
-                      <Text style={styles.selectedRibbonText}>Alamat Terpilih</Text>
-                    </View>
-                  )}
+                    {/* Selected Address Ribbon */}
+                    {isSelected && (
+                      <View style={styles.selectedRibbon}>
+                        <Text style={styles.selectedRibbonText}>Alamat Terpilih</Text>
+                      </View>
+                    )}
 
-                  {/* Header Title Row */}
-                  <View style={styles.cardHeaderRow}>
-                    <View style={styles.titleWithBadge}>
-                      <Text style={styles.addressTitle}>{item.title}</Text>
-                      {item.isUtama && (
-                        <View style={styles.utamaRedBadge}>
-                          <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                    {/* Header Title Row */}
+                    <View style={styles.cardHeaderRow}>
+                      <View style={styles.titleWithBadge}>
+                        <Text style={styles.addressTitle}>{item.title}</Text>
+                        {item.isUtama && (
+                          <View style={styles.utamaRedBadge}>
+                            <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                          </View>
+                        )}
+                      </View>
+
+                      {!isSelected && (
+                        <View style={styles.pilihBtn}>
+                          <Text style={styles.pilihBtnText}>Pilih</Text>
                         </View>
                       )}
                     </View>
 
-                    {!isSelected && (
-                      <TouchableOpacity
-                        style={styles.pilihBtn}
-                        onPress={() => handleSelect(item)}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.pilihBtnText}>Pilih</Text>
-                      </TouchableOpacity>
+                    {/* Recipient Line */}
+                    <Text style={styles.recipientLine}>
+                      {item.recipient} - <Text style={{ color: '#475569' }}>{item.phone}</Text>
+                    </Text>
+
+                    {/* Full Address Lines */}
+                    <Text style={styles.addressLine}>{item.addressLine1}</Text>
+                    <Text style={styles.subAddressLine}>{item.addressLine2}</Text>
+
+                    {/* Optional Note */}
+                    {item.note && (
+                      <View style={styles.noteRow}>
+                        <Ionicons name="document-text-outline" size={13} color="#64748B" />
+                        <Text style={styles.noteText}>{item.note}</Text>
+                      </View>
                     )}
-                  </View>
 
-                  {/* Recipient Line */}
-                  <Text style={styles.recipientLine}>
-                    {item.recipient} - <Text style={{ color: '#475569' }}>{item.phone}</Text>
-                  </Text>
+                    {/* Divider */}
+                    <View style={styles.cardDivider} />
 
-                  {/* Full Address Lines */}
-                  <Text style={styles.addressLine}>{item.addressLine1}</Text>
-                  <Text style={styles.subAddressLine}>{item.addressLine2}</Text>
-
-                  {/* Optional Note */}
-                  {item.note && (
-                    <View style={styles.noteRow}>
-                      <Ionicons name="document-text-outline" size={13} color="#64748B" />
-                      <Text style={styles.noteText}>{item.note}</Text>
-                    </View>
-                  )}
-
-                  {/* Divider */}
-                  <View style={styles.cardDivider} />
-
-                  {/* Bottom Action Row */}
-                  {isSelected ? (
-                    <TouchableOpacity style={styles.ubahBtnSingle} activeOpacity={0.7}>
-                      <Text style={styles.actionText}>Ubah</Text>
-                    </TouchableOpacity>
-                  ) : (
-                    <View style={styles.actionRowMulti}>
-                      <TouchableOpacity activeOpacity={0.7}>
-                        <Text style={styles.actionText}>Jadikan Alamat Utama</Text>
-                      </TouchableOpacity>
-
-                      <View style={styles.verticalDivider} />
-
-                      <TouchableOpacity activeOpacity={0.7}>
-                        <Text style={styles.actionText}>Hapus</Text>
-                      </TouchableOpacity>
-
-                      <View style={styles.verticalDivider} />
-
-                      <TouchableOpacity activeOpacity={0.7}>
+                    {/* Bottom Action Row */}
+                    {isSelected ? (
+                      <View style={styles.ubahBtnSingle}>
                         <Text style={styles.actionText}>Ubah</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </ScrollView>
+                      </View>
+                    ) : (
+                      <View style={styles.actionRowMulti}>
+                        <Text style={styles.actionText}>Jadikan Alamat Utama</Text>
+                        <View style={styles.verticalDivider} />
+                        <Text style={styles.actionText}>Hapus</Text>
+                        <View style={styles.verticalDivider} />
+                        <Text style={styles.actionText}>Ubah</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
         </View>
       </SafeAreaView>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  overlayContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999999,
+    elevation: 99999,
+    backgroundColor: '#D91E28',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#D91E28',

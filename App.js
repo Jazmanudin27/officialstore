@@ -262,8 +262,8 @@ export default function App() {
         onRemoveItem={removeFromCart}
         onClearCart={clearCart}
         onCheckout={() => setIsCheckoutOpen(true)}
-        onOpenAddress={handleOpenAddressFromCart}
         selectedAddress={selectedAddress}
+        onSelectAddress={setSelectedAddress}
       />
 
       {/* Ringkasan Pesanan / Checkout Screen Modal */}
@@ -271,10 +271,10 @@ export default function App() {
         visible={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={cartItems}
-        onOpenVoucher={handleOpenVoucher}
-        onOpenAddress={handleOpenAddressFromCheckout}
         selectedVoucher={selectedVoucher}
+        onSelectVoucher={setSelectedVoucher}
         selectedAddress={selectedAddress}
+        onSelectAddress={setSelectedAddress}
         onCompleteCheckout={() => {
           clearCart();
           setSelectedVoucher(null);
@@ -289,11 +289,14 @@ export default function App() {
         onSelectVoucher={handleSelectVoucher}
       />
 
-      {/* Cara Belanja / Ganti Alamat Screen Modal */}
+      {/* Cara Belanja / Ganti Alamat Screen Overlay for Beranda */}
       <AddressModal
         visible={isAddressOpen}
-        onClose={handleCloseAddress}
-        onSelectAddress={handleSelectAddress}
+        onClose={() => setIsAddressOpen(false)}
+        onSelectAddress={(addr) => {
+          setSelectedAddress(addr);
+          setIsAddressOpen(false);
+        }}
         selectedAddress={selectedAddress}
       />
 

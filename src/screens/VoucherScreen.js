@@ -56,8 +56,10 @@ export default function VoucherScreen({ visible, onClose, onSelectVoucher }) {
     onClose();
   };
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+    <View style={styles.overlayContainer}>
       <SafeAreaView style={styles.safeArea}>
         {/* Red Header Section */}
         <View style={styles.header}>
@@ -179,11 +181,21 @@ export default function VoucherScreen({ visible, onClose, onSelectVoucher }) {
           </ScrollView>
         </View>
       </SafeAreaView>
-    </Modal>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  overlayContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 999999,
+    elevation: 99999,
+    backgroundColor: '#D91E28',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#D91E28',

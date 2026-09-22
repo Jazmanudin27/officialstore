@@ -13,6 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
+import AddressModal from './AddressModal';
+import VoucherScreen from './VoucherScreen';
 
 export default function CheckoutScreen({
   visible,
@@ -23,7 +25,19 @@ export default function CheckoutScreen({
   onOpenAddress,
   selectedVoucher = null,
   selectedAddress,
+  onSelectAddress,
+  onSelectVoucher,
 }) {
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+  const [internalVoucher, setInternalVoucher] = useState(selectedVoucher);
+
+  React.useEffect(() => {
+    setInternalVoucher(selectedVoucher);
+  }, [selectedVoucher]);
+
+  const activeVoucher = internalVoucher || selectedVoucher;
+
   const defaultItems = [
     {
       id: 'c1',
@@ -53,7 +67,7 @@ export default function CheckoutScreen({
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const voucherDiscount = selectedVoucher ? selectedVoucher.discountAmount : 0;
+  const voucherDiscount = activeVoucher ? activeVoucher.discountAmount : 0;
   const finalTotal = Math.max(0, subtotal - voucherDiscount);
 
   const totalItemCount = displayItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -218,19 +232,19 @@ export default function CheckoutScreen({
             <View style={styles.voucherBody}>
               <TouchableOpacity
                 style={styles.voucherInputRow}
-                onPress={onOpenVoucher}
+                onPress={() => setIsVoucherModalOpen(true)}
                 activeOpacity={0.7}
               >
                 <Ionicons name="ticket-outline" size={22} color="#0284C7" />
                 <Text style={styles.voucherInputText} numberOfLines={1}>
-                  {selectedVoucher ? selectedVoucher.title : 'Pilih/masukkan kode vouchermu'}
+                  {activeVoucher ? activeVoucher.title : 'Pilih/masukkan kode vouchermu'}
                 </Text>
                 <Ionicons name="chevron-forward" size={20} color="#0284C7" />
               </TouchableOpacity>
               <View style={styles.solidDivider} />
               <TouchableOpacity
                 style={styles.lihatVoucherBtn}
-                onPress={onOpenVoucher}
+                onPress={() => setIsVoucherModalOpen(true)}
                 activeOpacity={0.7}
               >
                 <Text style={styles.lihatVoucherText}>Lihat semua voucher</Text>
@@ -241,7 +255,7 @@ export default function CheckoutScreen({
           {/* Delivery Address Card */}
           <TouchableOpacity
             style={styles.addressCardContainer}
-            onPress={onOpenAddress}
+            onPress={() => setIsAddressModalOpen(true)}
             activeOpacity={0.85}
           >
             <View style={styles.addressHeaderRow}>
@@ -311,6 +325,28 @@ export default function CheckoutScreen({
             <Text style={styles.pilihPembayaranText}>Pilih Metode Pembayaran</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Address Selection Full Screen Overlay inside Checkout */}
+        <AddressModal
+          visible={isAddressModalOpen}
+          onClose={() => setIsAddressModalOpen(false)}
+          selectedAddress={selectedAddress}
+          onSelectAddress={(addr) => {
+            setIsAddressModalOpen(false);
+            if (onSelectAddress) onSelectAddress(addr);
+          }}
+        />
+
+        {/* Voucher Selection Full Screen Overlay inside Checkout */}
+        <VoucherScreen
+          visible={isVoucherModalOpen}
+          onClose={() => setIsVoucherModalOpen(false)}
+          onSelectVoucher={(v) => {
+            setInternalVoucher(v);
+            setIsVoucherModalOpen(false);
+            if (onSelectVoucher) onSelectVoucher(v);
+          }}
+        />
       </SafeAreaView>
     </Modal>
   );

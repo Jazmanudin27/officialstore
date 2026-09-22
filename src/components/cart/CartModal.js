@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../../utils/formatters';
 import { COLORS } from '../../constants/theme';
+import AddressModal from '../../screens/AddressModal';
 
 export default function CartModal({
   visible,
@@ -23,8 +24,10 @@ export default function CartModal({
   onCheckout,
   onOpenAddress,
   selectedAddress,
+  onSelectAddress,
 }) {
   const [selectAll, setSelectAll] = useState(true);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   // Default items if cart is empty, matching Screenshot 1
   const defaultItems = [
@@ -72,7 +75,7 @@ export default function CartModal({
           {/* Shipping Address Box */}
           <TouchableOpacity
             style={styles.addressCard}
-            onPress={onOpenAddress}
+            onPress={() => setIsAddressModalOpen(true)}
             activeOpacity={0.8}
           >
             <View style={styles.addressLeft}>
@@ -222,6 +225,17 @@ export default function CartModal({
             <Text style={styles.bottomBarAction}>Selanjutnya</Text>
           </TouchableOpacity>
         </View>
+
+        {/* Address Selection Full Screen Overlay inside Cart */}
+        <AddressModal
+          visible={isAddressModalOpen}
+          onClose={() => setIsAddressModalOpen(false)}
+          selectedAddress={selectedAddress}
+          onSelectAddress={(addr) => {
+            setIsAddressModalOpen(false);
+            if (onSelectAddress) onSelectAddress(addr);
+          }}
+        />
       </SafeAreaView>
     </Modal>
   );
