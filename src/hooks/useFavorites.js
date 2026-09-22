@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export function useFavorites(initialFavorites = ['p1', 'p3']) {
+export function useFavorites(initialFavorites = ['AB-PCS', 'AR-RTG', 'BB-BALL']) {
   const [favorites, setFavorites] = useState(initialFavorites);
 
   const toggleFavorite = (productId) => {

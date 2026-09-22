@@ -204,6 +204,10 @@ export default function App() {
       case 'explore':
         return (
           <ExploreScreen
+            products={productList}
+            favorites={favorites}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
             onAddToCart={addToCart}
             onUpdateQuantity={updateQuantity}
             getItemQuantity={getItemQuantity}

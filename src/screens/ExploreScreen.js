@@ -12,8 +12,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
+import ProductCard from '../components/product/ProductCard';
 
 export default function ExploreScreen({
+  products = [],
+  favorites = [],
+  isFavorite = () => false,
+  onToggleFavorite = () => {},
   onAddToCart,
   onUpdateQuantity,
   getItemQuantity,
@@ -23,7 +28,8 @@ export default function ExploreScreen({
   onRefresh,
   refreshing = false,
 }) {
-  const [activeTab, setActiveTab] = useState('rutin');
+  const [activeTab, setActiveTab] = useState('rutin'); // 'rutin' | 'favorit'
+  const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
   const handlePullDownRefresh = async () => {
@@ -38,160 +44,33 @@ export default function ExploreScreen({
 
   const isPullRefreshing = refreshing || internalRefreshing;
 
-  // Produk Rutin / Sering Dibeli Berdasarkan Produk Populer
-  const routineProducts = [
-    {
-      id: 'AB',
-      sku: 'AB',
-      name: 'AIDA BESAR 500 GR',
-      price: 23500,
-      originalPrice: 26000,
-      categoryTag: 'AIDA',
-      weightTag: '500 GR',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'AR',
-      sku: 'AR',
-      name: 'AIDA RENTENG 25 GR',
-      price: 14500,
-      originalPrice: 16500,
-      categoryTag: 'AIDA',
-      weightTag: '10 x 25 GR',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1588165171080-c89acfa5a259?w=400&q=80',
-    },
-    {
-      id: 'BB',
-      sku: 'BB',
-      name: 'SAUS BAWANG BALL',
-      price: 34000,
-      originalPrice: 38000,
-      categoryTag: 'SAUS SWAN',
-      weightTag: 'Ball',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    },
-    {
-      id: 'BP500',
-      sku: 'BP500',
-      name: 'SAUS BP 500 GR',
-      price: 16000,
-      originalPrice: 18000,
-      categoryTag: 'SAUS SWAN',
-      weightTag: '500 GR',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    },
-  ];
-
   // Kategori Resmi dari Database
   const categories = [
-    { id: 'c1', name: 'AIDA', icon: 'flame', color: '#FEF2F2', iconColor: '#DC2626' },
-    { id: 'c2', name: 'SAUS SWAN', icon: 'restaurant', color: '#FFF7ED', iconColor: '#EA580C' },
-    { id: 'c3', name: 'BUMBU TABUR', icon: 'sparkles', color: '#FEFCE8', iconColor: '#CA8A04' },
-    { id: 'c4', name: 'PREMIUM POUCH', icon: 'bag-handle', color: '#EFF6FF', iconColor: '#0284C7' },
-    { id: 'c5', name: 'SAMBAL CABE', icon: 'nutrition', color: '#F0FDF4', iconColor: '#16A34A' },
-    { id: 'c6', name: 'SAUS PREMIUM', icon: 'star', color: '#FDF4FF', iconColor: '#9333EA' },
-    { id: 'c7', name: 'SAOSME', icon: 'pricetag', color: '#ECFDF5', iconColor: '#059669' },
+    { id: 'all', name: 'Semua', icon: 'grid-outline' },
+    { id: 'c1', name: 'AIDA', icon: 'flame-outline' },
+    { id: 'c2', name: 'SAUS SWAN', icon: 'restaurant-outline' },
+    { id: 'c3', name: 'BUMBU TABUR', icon: 'sparkles-outline' },
+    { id: 'c4', name: 'PREMIUM POUCH', icon: 'bag-handle-outline' },
+    { id: 'c5', name: 'SAMBAL CABE', icon: 'nutrition-outline' },
+    { id: 'c6', name: 'SAUS PREMIUM', icon: 'star-outline' },
+    { id: 'c7', name: 'SAOSME', icon: 'pricetag-outline' },
   ];
 
-  // Produk Lainnya dari Database
-  const otherProducts = [
-    {
-      id: 'AS',
-      sku: 'AS',
-      name: 'AIDA SEDANG 250 GR',
-      price: 12500,
-      originalPrice: 14000,
-      discount: '11%',
-      categoryTag: 'AIDA',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'BR20',
-      sku: 'BR20',
-      name: 'BUMBU TABUR 20 GR',
-      price: 3500,
-      originalPrice: 4500,
-      discount: '22%',
-      categoryTag: 'BUMBU TABUR',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=400&q=80',
-    },
-    {
-      id: 'BR500',
-      sku: 'BR500',
-      name: 'BUMBU TABUR 500 GR',
-      price: 27500,
-      originalPrice: 31000,
-      discount: '11%',
-      categoryTag: 'BUMBU TABUR',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=400&q=80',
-    },
-    {
-      id: 'DEP',
-      sku: 'DEP',
-      name: 'SAUS EXTRA PEDAS 500 GR',
-      price: 17500,
-      originalPrice: 20000,
-      discount: '13%',
-      categoryTag: 'SAUS SWAN',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=80',
-    },
-    {
-      id: 'P1000',
-      sku: 'P1000',
-      name: 'PREMIUM POUCH 1000 GR',
-      price: 44000,
-      originalPrice: 49000,
-      discount: '10%',
-      categoryTag: 'PREMIUM POUCH',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=400&q=80',
-    },
-    {
-      id: 'SC',
-      sku: 'SC',
-      name: 'SAMBAL CABE 200 GR',
-      price: 12500,
-      originalPrice: 15000,
-      discount: '17%',
-      categoryTag: 'SAMBAL CABE',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&q=80',
-    },
-    {
-      id: 'SP500',
-      sku: 'SP500',
-      name: 'SAUS PREMIUM 500 GR',
-      price: 19500,
-      originalPrice: 22000,
-      discount: '11%',
-      categoryTag: 'SAUS PREMIUM',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=400&q=80',
-    },
-    {
-      id: 'SS500',
-      sku: 'SS500',
-      name: 'SAOSME 500 GR',
-      price: 15000,
-      originalPrice: 17000,
-      discount: '12%',
-      categoryTag: 'SAOSME',
-      delivery: 'Siap Pickup / Kirim',
-      image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=400&q=80',
-    },
-  ];
+  // Filter Produk Berdasarkan Kategori untuk Tab Belanja Rutin
+  const filteredProducts = products.filter((item) => {
+    if (selectedCategory === 'Semua') return true;
+    return item.category === selectedCategory;
+  });
+
+  // Filter Produk Favorit (yang di klik ikon Love / Heart)
+  const favoriteProducts = products.filter((item) => isFavorite(item.id));
+
+  // Produk Rekomendasi Rutin (Populer)
+  const routinePopular = products.filter((p) => p.isPopuler).slice(0, 6);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Top Solid Red Header */}
+      {/* Top Solid Red Header (Matching Theme) */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Daftar Belanja</Text>
         <View style={styles.headerActions}>
@@ -201,9 +80,11 @@ export default function ExploreScreen({
 
           <TouchableOpacity onPress={openCart} style={styles.iconBtn} activeOpacity={0.7}>
             <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cartCount || 3}</Text>
-            </View>
+            {cartCount > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cartCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -216,9 +97,9 @@ export default function ExploreScreen({
           activeOpacity={0.7}
         >
           <Ionicons
-            name="clipboard-outline"
+            name="cart-outline"
             size={18}
-            color={activeTab === 'rutin' ? '#0284C7' : '#64748B'}
+            color={activeTab === 'rutin' ? '#D91E28' : '#64748B'}
           />
           <Text style={[styles.tabText, activeTab === 'rutin' && styles.tabTextActive]}>
             Belanja Rutin
@@ -231,17 +112,22 @@ export default function ExploreScreen({
           activeOpacity={0.7}
         >
           <Ionicons
-            name="heart-outline"
+            name={activeTab === 'favorit' ? 'heart' : 'heart-outline'}
             size={18}
-            color={activeTab === 'favorit' ? '#0284C7' : '#64748B'}
+            color={activeTab === 'favorit' ? '#D91E28' : '#64748B'}
           />
           <Text style={[styles.tabText, activeTab === 'favorit' && styles.tabTextActive]}>
             Belanja Favorit
           </Text>
+          {favoriteProducts.length > 0 && (
+            <View style={styles.favCountBadge}>
+              <Text style={styles.favCountText}>{favoriteProducts.length}</Text>
+            </View>
+          )}
         </TouchableOpacity>
       </View>
 
-      {/* Scrollable Content */}
+      {/* Main Content Area */}
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -256,169 +142,200 @@ export default function ExploreScreen({
           />
         }
       >
-        {/* Section 1: Rekomendasi Untuk Kamu (Routine / Frequent Items Carousel) */}
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionTitle}>Rekomendasi Untuk Kamu</Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.lihatSemuaText}>Lihat Semua</Text>
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.routineScroll}>
-          {routineProducts.map((item) => (
-            <View key={item.id} style={styles.routineCard}>
-              <View style={styles.imageBox}>
-                <Image source={{ uri: item.image }} style={styles.productImg} />
-                <View style={styles.categoryStrip}>
-                  <Text style={styles.categoryStripText}>{item.categoryTag}</Text>
-                </View>
-                {item.weightTag && (
-                  <View style={styles.weightTagPill}>
-                    <Text style={styles.weightTagText}>{item.weightTag}</Text>
-                  </View>
-                )}
+        {activeTab === 'favorit' ? (
+          /* =================================================== */
+          /* TAB 2: BELANJA FAVORIT (PRODUK YANG DI-KLIK LOVE)   */
+          /* =================================================== */
+          <View style={styles.favoriteSection}>
+            <View style={styles.sectionHeaderRow}>
+              <View style={styles.favTitleWrap}>
+                <Ionicons name="heart" size={20} color="#D91E28" />
+                <Text style={styles.sectionTitle}>Produk Favorit Saya</Text>
               </View>
-
-              <View style={styles.cardInfo}>
-                <Text style={styles.productTitle} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <Text style={styles.productPrice}>{formatRupiah(item.price)}</Text>
-
-                <View style={styles.deliveryRow}>
-                  <Ionicons name="flash" size={12} color="#D91E28" />
-                  <Text style={styles.deliveryText}>{item.delivery}</Text>
-                </View>
-
-                {getItemQuantity && getItemQuantity(item.id) > 0 ? (
-                  <View style={styles.cardStepperRow}>
-                    <TouchableOpacity
-                      style={styles.cardStepperBtn}
-                      onPress={() => onUpdateQuantity && onUpdateQuantity(item.id, getItemQuantity(item.id) - 1)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons
-                        name={getItemQuantity(item.id) === 1 ? 'trash-outline' : 'remove'}
-                        size={14}
-                        color="#D91E28"
-                      />
-                    </TouchableOpacity>
-
-                    <Text style={styles.cardStepperValue}>{getItemQuantity(item.id)}</Text>
-
-                    <TouchableOpacity
-                      style={styles.cardStepperBtn}
-                      onPress={() => onUpdateQuantity && onUpdateQuantity(item.id, getItemQuantity(item.id) + 1)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="add" size={14} color="#D91E28" />
-                    </TouchableOpacity>
-                  </View>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.addToCartBtn}
-                    onPress={() => onAddToCart && onAddToCart(item)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-
-        {/* Section 2: Belanja Berdasarkan Kategori */}
-        <View style={[styles.sectionHeaderRow, { marginTop: 14 }]}>
-          <Text style={styles.sectionTitle}>Belanja Berdasarkan Kategori</Text>
-          <TouchableOpacity activeOpacity={0.7}>
-            <Text style={styles.lihatSemuaText}>Lihat Semua</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.categoryGrid}>
-          {categories.map((cat) => (
-            <TouchableOpacity key={cat.id} style={styles.categoryCard} activeOpacity={0.7}>
-              <View style={[styles.categoryIconCircle, { backgroundColor: cat.color }]}>
-                <Ionicons name={cat.icon} size={24} color={cat.iconColor} />
-              </View>
-              <Text style={styles.categoryName} numberOfLines={2}>
-                {cat.name}
+              <Text style={styles.favItemCountText}>
+                {favoriteProducts.length} Produk Disimpan
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            </View>
 
-        {/* Section 3: Produk Lainnya (Grid Layout) */}
-        <Text style={[styles.sectionTitle, { marginTop: 16, marginBottom: 8 }]}>
-          Produk Lainnya
-        </Text>
-
-        <View style={styles.gridRow}>
-          {otherProducts.map((product) => (
-            <View key={product.id} style={styles.productGridCard}>
-              <View style={styles.imageBoxGrid}>
-                <Image source={{ uri: product.image }} style={styles.productImg} />
-                <View style={styles.categoryStrip}>
-                  <Text style={styles.categoryStripText}>{product.categoryTag}</Text>
+            {favoriteProducts.length === 0 ? (
+              <View style={styles.emptyFavBox}>
+                <View style={styles.emptyFavCircle}>
+                  <Ionicons name="heart-dislike-outline" size={50} color="#CBD5E1" />
                 </View>
-              </View>
-
-              <View style={styles.cardInfo}>
-                <Text style={styles.productTitle} numberOfLines={2}>
-                  {product.name}
+                <Text style={styles.emptyFavTitle}>Belum Ada Produk Favorit</Text>
+                <Text style={styles.emptyFavSub}>
+                  Klik ikon love (❤️) pada produk yang Anda sukai di Beranda atau Belanja Rutin untuk menyimpannya di sini.
                 </Text>
-                <Text style={styles.productPrice}>{formatRupiah(product.price)}</Text>
-
-                <View style={styles.discountRow}>
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountBadgeText}>{product.discount}</Text>
+                <TouchableOpacity
+                  style={styles.exploreBtn}
+                  onPress={() => setActiveTab('rutin')}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="storefront-outline" size={18} color={COLORS.white} />
+                  <Text style={styles.exploreBtnText}>Jelajahi Produk Sekarang</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.productGridRow}>
+                {favoriteProducts.map((item) => (
+                  <View key={item.id} style={styles.gridItemWrapper}>
+                    <ProductCard
+                      product={item}
+                      onAddToCart={onAddToCart}
+                      onUpdateQuantity={onUpdateQuantity}
+                      cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
+                      isFavorite={true}
+                      onToggleFavorite={onToggleFavorite}
+                    />
                   </View>
-                  <Text style={styles.originalPrice}>{formatRupiah(product.originalPrice)}</Text>
-                </View>
-
-                <View style={styles.deliveryRow}>
-                  <Ionicons name="flash" size={12} color="#D91E28" />
-                  <Text style={styles.deliveryText}>{product.delivery}</Text>
-                </View>
-
-                {getItemQuantity && getItemQuantity(product.id) > 0 ? (
-                  <View style={styles.cardStepperRow}>
+                ))}
+              </View>
+            )}
+          </View>
+        ) : (
+          /* =================================================== */
+          /* TAB 1: BELANJA RUTIN                               */
+          /* =================================================== */
+          <>
+            {/* Section 1: Kategori Produk Horizontal Filter */}
+            <View style={styles.categoryFilterContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.categoryFilterScroll}
+              >
+                {categories.map((cat) => {
+                  const isSelected = selectedCategory === cat.name;
+                  return (
                     <TouchableOpacity
-                      style={styles.cardStepperBtn}
-                      onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, getItemQuantity(product.id) - 1)}
+                      key={cat.id}
+                      style={[styles.catPill, isSelected && styles.catPillActive]}
+                      onPress={() => setSelectedCategory(cat.name)}
                       activeOpacity={0.7}
                     >
                       <Ionicons
-                        name={getItemQuantity(product.id) === 1 ? 'trash-outline' : 'remove'}
-                        size={14}
-                        color="#D91E28"
+                        name={cat.icon}
+                        size={15}
+                        color={isSelected ? COLORS.white : '#475569'}
                       />
+                      <Text style={[styles.catPillText, isSelected && styles.catPillTextActive]}>
+                        {cat.name}
+                      </Text>
                     </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
 
-                    <Text style={styles.cardStepperValue}>{getItemQuantity(product.id)}</Text>
+            {/* Section 2: Rekomendasi Rutin Populer (Carousel) */}
+            {routinePopular.length > 0 && selectedCategory === 'Semua' && (
+              <View style={styles.routineSection}>
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.sectionTitle}>🔥 Produk Rutin & Terlaris</Text>
+                  <Text style={styles.lihatSemuaText}>Favorit Pelanggan</Text>
+                </View>
 
-                    <TouchableOpacity
-                      style={styles.cardStepperBtn}
-                      onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, getItemQuantity(product.id) + 1)}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="add" size={14} color="#D91E28" />
-                    </TouchableOpacity>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.routineScroll}
+                >
+                  {routinePopular.map((item) => (
+                    <View key={item.id} style={styles.routineCard}>
+                      <View style={styles.imageBox}>
+                        <Image source={{ uri: item.image }} style={styles.productImg} />
+                        <View style={styles.categoryStrip}>
+                          <Text style={styles.categoryStripText}>{item.category || 'Official'}</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.favSmallBtn}
+                          onPress={() => onToggleFavorite(item.id)}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name={isFavorite(item.id) ? 'heart' : 'heart-outline'}
+                            size={16}
+                            color={isFavorite(item.id) ? '#D91E28' : '#94A3B8'}
+                          />
+                        </TouchableOpacity>
+                      </View>
+
+                      <View style={styles.cardInfo}>
+                        <Text style={styles.productTitle} numberOfLines={2}>
+                          {item.name}
+                        </Text>
+                        <Text style={styles.productPrice}>{formatRupiah(item.price)}</Text>
+
+                        {getItemQuantity && getItemQuantity(item.id) > 0 ? (
+                          <View style={styles.cardStepperRow}>
+                            <TouchableOpacity
+                              style={styles.cardStepperBtn}
+                              onPress={() => onUpdateQuantity && onUpdateQuantity(item.id, getItemQuantity(item.id) - 1)}
+                              activeOpacity={0.7}
+                            >
+                              <Ionicons
+                                name={getItemQuantity(item.id) === 1 ? 'trash-outline' : 'remove'}
+                                size={14}
+                                color="#D91E28"
+                              />
+                            </TouchableOpacity>
+
+                            <Text style={styles.cardStepperValue}>{getItemQuantity(item.id)}</Text>
+
+                            <TouchableOpacity
+                              style={styles.cardStepperBtn}
+                              onPress={() => onUpdateQuantity && onUpdateQuantity(item.id, getItemQuantity(item.id) + 1)}
+                              activeOpacity={0.7}
+                            >
+                              <Ionicons name="add" size={14} color="#D91E28" />
+                            </TouchableOpacity>
+                          </View>
+                        ) : (
+                          <TouchableOpacity
+                            style={styles.addToCartBtn}
+                            onPress={() => onAddToCart && onAddToCart(item)}
+                            activeOpacity={0.8}
+                          >
+                            <Text style={styles.addToCartBtnText}>+ Beli</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Section 3: Daftar Produk Lengkap (2-Column Grid) */}
+            <View style={styles.allProductsSection}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>
+                  {selectedCategory === 'Semua'
+                    ? 'Semua Produk Resmi (PCS & DUS)'
+                    : `Produk ${selectedCategory}`}
+                </Text>
+                <Text style={styles.productCountBadge}>
+                  {filteredProducts.length} Produk
+                </Text>
+              </View>
+
+              <View style={styles.productGridRow}>
+                {filteredProducts.map((product) => (
+                  <View key={product.id} style={styles.gridItemWrapper}>
+                    <ProductCard
+                      product={product}
+                      onAddToCart={onAddToCart}
+                      onUpdateQuantity={onUpdateQuantity}
+                      cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
+                      isFavorite={isFavorite(product.id)}
+                      onToggleFavorite={onToggleFavorite}
+                    />
                   </View>
-                ) : (
-                  <TouchableOpacity
-                    style={styles.addToCartBtn}
-                    onPress={() => onAddToCart && onAddToCart(product)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
-                  </TouchableOpacity>
-                )}
+                ))}
               </View>
             </View>
-          ))}
-        </View>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -438,7 +355,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D91E28',
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800',
     color: COLORS.white,
   },
@@ -480,21 +397,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 13,
     gap: 6,
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#0284C7',
+    borderBottomColor: '#D91E28',
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#64748B',
   },
   tabTextActive: {
-    color: '#0284C7',
+    color: '#D91E28',
+    fontWeight: '800',
+  },
+  favCountBadge: {
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 2,
+  },
+  favCountText: {
+    color: '#DC2626',
+    fontSize: 10,
     fontWeight: '800',
   },
   /* Container Scroll */
@@ -502,229 +431,242 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
-    gap: 10,
     paddingBottom: 90,
   },
+  /* Category Pills */
+  categoryFilterContainer: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  categoryFilterScroll: {
+    paddingHorizontal: 14,
+    gap: 8,
+  },
+  catPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    gap: 6,
+  },
+  catPillActive: {
+    backgroundColor: '#D91E28',
+  },
+  catPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  catPillTextActive: {
+    color: COLORS.white,
+  },
+  /* Section Header */
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 14,
+    marginTop: 14,
     marginBottom: 8,
   },
   sectionTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: COLORS.textDark,
-  },
-  lihatSemuaText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#0284C7',
-  },
-  /* Routine Products Carousel */
-  routineScroll: {
-    gap: 12,
-  },
-  routineCard: {
-    width: 170,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  imageBox: {
-    width: '100%',
-    height: 140,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  imageBoxGrid: {
-    width: '100%',
-    height: 140,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  productImg: {
-    width: '80%',
-    height: '80%',
-    resizeMode: 'contain',
-  },
-  categoryStrip: {
-    position: 'absolute',
-    bottom: 0,
-    left: 10,
-    right: 10,
-    backgroundColor: '#D91E28',
-    borderRadius: 6,
-    paddingVertical: 2,
-    alignItems: 'center',
-  },
-  categoryStripText: {
-    color: COLORS.white,
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  weightTagPill: {
-    position: 'absolute',
-    top: 8,
-    right: 0,
-    backgroundColor: '#FEF08A',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderTopLeftRadius: 6,
-    borderBottomLeftRadius: 6,
-  },
-  weightTagText: {
-    color: COLORS.textDark,
-    fontSize: 9,
-    fontWeight: '800',
-  },
-  /* Card Body */
-  cardInfo: {
-    padding: 10,
-    gap: 4,
-  },
-  productTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textDark,
-    minHeight: 34,
-    lineHeight: 17,
-  },
-  productPrice: {
     fontSize: 15,
     fontWeight: '800',
     color: COLORS.textDark,
   },
-  discountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  discountBadge: {
-    backgroundColor: '#D91E28',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  discountBadgeText: {
-    color: COLORS.white,
-    fontSize: 10,
-    fontWeight: '800',
-  },
-  originalPrice: {
-    fontSize: 11,
-    color: '#94A3B8',
-    textDecorationLine: 'line-through',
-  },
-  deliveryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginVertical: 4,
-  },
-  deliveryText: {
-    fontSize: 11,
-    fontWeight: '700',
+  lihatSemuaText: {
+    fontSize: 12,
     color: '#D91E28',
+    fontWeight: '700',
   },
-  addToCartBtn: {
-    backgroundColor: '#005691',
-    borderRadius: 8,
-    paddingVertical: 8,
-    alignItems: 'center',
-    marginTop: 4,
-  },
-  addToCartBtnText: {
-    color: COLORS.white,
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  /* Category Grid */
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    justifyContent: 'space-between',
-  },
-  categoryCard: {
-    width: '23%',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  categoryIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 6,
-  },
-  categoryName: {
+  productCountBadge: {
     fontSize: 11,
+    color: '#64748B',
     fontWeight: '600',
-    color: COLORS.textDark,
-    textAlign: 'center',
-    lineHeight: 15,
   },
-  /* Lower Product Grid */
-  gridRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+  /* Routine Scroll */
+  routineSection: {
+    marginBottom: 4,
   },
-  productGridCard: {
-    width: '48%',
+  routineScroll: {
+    paddingHorizontal: 14,
+    gap: 12,
+    paddingBottom: 6,
+  },
+  routineCard: {
+    width: 145,
     backgroundColor: COLORS.white,
     borderRadius: 12,
-    overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    marginBottom: 4,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowRadius: 3,
     elevation: 2,
+  },
+  imageBox: {
+    position: 'relative',
+    width: '100%',
+    height: 120,
+    backgroundColor: '#F8FAFC',
+  },
+  productImg: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  categoryStrip: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  categoryStripText: {
+    color: COLORS.white,
+    fontSize: 9,
+    fontWeight: '700',
+  },
+  favSmallBtn: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: COLORS.white,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  cardInfo: {
+    padding: 8,
+  },
+  productTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginBottom: 4,
+    height: 32,
+  },
+  productPrice: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#D91E28',
+    marginBottom: 8,
+  },
+  addToCartBtn: {
+    backgroundColor: '#D91E28',
+    paddingVertical: 6,
+    borderRadius: 6,
+    alignItems: 'center',
+  },
+  addToCartBtnText: {
+    color: COLORS.white,
+    fontSize: 11,
+    fontWeight: '700',
   },
   cardStepperRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#FEF2F2',
-    borderRadius: 8,
-    borderWidth: 1.5,
-    borderColor: '#FCA5A5',
+    backgroundColor: '#FEE2E2',
+    borderRadius: 6,
     paddingHorizontal: 4,
-    height: 34,
+    paddingVertical: 3,
   },
   cardStepperBtn: {
-    width: 26,
-    height: 26,
-    borderRadius: 6,
-    backgroundColor: COLORS.white,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#FECACA',
+    padding: 3,
   },
   cardStepperValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '800',
     color: '#D91E28',
-    minWidth: 20,
+  },
+  /* Grid Products */
+  allProductsSection: {
+    paddingTop: 6,
+  },
+  productGridRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 6,
+  },
+  gridItemWrapper: {
+    width: '50%',
+    padding: 4,
+  },
+  /* Favorite Section */
+  favoriteSection: {
+    paddingTop: 6,
+  },
+  favTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  favItemCountText: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  emptyFavBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 24,
+  },
+  emptyFavCircle: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  emptyFavTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginBottom: 6,
+  },
+  emptyFavSub: {
+    fontSize: 13,
+    color: '#64748B',
     textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20,
+  },
+  exploreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D91E28',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    gap: 8,
+    shadowColor: '#D91E28',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 3,
+  },
+  exploreBtnText: {
+    color: COLORS.white,
+    fontWeight: '700',
+    fontSize: 14,
   },
 });
