@@ -34,6 +34,7 @@ export default function Header({
   user = null,
   onOpenAuth = () => {},
   favoriteCount = 0,
+  onOpenAdmin = () => {},
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -142,6 +143,15 @@ export default function Header({
                     <Text style={styles.badgeText}>{favoriteCount}</Text>
                   </View>
                 )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.desktopActionBtn}
+                onPress={onOpenAdmin}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="settings-outline" size={22} color={COLORS.white} />
+                <Text style={styles.desktopActionLabel}>Admin</Text>
               </TouchableOpacity>
 
               {/* Cart Button */}

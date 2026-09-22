@@ -169,6 +169,168 @@ export const apiService = {
       };
     }
   },
+
+  // 7. Admin: Get Overview Stats
+  async getAdminStats() {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/stats`);
+      if (response.ok) {
+        const json = await response.json();
+        if (json.status === 'ok') return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Admin stats fallback:', e.message);
+    }
+    return {
+      totalSales: 4850000,
+      totalOrders: 28,
+      totalProducts: PRODUCTS.length,
+      totalUsers: 14,
+    };
+  },
+
+  // 8. Admin: Create Product
+  async createProduct(productData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/products`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      });
+      const json = await response.json();
+      return json;
+    } catch (e) {
+      console.warn('ℹ️ Product creation offline fallback:', e.message);
+      return {
+        status: 'ok',
+        message: 'Produk berhasil ditambahkan (Demo Mode)',
+        data: { id: `p_${Date.now()}`, ...productData },
+      };
+    }
+  },
+
+  // 9. Admin: Update Product
+  async updateProduct(id, productData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productData),
+      });
+      const json = await response.json();
+      return json;
+    } catch (e) {
+      console.warn('ℹ️ Product update offline fallback:', e.message);
+      return { status: 'ok', message: 'Produk diperbarui (Demo Mode)' };
+    }
+  },
+
+  // 10. Admin: Delete Product
+  async deleteProduct(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, { method: 'DELETE' });
+      const json = await response.json();
+      return json;
+    } catch (e) {
+      return { status: 'ok', message: 'Produk dihapus (Demo Mode)' };
+    }
+  },
+
+  // 11. Admin: Get Vouchers
+  async getAdminVouchers() {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/vouchers`);
+      if (response.ok) {
+        const json = await response.json();
+        if (json.status === 'ok') return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Admin vouchers fallback:', e.message);
+    }
+    return [
+      { id: 1, code: 'OFFICIAL50', title: 'Potongan Rp 50.000', discountAmount: 50000, minSpend: 150000, quota: 50, expiryDate: '2026-12-31' },
+      { id: 2, code: 'SUPERJAWARA', title: 'Diskon Spesial Rp 15.000', discountAmount: 15000, minSpend: 50000, quota: 100, expiryDate: '2026-10-15' },
+    ];
+  },
+
+  // 12. Admin: Create Voucher
+  async createVoucher(voucherData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/vouchers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voucherData),
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Voucher dibuat (Demo Mode)' };
+    }
+  },
+
+  // 13. Admin: Delete Voucher
+  async deleteVoucher(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/vouchers/${id}`, { method: 'DELETE' });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Voucher dihapus (Demo Mode)' };
+    }
+  },
+
+  // 14. Admin: Get Orders
+  async getAdminOrders() {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/orders`);
+      if (response.ok) {
+        const json = await response.json();
+        if (json.status === 'ok') return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Admin orders fallback:', e.message);
+    }
+    return [
+      {
+        id: 101,
+        orderNumber: 'INV-20260923-01',
+        customerName: 'Ade Fitri Nuraeni',
+        customerPhone: '0895238888200',
+        deliveryType: 'delivery',
+        address: 'Jl. Pasir Bokor Kp. Gunung Jambe Tasikmalaya',
+        totalAmount: 68500,
+        status: 'pending',
+        courier: 'Pengiriman Instan',
+        trackingNumber: '-',
+        date: '23 Sep 2026 05:15',
+      },
+      {
+        id: 100,
+        orderNumber: 'INV-20260922-04',
+        customerName: 'Budi Santoso',
+        customerPhone: '081234567890',
+        deliveryType: 'delivery',
+        address: 'Jl. HZ Mustofa No. 45 Tasikmalaya',
+        totalAmount: 142000,
+        status: 'shipped',
+        courier: 'JNE Express',
+        trackingNumber: 'JNE-99884210',
+        date: '22 Sep 2026 14:30',
+      },
+    ];
+  },
+
+  // 15. Admin: Update Order Status
+  async updateOrderStatus(id, statusData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/orders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(statusData),
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Status pesanan diperbarui (Demo Mode)' };
+    }
+  },
 };
 
 export default apiService;

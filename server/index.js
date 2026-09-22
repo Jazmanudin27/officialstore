@@ -461,6 +461,261 @@ app.post('/api/orders', async (req, res) => {
 });
 
 // =====================================================
+// ADMIN API ENDPOINTS (PRODUCTS, VOUCHERS, ORDERS, STATS)
+// =====================================================
+
+// 7. Admin: Get Overview Stats
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const [[salesRow]] = await pool.query(
+      "SELECT COALESCE(SUM(total_pembayaran), 0) AS totalSales, COUNT(order_id) AS totalOrders FROM orders WHERE status_pesanan != 'cancelled'"
+    );
+    const [[productRow]] = await pool.query(
+      'SELECT COUNT(variant_id) AS totalProducts FROM product_variants WHERE status_aktif = TRUE'
+    );
+    const [[userRow]] = await pool.query('SELECT COUNT(user_id) AS totalUsers FROM users');
+
+    res.json({
+      status: 'ok',
+      data: {
+        totalSales: Number(salesRow.totalSales || 0),
+        totalOrders: Number(salesRow.totalOrders || 0),
+        totalProducts: Number(productRow.totalProducts || 0),
+        totalUsers: Number(userRow.totalUsers || 0),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 8. Admin: Create New Product & Variant
+app.post('/api/admin/products', async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const {
+      name,
+      category = 'AIDA',
+      sku,
+      price,
+      originalPrice,
+      stock = 100,
+      description = '',
+      image = 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&q=80',
+      satuan = 'PCS',
+      weight = 100,
+      isPopuler = false,
+    } = req.body;
+
+    if (!name || !price) {
+      return res.status(400).json({ status: 'error', message: 'Nama produk dan harga wajib diisi.' });
+    }
+
+    await connection.beginTransaction();
+
+    // Find category ID or fallback to first category
+    const [catRows] = await connection.query('SELECT category_id FROM categories WHERE nama_kategori = ?', [category]);
+    const categoryId = catRows.length > 0 ? catRows[0].category_id : 1;
+
+    const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString().slice(-4)}`;
+
+    // Insert Product Induk
+    const [productResult] = await connection.query(
+      'INSERT INTO products (category_id, nama_produk, slug, deskripsi, gambar_utama, is_populer, status_aktif) VALUES (?, ?, ?, ?, ?, ?, TRUE)',
+      [categoryId, name, slug, description, image, isPopuler ? 1 : 0]
+    );
+
+    const productId = productResult.insertId;
+    const finalSku = sku || `SKU-${Date.now().toString().slice(-6)}`;
+
+    // Insert Product Variant
+    const [variantResult] = await connection.query(
+      'INSERT INTO product_variants (product_id, sku, nama_varian, ukuran_atau_isi, satuan, berat_gram, harga_coret, harga, stok, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)',
+      [productId, finalSku, name, '1 PCS', satuan, weight, originalPrice || null, price, stock]
+    );
+
+    await connection.commit();
+
+    res.json({
+      status: 'ok',
+      message: 'Produk baru berhasil ditambahkan!',
+      data: {
+        id: variantResult.insertId,
+        productId,
+        name,
+        category,
+        sku: finalSku,
+        price,
+        originalPrice,
+        stock,
+        image,
+      },
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error creating product:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  } finally {
+    connection.release();
+  }
+});
+
+// 9. Admin: Update Product & Variant
+app.put('/api/admin/products/:id', async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const variantId = req.params.id;
+    const { name, category, price, originalPrice, stock, image, description } = req.body;
+
+    await connection.beginTransaction();
+
+    // Get product_id from variant
+    const [varRows] = await connection.query('SELECT product_id FROM product_variants WHERE variant_id = ?', [variantId]);
+    if (varRows.length === 0) {
+      await connection.rollback();
+      return res.status(404).json({ status: 'error', message: 'Produk tidak ditemukan.' });
+    }
+    const productId = varRows[0].product_id;
+
+    // Update variant
+    if (name || price !== undefined || stock !== undefined) {
+      await connection.query(
+        'UPDATE product_variants SET nama_varian = COALESCE(?, nama_varian), harga = COALESCE(?, harga), harga_coret = ?, stok = COALESCE(?, stok) WHERE variant_id = ?',
+        [name || null, price || null, originalPrice || null, stock !== undefined ? stock : null, variantId]
+      );
+    }
+
+    // Update parent product
+    if (name || image || description) {
+      await connection.query(
+        'UPDATE products SET nama_produk = COALESCE(?, nama_produk), gambar_utama = COALESCE(?, gambar_utama), deskripsi = COALESCE(?, deskripsi) WHERE product_id = ?',
+        [name || null, image || null, description || null, productId]
+      );
+    }
+
+    await connection.commit();
+    res.json({ status: 'ok', message: 'Produk berhasil diperbarui!' });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error updating product:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  } finally {
+    connection.release();
+  }
+});
+
+// 10. Admin: Delete / Nonaktifkan Produk
+app.delete('/api/admin/products/:id', async (req, res) => {
+  try {
+    const variantId = req.params.id;
+    await pool.query('UPDATE product_variants SET status_aktif = FALSE WHERE variant_id = ?', [variantId]);
+    res.json({ status: 'ok', message: 'Produk telah dinonaktifkan.' });
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 11. Admin: Get Vouchers
+app.get('/api/admin/vouchers', async (req, res) => {
+  try {
+    const [vouchers] = await pool.query(
+      'SELECT voucher_id AS id, kode_voucher AS code, judul AS title, nilai_diskon AS discountAmount, minimal_belanja AS minSpend, kuota AS quota, DATE_FORMAT(tanggal_berakhir, "%Y-%m-%d") AS expiryDate, status_aktif AS active FROM vouchers ORDER BY voucher_id DESC'
+    );
+    res.json({ status: 'ok', data: vouchers });
+  } catch (error) {
+    console.error('Error fetching admin vouchers:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 12. Admin: Create Voucher
+app.post('/api/admin/vouchers', async (req, res) => {
+  try {
+    const { code, title, discountAmount, minSpend = 0, quota = 100, expiryDate = '2026-12-31' } = req.body;
+    if (!code || !title || !discountAmount) {
+      return res.status(400).json({ status: 'error', message: 'Kode voucher, judul, dan diskon wajib diisi.' });
+    }
+
+    const [result] = await pool.query(
+      'INSERT INTO vouchers (kode_voucher, judul, tipe_diskon, nilai_diskon, minimal_belanja, kuota, tanggal_mulai, tanggal_berakhir, status_aktif) VALUES (?, ?, "nominal", ?, ?, ?, NOW(), ?, TRUE)',
+      [code.toUpperCase(), title, discountAmount, minSpend, quota, `${expiryDate} 23:59:59`]
+    );
+
+    res.json({
+      status: 'ok',
+      message: 'Kode Voucher baru berhasil dibuat!',
+      data: { id: result.insertId, code: code.toUpperCase(), title, discountAmount },
+    });
+  } catch (error) {
+    console.error('Error creating voucher:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 13. Admin: Delete Voucher
+app.delete('/api/admin/vouchers/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM vouchers WHERE voucher_id = ?', [req.params.id]);
+    res.json({ status: 'ok', message: 'Voucher berhasil dihapus.' });
+  } catch (error) {
+    console.error('Error deleting voucher:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 14. Admin: Get All Orders
+app.get('/api/admin/orders', async (req, res) => {
+  try {
+    const [orders] = await pool.query(
+      `SELECT 
+        o.order_id AS id,
+        o.nomor_pesanan AS orderNumber,
+        o.user_id AS userId,
+        COALESCE(u.nama_lengkap, 'Pelanggan Store') AS customerName,
+        COALESCE(u.nomor_telepon, '-') AS customerPhone,
+        o.tipe_pesanan AS deliveryType,
+        o.snapshot_alamat_kirim AS address,
+        o.total_harga_produk AS productTotal,
+        o.ongkos_kirim AS shippingFee,
+        o.diskon_voucher AS discount,
+        o.total_pembayaran AS totalAmount,
+        o.status_pesanan AS status,
+        o.kurir_pengiriman AS courier,
+        o.resi_pengiriman AS trackingNumber,
+        DATE_FORMAT(o.created_at, "%d %b %Y %H:%i") AS date
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.user_id
+      ORDER BY o.order_id DESC`
+    );
+
+    res.json({ status: 'ok', data: orders });
+  } catch (error) {
+    console.error('Error fetching admin orders:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 15. Admin: Update Order Status & Resi
+app.put('/api/admin/orders/:id', async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { status, trackingNumber, courier } = req.body;
+
+    await pool.query(
+      'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ?',
+      [status || null, trackingNumber || null, courier || null, orderId]
+    );
+
+    res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui!' });
+  } catch (error) {
+    console.error('Error updating order:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// =====================================================
 // SERVE PRODUCTION BUILD (dist/)
 // =====================================================
 // Jika di server production, backend ini juga otomatis menyajikan file dist/ website!

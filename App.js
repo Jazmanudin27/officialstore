@@ -32,8 +32,8 @@ import VoucherScreen from './src/screens/VoucherScreen';
 import PromoScreen from './src/screens/PromoScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
 import AddressModal from './src/screens/AddressModal';
-import AuthModal from './src/screens/AuthModal';
 import ProductDetailModal from './src/screens/ProductDetailModal';
+import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
@@ -42,6 +42,7 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -256,6 +257,7 @@ export default function App() {
             openSearch={() => setIsSearchOpen(true)}
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
+            onOpenAdmin={() => setIsAdminOpen(true)}
           />
         );
       case 'home':
@@ -305,6 +307,7 @@ export default function App() {
           user={currentUser}
           onOpenAuth={() => setIsAuthOpen(true)}
           favoriteCount={favoriteCount}
+          onOpenAdmin={() => setIsAdminOpen(true)}
         />
       )}
 
@@ -428,6 +431,13 @@ export default function App() {
           setSelectedProduct(null);
           setIsCheckoutOpen(true);
         }}
+      />
+
+      {/* Admin Dashboard Screen Modal */}
+      <AdminDashboardScreen
+        visible={isAdminOpen}
+        onClose={() => setIsAdminOpen(false)}
+        onRefreshProducts={handleRefresh}
       />
 
       {/* Bottom 5-Tab Navigation Bar */}
