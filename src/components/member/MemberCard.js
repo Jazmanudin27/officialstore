@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     backgroundColor: COLORS.white,
     marginHorizontal: 16,
-    marginTop: -16,
+    marginTop: 10,
     borderRadius: 16,
     overflow: 'hidden',
     shadowColor: COLORS.textDark,

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, StatusBar } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 
 // Constants & Data
@@ -28,6 +28,27 @@ export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Inject Ionicons font stylesheet on Web to fix empty square icon boxes
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const styleId = 'expo-vector-icons-ionicons';
+      if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.type = 'text/css';
+        style.appendChild(
+          document.createTextNode(`
+            @font-face {
+              font-family: 'Ionicons';
+              src: url('https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/fonts/ionicons.ttf') format('truetype');
+            }
+          `)
+        );
+        document.head.appendChild(style);
+      }
+    }
+  }, []);
 
   // Custom Hooks Management
   const {
