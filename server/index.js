@@ -235,9 +235,15 @@ app.post('/api/orders', async (req, res) => {
 const distPath = path.join(__dirname, '../dist');
 app.use(express.static(distPath));
 
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api/')) return next();
-  res.sendFile(path.join(distPath, 'index.html'));
+// Catch-all SPA handler: Kompatibel dengan semua versi Express (Express 4 & Express 5)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    const indexPath = path.join(distPath, 'index.html');
+    return res.sendFile(indexPath, (err) => {
+      if (err) next();
+    });
+  }
+  next();
 });
 
 app.listen(PORT, () => {
