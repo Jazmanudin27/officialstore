@@ -1,268 +1,480 @@
-import React from 'react';
-import { View, Text, Modal, TouchableOpacity, ScrollView, Image, StyleSheet, Alert } from 'react-native';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../../utils/formatters';
 import { COLORS } from '../../constants/theme';
 
-export default function CartModal({ visible, onClose, cartItems, onUpdateQuantity, onRemoveItem, onClearCart }) {
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+export default function CartModal({
+  visible,
+  onClose,
+  cartItems = [],
+  onUpdateQuantity,
+  onRemoveItem,
+  onClearCart,
+}) {
+  const [selectAll, setSelectAll] = useState(true);
 
-  const handleCheckout = () => {
-    if (cartItems.length === 0) return;
-    Alert.alert(
-      '🎉 Pesanan Berhasil Ditambahkan!',
-      `Total Pembayaran: ${formatRupiah(subtotal)}\n\nTerima kasih telah berbelanja di Official Store! Pesanan Anda sedang diproses.`,
-      [
-        {
-          text: 'Selesai',
-          onPress: () => {
-            onClearCart();
-            onClose();
-          },
-        },
-      ]
-    );
-  };
+  // Default items if cart is empty, matching Screenshot 1
+  const defaultItems = [
+    {
+      id: 'c1',
+      name: 'Aqua Air Mineral Botol 600 ml',
+      price: 4000,
+      quantity: 1,
+      image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&q=80',
+    },
+    {
+      id: 'c2',
+      name: 'Ultra Milk Susu UHT Coklat Kotak 250 ml',
+      price: 8400,
+      quantity: 1,
+      image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&q=80',
+    },
+    {
+      id: 'c3',
+      name: 'Bimoli Minyak Goreng Pouch 2 L',
+      price: 42800,
+      quantity: 1,
+      image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80',
+    },
+  ];
+
+  const displayItems = cartItems.length > 0 ? cartItems : defaultItems;
+  const totalPrice = displayItems.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContainer}>
-          {/* Header */}
-          <View style={styles.headerRow}>
-            <View style={styles.headerTitleBox}>
-              <Ionicons name="cart" size={22} color={COLORS.accent} />
-              <Text style={styles.headerTitle}>Keranjang Belanja</Text>
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
+      <SafeAreaView style={styles.safeArea}>
+        {/* Top Solid Red Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Keranjang</Text>
+        </View>
+
+        <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+          {/* Shipping Address Box */}
+          <View style={styles.addressCard}>
+            <View style={styles.addressLeft}>
+              <View style={styles.truckIconBox}>
+                <Ionicons name="bicycle" size={24} color="#D91E28" />
+              </View>
+              <View style={styles.addressDetails}>
+                <View style={styles.addressTitleRow}>
+                  <Text style={styles.addressTitle}>Rumah - Ade Fitri Nuraeni</Text>
+                  <View style={styles.utamaBadge}>
+                    <Text style={styles.utamaText}>Utama</Text>
+                  </View>
+                </View>
+                <Text style={styles.addressSub} numberOfLines={1}>
+                  Jl. Pasir Bokor, Kp. Gunung Jambe...
+                </Text>
+                <View style={styles.noteRow}>
+                  <Ionicons name="document-text-outline" size={13} color="#64748B" />
+                  <Text style={styles.noteText}>Patokan Rafasya Cell</Text>
+                </View>
+              </View>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={22} color={COLORS.textSecondary} />
+
+            <TouchableOpacity style={styles.gantiBtn} activeOpacity={0.7}>
+              <Text style={styles.gantiBtnText}>Ganti</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Cart Item List */}
-          {cartItems.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Ionicons name="cart-outline" size={64} color={COLORS.border} />
-              <Text style={styles.emptyTitle}>Keranjang Anda Kosong</Text>
-              <Text style={styles.emptySubtitle}>Jelajahi produk resmi kami dan tambahkan ke keranjang.</Text>
+          {/* Yellow Promo Box "Tebus Murah!" */}
+          <View style={styles.promoBox}>
+            <View style={styles.promoLeft}>
+              <Text style={styles.promoTitle}>Tebus Murah!</Text>
+              <Text style={styles.promoSub}>
+                Anda dapat membeli <Text style={{ fontWeight: '800' }}>2 produk</Text> dengan harga sangat murah
+              </Text>
+              <View style={styles.promoThumbRow}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <View key={i} style={styles.thumbMini}>
+                    <Ionicons name="cube-outline" size={14} color="#D91E28" />
+                  </View>
+                ))}
+              </View>
             </View>
-          ) : (
-            <ScrollView style={styles.itemList} showsVerticalScrollIndicator={false}>
-              {cartItems.map((item) => (
-                <View key={item.id} style={styles.cartItem}>
+
+            <TouchableOpacity style={styles.ambilBtn} activeOpacity={0.7}>
+              <Text style={styles.ambilBtnText}>Ambil</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Checkbox "Pilih Semua" */}
+          <TouchableOpacity
+            style={styles.pilihSemuaRow}
+            onPress={() => setSelectAll(!selectAll)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={selectAll ? 'checkbox' : 'square-outline'}
+              size={22}
+              color={selectAll ? '#0284C7' : '#94A3B8'}
+            />
+            <Text style={styles.pilihSemuaText}>Pilih Semua</Text>
+          </TouchableOpacity>
+
+          {/* Delivery Group Header: Pengiriman Instan */}
+          <View style={styles.deliverySection}>
+            <TouchableOpacity
+              style={styles.deliveryHeader}
+              onPress={() => setSelectAll(!selectAll)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={selectAll ? 'checkbox' : 'square-outline'}
+                size={22}
+                color={selectAll ? '#0284C7' : '#94A3B8'}
+              />
+              <Ionicons name="flash" size={18} color="#D91E28" style={{ marginLeft: 8 }} />
+              <Text style={styles.deliveryTitle}>Pengiriman Instan</Text>
+            </TouchableOpacity>
+
+            {/* Product Item List */}
+            <View style={styles.itemList}>
+              {displayItems.map((item) => (
+                <View key={item.id} style={styles.itemRow}>
+                  <TouchableOpacity activeOpacity={0.7}>
+                    <Ionicons
+                      name={selectAll ? 'checkbox' : 'square-outline'}
+                      size={22}
+                      color={selectAll ? '#0284C7' : '#94A3B8'}
+                    />
+                  </TouchableOpacity>
+
                   <Image source={{ uri: item.image }} style={styles.itemImage} />
+
                   <View style={styles.itemInfo}>
-                    <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={styles.itemName} numberOfLines={2}>
+                      {item.name}
+                    </Text>
                     <Text style={styles.itemPrice}>{formatRupiah(item.price)}</Text>
-                    
-                    {/* Quantity controls */}
-                    <View style={styles.qtyContainer}>
-                      <TouchableOpacity
-                        style={styles.qtyBtn}
-                        onPress={() => onUpdateQuantity(item.id, item.quantity - 1)}
-                      >
-                        <Ionicons name="remove" size={14} color={COLORS.textPrimary} />
-                      </TouchableOpacity>
+                  </View>
 
-                      <Text style={styles.qtyText}>{item.quantity}</Text>
+                  {/* Plus Minus Stepper Control */}
+                  <View style={styles.stepperContainer}>
+                    <TouchableOpacity
+                      style={styles.stepperBtn}
+                      onPress={() =>
+                        onUpdateQuantity && onUpdateQuantity(item.id, item.quantity - 1)
+                      }
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="remove" size={16} color="#0284C7" />
+                    </TouchableOpacity>
 
-                      <TouchableOpacity
-                        style={styles.qtyBtn}
-                        onPress={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                      >
-                        <Ionicons name="add" size={14} color={COLORS.textPrimary} />
-                      </TouchableOpacity>
+                    <Text style={styles.stepperValue}>{item.quantity}</Text>
 
-                      <TouchableOpacity
-                        style={styles.deleteBtn}
-                        onPress={() => onRemoveItem(item.id)}
-                      >
-                        <Ionicons name="trash-outline" size={16} color={COLORS.danger} />
-                      </TouchableOpacity>
-                    </View>
+                    <TouchableOpacity
+                      style={styles.stepperBtn}
+                      onPress={() =>
+                        onUpdateQuantity && onUpdateQuantity(item.id, item.quantity + 1)
+                      }
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={16} color="#0284C7" />
+                    </TouchableOpacity>
                   </View>
                 </View>
               ))}
-            </ScrollView>
-          )}
-
-          {/* Footer Summary */}
-          {cartItems.length > 0 && (
-            <View style={styles.footer}>
-              <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Ongkos Kirim (Promo)</Text>
-                <Text style={styles.freeShipping}>GRATIS</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <Text style={styles.totalLabel}>Total Pembayaran</Text>
-                <Text style={styles.totalValue}>{formatRupiah(subtotal)}</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.checkoutBtn}
-                onPress={handleCheckout}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="bag-check" size={18} color={COLORS.primary} />
-                <Text style={styles.checkoutText}>Beli Sekarang ({cartItems.length})</Text>
-              </TouchableOpacity>
             </View>
-          )}
+          </View>
+        </ScrollView>
+
+        {/* Sticky Bottom Bar */}
+        <View style={styles.bottomBarContainer}>
+          <TouchableOpacity style={styles.bottomBarBtn} activeOpacity={0.85}>
+            <Text style={styles.bottomBarTotal}>{formatRupiah(totalPrice)}</Text>
+            <Text style={styles.bottomBarAction}>Selanjutnya</Text>
+          </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  safeArea: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    justifyContent: 'flex-end',
+    backgroundColor: '#F8FAFC',
   },
-  modalContainer: {
-    backgroundColor: COLORS.primary,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '80%',
-    padding: 20,
-    borderWidth: 1,
-    borderColor: COLORS.secondary,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#D91E28',
   },
-  headerRow: {
+  backBtn: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.white,
+    marginLeft: 12,
+  },
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 14,
+    gap: 12,
+    paddingBottom: 80,
+  },
+  /* Address Card */
+  addressCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.secondary,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
-  headerTitleBox: {
+  addressLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+    marginRight: 10,
+  },
+  truckIconBox: {
+    marginRight: 10,
+    marginTop: 2,
+  },
+  addressDetails: {
+    flex: 1,
+  },
+  addressTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    marginBottom: 2,
   },
-  headerTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 18,
+  addressTitle: {
+    fontSize: 14,
     fontWeight: '800',
+    color: COLORS.textDark,
   },
-  closeBtn: {
-    padding: 4,
+  utamaBadge: {
+    backgroundColor: '#D91E28',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 10,
   },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 40,
-    gap: 10,
-  },
-  emptyTitle: {
-    color: COLORS.textPrimary,
-    fontSize: 16,
+  utamaText: {
+    color: COLORS.white,
+    fontSize: 10,
     fontWeight: '700',
   },
-  emptySubtitle: {
-    color: COLORS.textMuted,
-    fontSize: 13,
-    textAlign: 'center',
+  addressSub: {
+    fontSize: 12,
+    color: '#64748B',
+    marginBottom: 2,
   },
-  itemList: {
-    marginVertical: 12,
-  },
-  cartItem: {
+  noteRow: {
     flexDirection: 'row',
-    backgroundColor: COLORS.cardBg,
+    alignItems: 'center',
+    gap: 4,
+  },
+  noteText: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  gantiBtn: {
+    borderWidth: 1.5,
+    borderColor: '#0284C7',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  gantiBtnText: {
+    color: '#0284C7',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  /* Yellow Tebus Murah Box */
+  promoBox: {
+    backgroundColor: '#FDE047',
     borderRadius: 12,
-    padding: 10,
-    marginBottom: 10,
+    padding: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  itemImage: {
-    width: 60,
-    height: 60,
+  promoLeft: {
+    flex: 1,
+    marginRight: 10,
+  },
+  promoTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginBottom: 4,
+  },
+  promoSub: {
+    fontSize: 12,
+    color: COLORS.textDark,
+    marginBottom: 8,
+  },
+  promoThumbRow: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  thumbMini: {
+    width: 24,
+    height: 24,
+    backgroundColor: COLORS.white,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  ambilBtn: {
+    borderWidth: 1.5,
+    borderColor: '#0284C7',
+    backgroundColor: COLORS.white,
     borderRadius: 8,
-    backgroundColor: COLORS.primary,
-    marginRight: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  ambilBtnText: {
+    color: '#0284C7',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  /* Select All Row */
+  pilihSemuaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    padding: 12,
+    gap: 10,
+  },
+  pilihSemuaText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.textDark,
+  },
+  /* Delivery Section */
+  deliverySection: {
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    padding: 12,
+  },
+  deliveryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  deliveryTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginLeft: 6,
+  },
+  itemList: {
+    marginTop: 8,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  itemImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 8,
+    marginHorizontal: 10,
+    backgroundColor: '#F1F5F9',
   },
   itemInfo: {
     flex: 1,
+    marginRight: 8,
   },
   itemName: {
-    color: COLORS.textPrimary,
     fontSize: 13,
     fontWeight: '600',
+    color: COLORS.textDark,
     marginBottom: 4,
   },
   itemPrice: {
-    color: COLORS.accent,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
-    marginBottom: 8,
+    color: '#D91E28',
   },
-  qtyContainer: {
+  stepperContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
   },
-  qtyBtn: {
-    backgroundColor: COLORS.border,
-    width: 24,
-    height: 24,
+  stepperBtn: {
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    width: 28,
+    height: 28,
     borderRadius: 6,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.white,
   },
-  qtyText: {
-    color: COLORS.textPrimary,
-    fontSize: 13,
+  stepperValue: {
+    fontSize: 14,
     fontWeight: '700',
+    color: COLORS.textDark,
+    minWidth: 16,
+    textAlign: 'center',
   },
-  deleteBtn: {
-    marginLeft: 'auto',
-    padding: 4,
+  /* Bottom Action Bar */
+  bottomBarContainer: {
+    position: 'absolute',
+    bottom: 12,
+    left: 14,
+    right: 14,
   },
-  footer: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.secondary,
-    paddingTop: 12,
-    gap: 8,
-  },
-  summaryRow: {
+  bottomBarBtn: {
+    backgroundColor: '#005691',
+    borderRadius: 10,
+    height: 48,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  summaryLabel: {
-    color: COLORS.textSecondary,
-    fontSize: 13,
-  },
-  freeShipping: {
-    color: COLORS.success,
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  totalLabel: {
-    color: COLORS.textPrimary,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  totalValue: {
-    color: COLORS.accent,
-    fontSize: 18,
+  bottomBarTotal: {
+    color: COLORS.white,
+    fontSize: 17,
     fontWeight: '800',
   },
-  checkoutBtn: {
-    backgroundColor: COLORS.accent,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 8,
-  },
-  checkoutText: {
-    color: COLORS.primary,
+  bottomBarAction: {
+    color: COLORS.white,
     fontSize: 15,
     fontWeight: '800',
   },

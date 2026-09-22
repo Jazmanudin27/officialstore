@@ -25,12 +25,16 @@ import ExploreScreen from './src/screens/ExploreScreen';
 import WishlistScreen from './src/screens/WishlistScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import SearchScreen from './src/screens/SearchScreen';
+import ChatScreen from './src/screens/ChatScreen';
+import NotificationScreen from './src/screens/NotificationScreen';
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -124,6 +128,8 @@ export default function App() {
         setSearchQuery={setSearchQuery}
         cartCount={totalCartCount}
         openCart={() => setIsCartOpen(true)}
+        openChat={() => setIsChatOpen(true)}
+        openNotification={() => setIsNotificationOpen(true)}
         isScrolled={isScrolled}
         openSearch={() => setIsSearchOpen(true)}
       />
@@ -138,6 +144,18 @@ export default function App() {
         visible={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
         onSelectKeyword={(keyword) => setSearchQuery(keyword)}
+      />
+
+      {/* Chat / Kotak Masuk Screen Modal */}
+      <ChatScreen
+        visible={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+      />
+
+      {/* Notification / Pemberitahuan Screen Modal */}
+      <NotificationScreen
+        visible={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
       />
 
       {/* Sticky Bottom Floating Banner (HARGA SUPER!) */}

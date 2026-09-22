@@ -8,7 +8,16 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-export default function Header({ searchQuery, setSearchQuery, cartCount, openCart, isScrolled, openSearch }) {
+export default function Header({
+  searchQuery,
+  setSearchQuery,
+  cartCount,
+  openCart,
+  openChat,
+  openNotification,
+  isScrolled,
+  openSearch,
+}) {
   React.useEffect(() => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
   }, [isScrolled]);
@@ -32,14 +41,14 @@ export default function Header({ searchQuery, setSearchQuery, cartCount, openCar
 
           {/* Action Icons inline right */}
           <View style={styles.actionRowCompact}>
-            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.iconBtn} onPress={openChat} activeOpacity={0.7}>
               <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
               <View style={styles.yellowBadge}>
                 <Text style={styles.badgeText}>1</Text>
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.iconBtn} onPress={openNotification} activeOpacity={0.7}>
               <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
               <View style={styles.yellowBadge}>
                 <Text style={styles.badgeText}>6</Text>
@@ -77,17 +86,17 @@ export default function Header({ searchQuery, setSearchQuery, cartCount, openCar
 
             {/* Right Action Icons */}
             <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.iconBtn} onPress={openChat} activeOpacity={0.7}>
                 <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
                 <View style={styles.yellowBadge}>
                   <Text style={styles.badgeText}>1</Text>
                 </View>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.iconBtn} onPress={openNotification} activeOpacity={0.7}>
                 <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
                 <View style={styles.yellowBadge}>
-                  <Text style={styles.badgeText}>4</Text>
+                  <Text style={styles.badgeText}>6</Text>
                 </View>
               </TouchableOpacity>
 
