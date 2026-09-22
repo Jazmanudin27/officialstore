@@ -70,8 +70,6 @@ export default function MemberCard() {
       {/* Bottom Wallet & Barcode Buttons */}
       <View style={styles.bottomActions}>
         <TouchableOpacity style={styles.gopayBtn} activeOpacity={0.7}>
-          <Ionicons name="wallet-outline" size={18} color="#0284C7" />
-          <Text style={styles.gopayText}>Hubungkan Akun Gopay</Text>
           <Ionicons name="chevron-forward" size={14} color="#0284C7" />
         </TouchableOpacity>
 
