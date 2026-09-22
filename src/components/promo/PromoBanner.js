@@ -1,45 +1,87 @@
-import React from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { PROMO_BANNERS } from '../../data/mockProducts';
 import { COLORS } from '../../constants/theme';
 
+const { width } = Dimensions.get('window');
+const cardWidth = width - 20; // 10px padding on each side
+
 export default function PromoBanner() {
-  const promo = PROMO_BANNERS[0];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollViewRef = useRef(null);
+
+  // Auto-slide every 15 seconds (15000 ms)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIndex((prevIndex) => {
+        const nextIndex = (prevIndex + 1) % PROMO_BANNERS.length;
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({
+            x: nextIndex * cardWidth,
+            animated: true,
+          });
+        }
+        return nextIndex;
+      });
+    }, 15000);
+
+    return () => clearInterval(timer);
+  }, []);
+
+  const handleScroll = (event) => {
+    const contentOffset = event.nativeEvent.contentOffset.x;
+    const currentIndex = Math.round(contentOffset / cardWidth);
+    setActiveIndex(currentIndex);
+  };
 
   return (
     <View style={styles.container}>
-      {/* Banner Card */}
-      <View style={styles.bannerCard}>
-        <Image source={{ uri: promo.image }} style={styles.bannerImage} resizeMode="cover" />
-        
-        {/* Overlay Banner Text */}
-        <View style={styles.bannerContent}>
-          <Text style={styles.promoTag}>HOMECARE FAIR</Text>
-          <Text style={styles.promoHighlight}>CASHBACK 10.000</Text>
-          <Text style={styles.promoSub}>Produk Home Care</Text>
-          <View style={styles.periodBadge}>
-            <Text style={styles.periodText}>{promo.period}</Text>
-          </View>
-        </View>
+      {/* Horizontal Carousel Slider */}
+      <ScrollView
+        ref={scrollViewRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        snapToInterval={cardWidth}
+        decelerationRate="fast"
+        contentContainerStyle={styles.scrollContent}
+      >
+        {PROMO_BANNERS.map((promo) => (
+          <View key={promo.id} style={[styles.bannerCard, { width: cardWidth - 8 }]}>
+            <Image source={{ uri: promo.image }} style={styles.bannerImage} resizeMode="cover" />
+            
+            {/* Overlay Banner Text */}
+            <View style={styles.bannerContent}>
+              <Text style={styles.promoTag}>{promo.title}</Text>
+              <Text style={styles.promoHighlight}>{promo.highlight}</Text>
+              <Text style={styles.promoSub}>{promo.subtitle}</Text>
+              <View style={styles.periodBadge}>
+                <Text style={styles.periodText}>{promo.period}</Text>
+              </View>
+            </View>
 
-        {/* Red Bottom Strip */}
-        <View style={styles.redStrip}>
-          <Text style={styles.redStripText}>
-            🎁 VOUCHER GAK ABIS-ABIS • 🚚 BEBAS ONGKIR • 🌟 A-POIN NAMBAH TERUS
-          </Text>
-        </View>
-      </View>
+            {/* Red Bottom Strip */}
+            <View style={styles.redStrip}>
+              <Text style={styles.redStripText}>{promo.footerText}</Text>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Indicator Dots & "Lihat Semua Promo" Row */}
       <View style={styles.indicatorRow}>
         <View style={styles.dotsContainer}>
-          <View style={[styles.dot, styles.activeDot]} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
-          <View style={styles.dot} />
+          {PROMO_BANNERS.map((_, idx) => (
+            <View
+              key={idx}
+              style={[
+                styles.dot,
+                idx === activeIndex && styles.activeDot,
+              ]}
+            />
+          ))}
         </View>
 
         <TouchableOpacity activeOpacity={0.7}>
@@ -52,8 +94,11 @@ export default function PromoBanner() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 10,
     marginBottom: 16,
+  },
+  scrollContent: {
+    paddingHorizontal: 10,
+    gap: 8,
   },
   bannerCard: {
     borderRadius: 16,
@@ -120,22 +165,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 10,
     marginTop: 10,
   },
   dotsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#CBD5E1',
   },
   activeDot: {
-    width: 16,
+    width: 20,
     backgroundColor: '#0284C7',
+    borderRadius: 4,
   },
   seeAllText: {
     color: '#0284C7',
