@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 
+// Base64 Embedded Font Data for Web (Bulletproof vector icon rendering)
+import { IONICONS_BASE64 } from './src/constants/ioniconsBase64';
+
 // Constants & Data
 import { COLORS } from './src/constants/theme';
 import { PRODUCTS } from './src/data/mockProducts';
@@ -29,10 +32,10 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
 
-  // Inject Ionicons font stylesheet on Web to fix empty square icon boxes
+  // Inject Base64 Ionicons font on Web to guarantee 100% icon rendering offline/online
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      const styleId = 'expo-vector-icons-ionicons';
+      const styleId = 'expo-vector-icons-ionicons-embedded';
       if (!document.getElementById(styleId)) {
         const style = document.createElement('style');
         style.id = styleId;
@@ -41,7 +44,9 @@ export default function App() {
           document.createTextNode(`
             @font-face {
               font-family: 'Ionicons';
-              src: url('https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/fonts/ionicons.ttf') format('truetype');
+              src: url('${IONICONS_BASE64}') format('truetype');
+              font-weight: normal;
+              font-style: normal;
             }
           `)
         );
