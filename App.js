@@ -35,6 +35,7 @@ import AddressModal from './src/screens/AddressModal';
 import AuthModal from './src/screens/AuthModal';
 import ProductDetailModal from './src/screens/ProductDetailModal';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
+import AdminAuthScreen from './src/screens/AdminAuthScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
@@ -42,8 +43,25 @@ export default function App() {
   const isDesktop = width >= 768;
   const [showSplash, setShowSplash] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
+  const [adminUser, setAdminUser] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Deteksi Domain / URL khusus Admin (misal: admin.aspartech.com atau ?admin=1 atau /admin)
+  const isAdminDomain = (() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const host = (window.location.hostname || '').toLowerCase();
+      const path = (window.location.pathname || '').toLowerCase();
+      const search = (window.location.search || '').toLowerCase();
+      return (
+        host.startsWith('admin.') ||
+        path.startsWith('/admin') ||
+        search.includes('admin=1') ||
+        search.includes('mode=admin')
+      );
+    }
+    return false;
+  })();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -283,6 +301,27 @@ export default function App() {
     }
   };
 
+  // Jika diakses dari domain khusus Admin (misal: admin.aspartech.com atau ?admin=1)
+  if (isAdminDomain) {
+    if (!adminUser) {
+      return (
+        <AdminAuthScreen
+          onLoginSuccess={(adm) => setAdminUser(adm)}
+          isStandaloneDomain={true}
+        />
+      );
+    }
+    return (
+      <AdminDashboardScreen
+        visible={true}
+        adminUser={adminUser}
+        onLogout={() => setAdminUser(null)}
+        showGoToStore={false}
+        onRefreshProducts={handleRefresh}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ExpoStatusBar style="light" backgroundColor={COLORS.primaryRed} />
@@ -398,6 +437,9 @@ export default function App() {
         onLoginSuccess={(userData) => {
           setCurrentUser(userData);
           setIsAuthOpen(false);
+          if (userData.role === 'admin') {
+            setAdminUser(userData);
+          }
           if (userData.alamat) {
             setSelectedAddress({
               id: 'user_addr',
@@ -434,12 +476,37 @@ export default function App() {
         }}
       />
 
-      {/* Admin Dashboard Screen Modal */}
-      <AdminDashboardScreen
-        visible={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
-        onRefreshProducts={handleRefresh}
-      />
+      {/* Admin Dashboard / Auth Guard Screen Modal */}
+      {isAdminOpen && (
+        adminUser || currentUser?.role === 'admin' ? (
+          <AdminDashboardScreen
+            visible={isAdminOpen}
+            onClose={() => setIsAdminOpen(false)}
+            onRefreshProducts={handleRefresh}
+            adminUser={adminUser || currentUser}
+            onLogout={() => {
+              setAdminUser(null);
+              setIsAdminOpen(false);
+            }}
+          />
+        ) : (
+          <Modal visible={isAdminOpen} animationType="slide" onRequestClose={() => setIsAdminOpen(false)}>
+            <SafeAreaView style={{ flex: 1, backgroundColor: '#0F172A' }}>
+              <TouchableOpacity
+                onPress={() => setIsAdminOpen(false)}
+                style={{ position: 'absolute', top: 16, right: 16, zIndex: 10, padding: 8 }}
+              >
+                <Ionicons name="close-circle" size={32} color="#FFFFFF" />
+              </TouchableOpacity>
+              <AdminAuthScreen
+                onLoginSuccess={(adm) => {
+                  setAdminUser(adm);
+                }}
+              />
+            </SafeAreaView>
+          </Modal>
+        )
+      )}
 
       {/* Bottom 5-Tab Navigation Bar */}
       <BottomNavigation

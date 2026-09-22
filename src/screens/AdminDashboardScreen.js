@@ -18,7 +18,14 @@ import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import { apiService } from '../services/api';
 
-export default function AdminDashboardScreen({ visible, onClose, onRefreshProducts }) {
+export default function AdminDashboardScreen({
+  visible = true,
+  onClose,
+  onRefreshProducts,
+  adminUser,
+  onLogout,
+  showGoToStore = true,
+}) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
@@ -260,10 +267,25 @@ export default function AdminDashboardScreen({ visible, onClose, onRefreshProduc
             </View>
           </View>
 
-          <TouchableOpacity style={styles.closeShopBtn} onPress={onClose} activeOpacity={0.8}>
-            <Ionicons name="storefront" size={16} color="#B91C1C" />
-            <Text style={styles.closeShopText}>Toko Online</Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            {showGoToStore && onClose && (
+              <TouchableOpacity style={styles.closeShopBtn} onPress={onClose} activeOpacity={0.8}>
+                <Ionicons name="storefront" size={16} color="#B91C1C" />
+                <Text style={styles.closeShopText}>Toko Online</Text>
+              </TouchableOpacity>
+            )}
+
+            {onLogout && (
+              <TouchableOpacity
+                style={[styles.closeShopBtn, { backgroundColor: '#FEE2E2', marginLeft: 8 }]}
+                onPress={onLogout}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="log-out-outline" size={16} color="#DC2626" />
+                <Text style={[styles.closeShopText, { color: '#DC2626' }]}>Keluar Admin</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Navigation Tabs Bar */}

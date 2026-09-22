@@ -145,14 +145,16 @@ export default function Header({
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.desktopActionBtn}
-                onPress={onOpenAdmin}
-                activeOpacity={0.7}
-              >
-                <Ionicons name="settings-outline" size={22} color={COLORS.white} />
-                <Text style={styles.desktopActionLabel}>Admin</Text>
-              </TouchableOpacity>
+              {user?.role === 'admin' && (
+                <TouchableOpacity
+                  style={styles.desktopActionBtn}
+                  onPress={onOpenAdmin}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="settings-outline" size={22} color={COLORS.white} />
+                  <Text style={styles.desktopActionLabel}>Admin</Text>
+                </TouchableOpacity>
+              )}
 
               {/* Cart Button */}
               <TouchableOpacity style={styles.desktopCartBtn} onPress={openCart} activeOpacity={0.85}>

@@ -204,24 +204,28 @@ export default function ProfileScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Menu Section: Admin Panel */}
-        <Text style={styles.sectionHeaderTitle}>Pengelolaan Toko (Admin)</Text>
-        <View style={styles.menuContainer}>
-          <TouchableOpacity
-            style={styles.menuRow}
-            onPress={onOpenAdmin}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.menuIconCircle, { backgroundColor: '#FEF2F2' }]}>
-              <Ionicons name="settings-outline" size={20} color="#D91E28" />
+        {/* Menu Section: Admin Panel (Khusus Role Admin) */}
+        {user?.role === 'admin' && (
+          <>
+            <Text style={styles.sectionHeaderTitle}>Pengelolaan Toko (Admin)</Text>
+            <View style={styles.menuContainer}>
+              <TouchableOpacity
+                style={styles.menuRow}
+                onPress={onOpenAdmin}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.menuIconCircle, { backgroundColor: '#FEF2F2' }]}>
+                  <Ionicons name="settings-outline" size={20} color="#D91E28" />
+                </View>
+                <View style={styles.menuTextWrap}>
+                  <Text style={styles.menuTitle}>⚙️ Admin Dashboard Toko</Text>
+                  <Text style={styles.menuSub}>Kelola produk, promo voucher, & pesanan masuk</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+              </TouchableOpacity>
             </View>
-            <View style={styles.menuTextWrap}>
-              <Text style={styles.menuTitle}>⚙️ Admin Dashboard Toko</Text>
-              <Text style={styles.menuSub}>Kelola produk, promo voucher, & pesanan masuk</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-        </View>
+          </>
+        )}
 
         {/* Menu Section: Bantuan & Info */}
         <Text style={styles.sectionHeaderTitle}>Pusat Bantuan & Kebijakan</Text>
