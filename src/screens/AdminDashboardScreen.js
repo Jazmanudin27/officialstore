@@ -742,131 +742,74 @@ export default function AdminDashboardScreen({
 
           {/* TAB 5: KELOLA CABANG TOKO (STORES) */}
           {activeTab === 'stores' && (
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeaderRow}>
-                <View>
-                  <Text style={styles.sectionTitle}>🏪 Kelola Cabang Toko (Pickup Outlets)</Text>
-                  <Text style={styles.sectionSub}>Kelola daftar outlet lokasi fisik untuk metode Ambil Mandiri (Pickup)</Text>
+            <View style={styles.sectionWrap}>
+              <View style={styles.topActionHeader}>
+                <View style={styles.searchBarBox}>
+                  <Ionicons name="search" size={18} color="#64748B" />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder="Cari nama cabang / kode..."
+                    placeholderTextColor="#94A3B8"
+                    value={branchSearch}
+                    onChangeText={setBranchSearch}
+                  />
                 </View>
-                <TouchableOpacity
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    backgroundColor: '#1E40AF',
-                    paddingHorizontal: 18,
-                    paddingVertical: 10,
-                    borderRadius: 12,
-                    shadowColor: '#1E40AF',
-                    shadowOffset: { width: 0, height: 4 },
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                    elevation: 5,
-                    borderWidth: 1,
-                    borderColor: '#3B82F6',
-                  }}
-                  onPress={() => openBranchForm(null)}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="add-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14, letterSpacing: 0.3 }}>
-                    + Tambah Cabang Baru
-                  </Text>
+
+                <TouchableOpacity style={styles.addBtnHeader} onPress={() => openBranchForm(null)} activeOpacity={0.85}>
+                  <Ionicons name="add" size={20} color="#FFFFFF" />
+                  <Text style={styles.addBtnHeaderText}>Tambah Cabang</Text>
                 </TouchableOpacity>
               </View>
 
-              {/* Outlet Branch List Cards */}
-              <View style={{ gap: 14 }}>
-                {storesList.map((st) => (
-                  <View
-                    key={st.id}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      borderRadius: 16,
-                      padding: 18,
-                      borderWidth: 1,
-                      borderColor: '#E2E8F0',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.04,
-                      shadowRadius: 6,
-                      elevation: 2,
-                    }}
-                  >
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
-                        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#BFDBFE' }}>
-                          <Ionicons name="business" size={24} color="#2563EB" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                            <Text style={{ fontSize: 17, fontWeight: '800', color: '#0F172A' }}>{st.name}</Text>
-                            <View style={{ backgroundColor: '#DBEAFE', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                              <Text style={{ fontSize: 11, fontWeight: '800', color: '#1E40AF' }}>{st.code}</Text>
-                            </View>
-                            <View style={{ backgroundColor: st.active ? '#DCFCE7' : '#FEE2E2', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
-                              <Text style={{ fontSize: 11, fontWeight: '700', color: st.active ? '#15803D' : '#B91C1C' }}>
-                                {st.active ? '● AKTIF' : 'NON-AKTIF'}
-                              </Text>
-                            </View>
-                          </View>
-                          <Text style={{ fontSize: 13, color: '#475569', marginTop: 4, lineHeight: 18 }}>📍 {st.address}</Text>
-                        </View>
+              {/* Branch Stores Table List (Identik 100% dengan Tampilan Produk) */}
+              {filteredBranches.map((st) => (
+                <View key={st.id} style={styles.tableRowCard}>
+                  <View style={[styles.productThumb, { backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center' }]}>
+                    <Ionicons name="business" size={26} color="#2563EB" />
+                  </View>
+
+                  <View style={styles.productMetaBox}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <Text style={styles.productMetaTitle} numberOfLines={1}>
+                        {st.name}
+                      </Text>
+                      <View style={styles.badgeCategory}>
+                        <Text style={styles.badgeCategoryText}>{st.code}</Text>
                       </View>
-
-                      {/* Action Buttons */}
-                      <View style={{ flexDirection: 'row', gap: 8, marginLeft: 10 }}>
-                        <TouchableOpacity
-                          style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F0F9FF', borderColor: '#BAE6FD', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8 }}
-                          onPress={() => openBranchForm(st)}
-                          activeOpacity={0.75}
-                        >
-                          <Ionicons name="pencil" size={15} color="#0284C7" style={{ marginRight: 4 }} />
-                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#0284C7' }}>Edit</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                          style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', borderColor: '#FCA5A5', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8 }}
-                          onPress={() => handleDeleteBranch(st)}
-                          activeOpacity={0.75}
-                        >
-                          <Ionicons name="trash-outline" size={15} color="#DC2626" style={{ marginRight: 4 }} />
-                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#DC2626' }}>Hapus</Text>
-                        </TouchableOpacity>
+                      <View style={[styles.badgeCategory, { backgroundColor: st.active ? '#DCFCE7' : '#FEE2E2' }]}>
+                        <Text style={[styles.badgeCategoryText, { color: st.active ? '#15803D' : '#B91C1C' }]}>
+                          {st.active ? '● AKTIF' : 'NON-AKTIF'}
+                        </Text>
                       </View>
                     </View>
-
-                    <View style={{ height: 1, backgroundColor: '#F1F5F9', marginVertical: 8 }} />
-
-                    {/* Metadata Badges */}
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="call-outline" size={14} color="#64748B" style={{ marginRight: 4 }} />
-                        <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>{st.phone || '0895238888200'}</Text>
-                      </View>
-
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="time-outline" size={14} color="#64748B" style={{ marginRight: 4 }} />
-                        <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>{st.hours || '07:00 - 22:00'}</Text>
-                      </View>
-
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Ionicons name="map-outline" size={14} color="#64748B" style={{ marginRight: 4 }} />
-                        <Text style={{ fontSize: 12, color: '#64748B' }}>Maps: {st.lat}, {st.lng}</Text>
-                      </View>
+                    <Text style={styles.productMetaSku} numberOfLines={2}>📍 {st.address}</Text>
+                    <View style={styles.priceRow}>
+                      <Text style={{ fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                        📞 {st.phone || '0895238888200'} | 🕒 {st.hours}
+                      </Text>
                     </View>
                   </View>
-                ))}
-              </View>
+
+                  <View style={styles.actionBtnGroup}>
+                    <TouchableOpacity style={styles.editBtn} onPress={() => openBranchForm(st)} activeOpacity={0.7}>
+                      <Ionicons name="pencil" size={16} color="#0284C7" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteBranch(st)} activeOpacity={0.7}>
+                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
             </View>
           )}
 
           {/* TAB 6: PENGATURAN TOKO UTAMA (SETTINGS) */}
           {activeTab === 'settings' && (
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeaderRow}>
+            <View style={styles.sectionWrap}>
+              <View style={styles.topActionHeader}>
                 <View>
                   <Text style={styles.sectionTitle}>⚙️ Pengaturan Identitas Official Store</Text>
-                  <Text style={styles.sectionSub}>Ubah nama toko, slogan, URL logo, lokasi utama, dan nomor kontak CS</Text>
+                  <Text style={{ fontSize: 12, color: '#64748B' }}>Ubah nama toko, slogan, URL logo, lokasi utama, dan nomor kontak CS</Text>
                 </View>
               </View>
 
@@ -1033,9 +976,24 @@ export default function AdminDashboardScreen({
                   </View>
                 </View>
 
-                {/* Submit Button */}
+                {/* Submit Button Ultra Premium */}
                 <TouchableOpacity
-                  style={[styles.saveModalBtn, { marginTop: 12, backgroundColor: COLORS.primaryRed, height: 48, borderRadius: 12 }]}
+                  style={{
+                    backgroundColor: '#D91E28',
+                    height: 52,
+                    borderRadius: 14,
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    shadowColor: '#D91E28',
+                    shadowOffset: { width: 0, height: 6 },
+                    shadowOpacity: 0.35,
+                    shadowRadius: 10,
+                    elevation: 6,
+                    borderWidth: 1,
+                    borderColor: '#EF4444',
+                    marginTop: 12,
+                  }}
                   onPress={handleSaveStoreSettings}
                   activeOpacity={0.85}
                   disabled={loading}
@@ -1044,8 +1002,10 @@ export default function AdminDashboardScreen({
                     <ActivityIndicator color="#FFFFFF" size="small" />
                   ) : (
                     <>
-                      <Ionicons name="save" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
-                      <Text style={[styles.saveModalBtnText, { fontSize: 15 }]}>Simpan & Terapkan Perubahan Toko</Text>
+                      <Ionicons name="save" size={22} color="#FFFFFF" style={{ marginRight: 8 }} />
+                      <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 16, letterSpacing: 0.3 }}>
+                        Simpan & Terapkan Perubahan Toko
+                      </Text>
                     </>
                   )}
                 </TouchableOpacity>
