@@ -89,10 +89,12 @@ export const apiService = {
       throw new Error(json.message || 'Gagal mengirim OTP');
     } catch (error) {
       console.warn('ℹ️ Auth API offline, menggunakan simulasi OTP:', error.message);
+      const cleanDigits = phone.replace(/[^0-9]/g, '');
+      const isRegistered = (cleanDigits === '62895238888200' || cleanDigits === '0895238888200');
       return {
         status: 'ok',
         message: 'Kode OTP Demo: 123456 (Simulasi Offline)',
-        data: { phone, otp: '123456' },
+        data: { phone, otp: '123456', isRegistered },
       };
     }
   },

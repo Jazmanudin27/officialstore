@@ -76,7 +76,18 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
     try {
       const fullPhone = '62' + rawPhone;
       // Panggil backend API send-otp
-      await apiService.sendOtp(fullPhone);
+      const result = await apiService.sendOtp(fullPhone);
+
+      // Jika user memilih tab 'login' tetapi nomor belum terdaftar di database
+      if (authMode === 'login' && result && result.data && result.data.isRegistered === false) {
+        Alert.alert(
+          'Anda Belum Terdaftar',
+          'Anda belum terdaftar, silahkan daftar terlebih dahulu.'
+        );
+        setAuthMode('register');
+        setStep('input');
+        return;
+      }
 
       setStep('otp');
       setCountdown(30);
