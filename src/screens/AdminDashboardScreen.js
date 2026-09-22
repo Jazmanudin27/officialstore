@@ -135,7 +135,7 @@ export default function AdminDashboardScreen({
     }
     setLoading(true);
     try {
-      await apiService.updateStoreSettings({
+      const payload = {
         nama_toko: formSettingName,
         slogan: formSettingSlogan,
         logo_url: formSettingLogo,
@@ -144,9 +144,16 @@ export default function AdminDashboardScreen({
         jam_operasional: formSettingHours,
         latitude: parseFloat(formSettingLat) || -7.3512,
         longitude: parseFloat(formSettingLng) || 108.2145,
-      });
-      Alert.alert('Sukses', 'Pengaturan toko berhasil diperbarui!');
-      loadData();
+      };
+
+      const res = await apiService.updateStoreSettings(payload);
+      if (res && res.status === 'ok') {
+        setStoreSettings((prev) => ({ ...prev, ...payload }));
+        Alert.alert('Sukses', 'Pengaturan toko berhasil diperbarui!');
+        await loadData();
+      } else {
+        throw new Error(res?.message || 'Gagal menyimpan pengaturan toko');
+      }
     } catch (e) {
       Alert.alert('Gagal', e.message || 'Gagal menyimpan pengaturan toko');
     } finally {

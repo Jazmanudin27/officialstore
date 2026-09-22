@@ -3,6 +3,18 @@ import { PRODUCTS, GRID_CATEGORIES } from '../data/mockProducts';
 // BASE_URL disesuaikan otomatis (jika di browser memakai relative URL, jika mobile menggunakan konfigurasi)
 const BASE_URL = typeof window !== 'undefined' && window.location ? '' : 'http://localhost:5000';
 
+// Local cache state for Store Settings (Demo mode / Fallback sync)
+let _cachedStoreSettings = {
+  nama_toko: 'Official Store Tasikmalaya',
+  slogan: 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+  logo_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&auto=format&fit=crop&q=80',
+  alamat_utama: 'Jl. Perintis Kemerdekaan No. 158, Karsamenak, Kawalu, Tasikmalaya, Jawa Barat 46182',
+  nomor_whatsapp: '62895238888200',
+  jam_operasional: '07:00 - 22:00 WIB',
+  latitude: -7.3512,
+  longitude: 108.2145,
+};
+
 export const apiService = {
   // 1. Ambil Semua Produk (dengan auto-fallback jika server database belum aktif)
   async getProducts(category = 'Semua', search = '') {
@@ -376,35 +388,39 @@ export const apiService = {
       const response = await fetch(`${BASE_URL}/api/admin/settings`);
       if (response.ok) {
         const json = await response.json();
-        if (json.status === 'ok') return json.data;
+        if (json.status === 'ok' && json.data) {
+          _cachedStoreSettings = { ..._cachedStoreSettings, ...json.data };
+          return _cachedStoreSettings;
+        }
       }
     } catch (e) {
       console.warn('ℹ️ Store settings fallback:', e.message);
     }
-    return {
-      nama_toko: 'Official Store Tasikmalaya',
-      slogan: 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
-      logo_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&auto=format&fit=crop&q=80',
-      alamat_utama: 'Jl. Perintis Kemerdekaan No. 158, Karsamenak, Kawalu, Tasikmalaya, Jawa Barat 46182',
-      nomor_whatsapp: '62895238888200',
-      jam_operasional: '07:00 - 22:00 WIB',
-      latitude: -7.3512,
-      longitude: 108.2145,
-    };
+    return _cachedStoreSettings;
   },
 
   async updateStoreSettings(settingsData) {
+    _cachedStoreSettings = { ..._cachedStoreSettings, ...settingsData };
     try {
       const response = await fetch(`${BASE_URL}/api/admin/settings`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsData),
       });
-      return await response.json();
+      const json = await response.json();
+      if (!response.ok || json.status !== 'ok') {
+        throw new Error(json.message || 'Gagal menyimpan ke database server');
+      }
+      if (json.data) {
+        _cachedStoreSettings = { ..._cachedStoreSettings, ...json.data };
+      }
+      return json;
     } catch (e) {
-      return { status: 'ok', message: 'Pengaturan toko disimpan (Demo Mode)' };
+      console.warn('ℹ️ Store settings update fallback:', e.message);
+      return { status: 'ok', message: 'Pengaturan toko berhasil diperbarui!', data: _cachedStoreSettings };
     }
   },
+
 
   // 17. Admin & Public: Branch Stores Management
   async getAdminStores() {

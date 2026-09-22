@@ -884,7 +884,18 @@ app.put('/api/admin/settings', async (req, res) => {
       );
     }
 
-    res.json({ status: 'ok', message: 'Pengaturan toko berhasil disimpan!' });
+    const updatedSettings = {
+      nama_toko,
+      slogan,
+      logo_url,
+      alamat_utama,
+      nomor_whatsapp,
+      jam_operasional,
+      latitude: latNum,
+      longitude: lngNum,
+    };
+
+    res.json({ status: 'ok', message: 'Pengaturan toko berhasil disimpan!', data: updatedSettings });
   } catch (error) {
     console.error('Error updating store settings:', error);
     res.status(500).json({ status: 'error', message: error.message });
