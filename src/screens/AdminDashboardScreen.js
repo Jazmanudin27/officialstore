@@ -749,12 +749,28 @@ export default function AdminDashboardScreen({
                   <Text style={styles.sectionSub}>Kelola daftar outlet lokasi fisik untuk metode Ambil Mandiri (Pickup)</Text>
                 </View>
                 <TouchableOpacity
-                  style={[styles.addBtn, { backgroundColor: '#2563EB', paddingHorizontal: 16 }]}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    backgroundColor: '#1E40AF',
+                    paddingHorizontal: 18,
+                    paddingVertical: 10,
+                    borderRadius: 12,
+                    shadowColor: '#1E40AF',
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 5,
+                    borderWidth: 1,
+                    borderColor: '#3B82F6',
+                  }}
                   onPress={() => openBranchForm(null)}
-                  activeOpacity={0.8}
+                  activeOpacity={0.85}
                 >
-                  <Ionicons name="add-circle" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.addBtnText}>+ Tambah Cabang Baru</Text>
+                  <Ionicons name="add-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                  <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14, letterSpacing: 0.3 }}>
+                    + Tambah Cabang Baru
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -1125,9 +1141,56 @@ export default function AdminDashboardScreen({
                   </View>
                 </View>
 
-                <TouchableOpacity style={styles.saveModalBtn} onPress={handleSaveBranch} activeOpacity={0.85}>
-                  <Text style={styles.saveModalBtnText}>Simpan Cabang Toko</Text>
-                </TouchableOpacity>
+                {/* Action Buttons Row */}
+                <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      height: 48,
+                      backgroundColor: '#F1F5F9',
+                      borderRadius: 12,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: '#CBD5E1',
+                    }}
+                    onPress={() => setIsBranchModalOpen(false)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>Batal</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={{
+                      flex: 2,
+                      height: 48,
+                      backgroundColor: '#2563EB',
+                      borderRadius: 12,
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      shadowColor: '#2563EB',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                      elevation: 5,
+                    }}
+                    onPress={handleSaveBranch}
+                    activeOpacity={0.85}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <>
+                        <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
+                          Simpan Cabang Toko
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </ScrollView>
             </View>
           </View>
