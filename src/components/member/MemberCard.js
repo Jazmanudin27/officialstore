@@ -3,15 +3,18 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
-export default function MemberCard() {
+export default function MemberCard({ user }) {
+  const userName = user?.namaLengkap ? user.namaLengkap : 'Pelanggan Setia';
+  const userPoin = user ? (user.poin || 500) : 0;
+
   return (
     <View style={styles.cardContainer}>
       {/* Top Header Row with Teal Gradient Effect */}
       <View style={styles.topTealHeader}>
-        <Text style={styles.greetingText}>Hai, Jazmanudin</Text>
+        <Text style={styles.greetingText}>Hai, {userName}</Text>
         <TouchableOpacity style={styles.memberBadge} activeOpacity={0.8}>
           <Ionicons name="trophy-outline" size={14} color={COLORS.white} />
-          <Text style={styles.memberBadgeText}>Newbie Member</Text>
+          <Text style={styles.memberBadgeText}>{user ? 'Member Aktif' : 'Newbie Member'}</Text>
           <Ionicons name="chevron-forward" size={14} color={COLORS.white} />
         </TouchableOpacity>
       </View>
@@ -24,7 +27,7 @@ export default function MemberCard() {
             <View style={[styles.coinIcon, { backgroundColor: '#F59E0B' }]}>
               <Text style={styles.coinSymbol}>P</Text>
             </View>
-            <Text style={styles.statNumber}>11.297</Text>
+            <Text style={styles.statNumber}>{userPoin}</Text>
           </View>
           <Text style={styles.statLabel}>Tukar A-Poin</Text>
         </TouchableOpacity>

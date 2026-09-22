@@ -294,10 +294,10 @@ export default function CheckoutScreen({
                     <Text style={styles.recipientTitle}>
                       {selectedAddress?.isPickup
                         ? selectedAddress?.title
-                        : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Ade Fitri Nuraeni'}`}
+                        : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Pelanggan'}`}
                     </Text>
                     <Text style={styles.recipientAddress} numberOfLines={2}>
-                      {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/R...'}
+                      {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09'}
                     </Text>
                     {selectedAddress?.isPickup ? (
                       <View style={styles.patokanRow}>

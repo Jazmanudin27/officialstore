@@ -25,5 +25,9 @@
     "server": "node server/index.js",
     "init-db": "node server/init-db.js"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~57.0.2"
+  }
 }

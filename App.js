@@ -252,7 +252,7 @@ export default function App() {
           <ProfileScreen
             user={currentUser}
             onOpenAuth={() => setIsAuthOpen(true)}
-            onLogout={() => setCurrentUser(null)}
+            onLogout={handleLogout}
             onOpenAddress={() => setIsAddressOpen(true)}
             onGoToOrders={() => setActiveTab('pesanan')}
             openSearch={() => setIsSearchOpen(true)}
@@ -276,9 +276,25 @@ export default function App() {
             onRefresh={handleRefresh}
             refreshing={refreshing}
             onSelectProduct={(product) => setSelectedProduct(product)}
+            user={currentUser}
           />
         );
     }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setSelectedAddress({
+      id: 'addr1',
+      title: 'Rumah',
+      isUtama: true,
+      recipient: 'Pelanggan',
+      phone: '0895238888200',
+      addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
+      addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
+      note: 'Patokan Rafasya Cell',
+      isPickup: false,
+    });
   };
 
   return (
@@ -301,6 +317,7 @@ export default function App() {
           selectedAddress={selectedAddress}
           isScrolled={isScrolled}
           openSearch={() => setIsSearchOpen(true)}
+          user={currentUser}
         />
       )}
 
@@ -337,6 +354,7 @@ export default function App() {
         onCheckout={() => setIsCheckoutOpen(true)}
         selectedAddress={selectedAddress}
         onSelectAddress={setSelectedAddress}
+        user={currentUser}
         onStartShopping={() => {
           setIsCartOpen(false);
           setActiveTab('belanja');
@@ -352,6 +370,7 @@ export default function App() {
         onSelectVoucher={setSelectedVoucher}
         selectedAddress={selectedAddress}
         onSelectAddress={setSelectedAddress}
+        user={currentUser}
         onCompleteCheckout={() => {
           clearCart();
           setSelectedVoucher(null);
@@ -375,6 +394,7 @@ export default function App() {
           setIsAddressOpen(false);
         }}
         selectedAddress={selectedAddress}
+        user={currentUser}
       />
 
       {/* Login & Registrasi Phone + OTP Modal */}

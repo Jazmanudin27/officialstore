@@ -16,6 +16,7 @@ export default function AddressModal({
   onClose,
   onSelectAddress,
   selectedAddress,
+  user,
 }) {
   const [fulfillmentMode, setFulfillmentMode] = useState(
     selectedAddress?.isPickup ? 'pickup' : 'delivery'
@@ -28,6 +29,61 @@ export default function AddressModal({
   );
   const [storeSearchText, setStoreSearchText] = useState('');
 
+  // Form state for adding/editing address
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingAddrId, setEditingAddrId] = useState(null);
+  const [formTitle, setFormTitle] = useState('Rumah');
+  const [formRecipient, setFormRecipient] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [formAddressLine1, setFormAddressLine1] = useState('');
+  const [formAddressLine2, setFormAddressLine2] = useState('');
+  const [formNote, setFormNote] = useState('');
+
+  const getInitialAddresses = (currentUser) => {
+    if (currentUser && currentUser.namaLengkap) {
+      return [
+        {
+          id: `user_addr_main_${currentUser.id || 1}`,
+          title: 'Rumah',
+          isUtama: true,
+          recipient: currentUser.namaLengkap,
+          phone: currentUser.phone || '0895238888200',
+          addressLine1: currentUser.alamat || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
+          addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
+          note: 'Alamat Utama Terdaftar',
+        },
+        {
+          id: `user_addr_kantor_${currentUser.id || 1}`,
+          title: 'KANTOR',
+          isUtama: false,
+          recipient: currentUser.namaLengkap,
+          phone: currentUser.phone || '0895238888200',
+          addressLine1: 'Jl Cagak, RT 04 RW 07 Karikil Kec. Mangkubumi',
+          addressLine2: 'Kota Tasikmalaya, Jawa Barat, Indonesia',
+          note: null,
+        },
+      ];
+    }
+    return [
+      {
+        id: 'guest_addr_1',
+        title: 'Rumah',
+        isUtama: true,
+        recipient: 'Pelanggan',
+        phone: '0895238888200',
+        addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
+        addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
+        note: 'Patokan Rafasya Cell',
+      },
+    ];
+  };
+
+  const [addressList, setAddressList] = useState(() => getInitialAddresses(user));
+
+  React.useEffect(() => {
+    setAddressList(getInitialAddresses(user));
+  }, [user]);
+
   React.useEffect(() => {
     if (selectedAddress?.isPickup) {
       setFulfillmentMode('pickup');
@@ -37,39 +93,6 @@ export default function AddressModal({
       setSelectedAddressId(selectedAddress.id);
     }
   }, [selectedAddress]);
-
-  const addresses = [
-    {
-      id: 'addr1',
-      title: 'Rumah',
-      isUtama: true,
-      recipient: 'Ade Fitri Nuraeni',
-      phone: '0895238888200',
-      addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
-      addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
-      note: 'Patokan Rafasya Cell',
-    },
-    {
-      id: 'addr2',
-      title: 'Belakang Rumah Alm KH Emon',
-      isUtama: false,
-      recipient: 'Jazmanudin',
-      phone: '0895238888200',
-      addressLine1: 'Kp. Cihideung 2, RT 002, RW 003',
-      addressLine2: 'Sukamahi, Kabupaten Tasikmalaya, Jawa Barat, Indonesia',
-      note: null,
-    },
-    {
-      id: 'addr3',
-      title: 'KANTOR',
-      isUtama: false,
-      recipient: 'Jazmanudin',
-      phone: '0895238888200',
-      addressLine1: 'Jl Cagak, RT 04 RW 07 Karikil Kec. Mangkubumi',
-      addressLine2: 'Kota Tasikmalaya, Jawa Barat, Indonesia',
-      note: null,
-    },
-  ];
 
   const stores = [
     {
@@ -134,6 +157,90 @@ export default function AddressModal({
       });
     }
     onClose();
+  };
+
+  const handleOpenAdd = () => {
+    setEditingAddrId(null);
+    setFormTitle('Rumah');
+    setFormRecipient(user?.namaLengkap || '');
+    setFormPhone(user?.phone || '');
+    setFormAddressLine1(user?.alamat || '');
+    setFormAddressLine2('');
+    setFormNote('');
+    setIsFormOpen(true);
+  };
+
+  const handleOpenEdit = (addr) => {
+    setEditingAddrId(addr.id);
+    setFormTitle(addr.title);
+    setFormRecipient(addr.recipient);
+    setFormPhone(addr.phone);
+    setFormAddressLine1(addr.addressLine1);
+    setFormAddressLine2(addr.addressLine2);
+    setFormNote(addr.note || '');
+    setIsFormOpen(true);
+  };
+
+  const handleSaveForm = () => {
+    if (!formRecipient.trim() || !formAddressLine1.trim()) {
+      alert('Mohon lengkapi Nama Penerima dan Alamat Lengkap.');
+      return;
+    }
+    if (editingAddrId) {
+      const updated = addressList.map((item) =>
+        item.id === editingAddrId
+          ? {
+              ...item,
+              title: formTitle,
+              recipient: formRecipient,
+              phone: formPhone,
+              addressLine1: formAddressLine1,
+              addressLine2: formAddressLine2 || 'Tasikmalaya, Jawa Barat',
+              note: formNote || null,
+            }
+          : item
+      );
+      setAddressList(updated);
+      const updatedItem = updated.find((a) => a.id === editingAddrId);
+      if (updatedItem) handleSelectAddress(updatedItem);
+    } else {
+      const newAddr = {
+        id: `addr_${Date.now()}`,
+        title: formTitle || 'Alamat Baru',
+        isUtama: addressList.length === 0,
+        recipient: formRecipient,
+        phone: formPhone,
+        addressLine1: formAddressLine1,
+        addressLine2: formAddressLine2 || 'Tasikmalaya, Jawa Barat',
+        note: formNote || null,
+      };
+      const updated = [...addressList, newAddr];
+      setAddressList(updated);
+      handleSelectAddress(newAddr);
+    }
+    setIsFormOpen(false);
+  };
+
+  const handleMakeUtama = (addr) => {
+    const updated = addressList.map((item) => ({
+      ...item,
+      isUtama: item.id === addr.id,
+    }));
+    setAddressList(updated);
+    const target = updated.find((a) => a.id === addr.id);
+    if (target) handleSelectAddress(target);
+  };
+
+  const handleDeleteAddress = (addrId) => {
+    if (addressList.length <= 1) {
+      alert('Minimal harus ada 1 alamat pengiriman.');
+      return;
+    }
+    const updated = addressList.filter((a) => a.id !== addrId);
+    setAddressList(updated);
+    if (selectedAddressId === addrId && updated.length > 0) {
+      handleSelectAddress(updated[0]);
+    }
   };
 
   if (!visible) return null;
@@ -202,12 +309,27 @@ export default function AddressModal({
                     <Text style={styles.benefitText}>Lihat benefit delivery di sini</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color="#0284C7" />
-                </TouchableOpacity>
+                </TouchableOpacit                {/* User Account Banner */}
+                {user ? (
+                  <View style={styles.userBannerBox}>
+                    <Ionicons name="person-circle-outline" size={20} color="#0284C7" />
+                    <Text style={styles.userBannerText}>
+                      Menampilkan alamat untuk akun: <Text style={{ fontWeight: '800', color: '#0F172A' }}>{user.namaLengkap}</Text>
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.guestBannerBox}>
+                    <Ionicons name="information-circle-outline" size={20} color="#D97706" />
+                    <Text style={styles.guestBannerText}>
+                      Anda mengakses sebagai Tamu. Silakan <Text style={{ fontWeight: '800', color: '#D91E28' }}>Masuk / Daftar</Text> untuk menyimpan alamat pribadi.
+                    </Text>
+                  </View>
+                )}
 
                 {/* Section Header: Daftar Alamat */}
                 <View style={styles.sectionHeaderRow}>
                   <Text style={styles.sectionTitle}>Daftar Alamat</Text>
-                  <TouchableOpacity style={styles.tambahAlamatBtn} activeOpacity={0.7}>
+                  <TouchableOpacity style={styles.tambahAlamatBtn} activeOpacity={0.7} onPress={handleOpenAdd}>
                     <Ionicons name="add" size={16} color="#0284C7" />
                     <Text style={styles.tambahAlamatText}>Tambah Alamat</Text>
                   </TouchableOpacity>
@@ -215,7 +337,7 @@ export default function AddressModal({
 
                 {/* Address Cards List */}
                 <View style={styles.addressList}>
-                  {addresses.map((item) => {
+                  {addressList.map((item) => {
                     const isSelected = item.id === selectedAddressId;
 
                     return (
@@ -275,23 +397,29 @@ export default function AddressModal({
 
                         {/* Bottom Action Row */}
                         {isSelected ? (
-                          <View style={styles.ubahBtnSingle}>
+                          <TouchableOpacity style={styles.ubahBtnSingle} onPress={() => handleOpenEdit(item)}>
                             <Text style={styles.actionText}>Ubah</Text>
-                          </View>
+                          </TouchableOpacity>
                         ) : (
                           <View style={styles.actionRowMulti}>
-                            <Text style={styles.actionText}>Jadikan Alamat Utama</Text>
+                            <TouchableOpacity onPress={() => handleMakeUtama(item)}>
+                              <Text style={styles.actionText}>Jadikan Alamat Utama</Text>
+                            </TouchableOpacity>
                             <View style={styles.verticalDivider} />
-                            <Text style={styles.actionText}>Hapus</Text>
+                            <TouchableOpacity onPress={() => handleDeleteAddress(item.id)}>
+                              <Text style={styles.actionText}>Hapus</Text>
+                            </TouchableOpacity>
                             <View style={styles.verticalDivider} />
-                            <Text style={styles.actionText}>Ubah</Text>
+                            <TouchableOpacity onPress={() => handleOpenEdit(item)}>
+                              <Text style={styles.actionText}>Ubah</Text>
+                            </TouchableOpacity>
                           </View>
                         )}
                       </TouchableOpacity>
                     );
                   })}
                 </View>
-              </>
+              </>   </>
             ) : (
               /* ==================== PICKUP VIEW ==================== */
               <>
@@ -469,12 +597,238 @@ export default function AddressModal({
             )}
           </ScrollView>
         </View>
+
+        {/* Add / Edit Address Form Modal Overlay */}
+        {isFormOpen && (
+          <View style={styles.formModalOverlay}>
+            <View style={styles.formCardContainer}>
+              <View style={styles.formHeaderRow}>
+                <Text style={styles.formHeaderTitle}>
+                  {editingAddrId ? 'Ubah Alamat Pengiriman' : 'Tambah Alamat Baru'}
+                </Text>
+                <TouchableOpacity onPress={() => setIsFormOpen(false)} style={styles.formCloseBtn}>
+                  <Ionicons name="close" size={22} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.formScrollView} contentContainerStyle={styles.formScrollContent}>
+                <Text style={styles.inputLabel}>Label Alamat (misal: Rumah, Kantor, Kos)</Text>
+                <TextInput
+                  style={styles.formTextInput}
+                  placeholder="Rumah / Kantor"
+                  placeholderTextColor="#94A3B8"
+                  value={formTitle}
+                  onChangeText={setFormTitle}
+                />
+
+                <Text style={styles.inputLabel}>Nama Penerima *</Text>
+                <TextInput
+                  style={styles.formTextInput}
+                  placeholder="Nama Lengkap Penerima"
+                  placeholderTextColor="#94A3B8"
+                  value={formRecipient}
+                  onChangeText={setFormRecipient}
+                />
+
+                <Text style={styles.inputLabel}>Nomor HP Penerima *</Text>
+                <TextInput
+                  style={styles.formTextInput}
+                  placeholder="Contoh: 08123456789"
+                  placeholderTextColor="#94A3B8"
+                  keyboardType="phone-pad"
+                  value={formPhone}
+                  onChangeText={setFormPhone}
+                />
+
+                <Text style={styles.inputLabel}>Alamat Lengkap *</Text>
+                <TextInput
+                  style={[styles.formTextInput, { height: 80, textAlignVertical: 'top' }]}
+                  placeholder="Jalan, Nomor Rumah, RT/RW, Kecamatan, Kota"
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  value={formAddressLine1}
+                  onChangeText={setFormAddressLine1}
+                />
+
+                <Text style={styles.inputLabel}>Kabupaten / Kota & Provinsi</Text>
+                <TextInput
+                  style={styles.formTextInput}
+                  placeholder="Tasikmalaya, Jawa Barat"
+                  placeholderTextColor="#94A3B8"
+                  value={formAddressLine2}
+                  onChangeText={setFormAddressLine2}
+                />
+
+                <Text style={styles.inputLabel}>Catatan Patokan (opsional)</Text>
+                <TextInput
+                  style={styles.formTextInput}
+                  placeholder="Contoh: Pagar warna hijau, dekat masjid"
+                  placeholderTextColor="#94A3B8"
+                  value={formNote}
+                  onChangeText={setFormNote}
+                />
+
+                <View style={styles.formBtnRow}>
+                  <TouchableOpacity
+                    style={styles.formCancelBtn}
+                    onPress={() => setIsFormOpen(false)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.formCancelText}>Batal</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.formSaveBtn}
+                    onPress={handleSaveForm}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
+                    <Text style={styles.formSaveText}>Simpan Alamat</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </View>
+        )}
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  userBannerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: 10,
+    padding: 10,
+    gap: 8,
+    marginBottom: 4,
+  },
+  userBannerText: {
+    fontSize: 12.5,
+    color: '#0369A1',
+    flex: 1,
+  },
+  guestBannerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 10,
+    padding: 10,
+    gap: 8,
+    marginBottom: 4,
+  },
+  guestBannerText: {
+    fontSize: 12.5,
+    color: '#92400E',
+    flex: 1,
+  },
+  formModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    zIndex: 999999,
+  },
+  formCardContainer: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    width: '100%',
+    maxHeight: '90%',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  formHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  formHeaderTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  formCloseBtn: {
+    padding: 4,
+  },
+  formScrollView: {
+    flex: 1,
+  },
+  formScrollContent: {
+    padding: 16,
+    gap: 6,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  formTextInput: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 13.5,
+    color: COLORS.textDark,
+  },
+  formBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  formCancelBtn: {
+    flex: 1,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
+  formCancelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  formSaveBtn: {
+    flex: 1.5,
+    backgroundColor: '#D91E28',
+    borderRadius: 10,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+  },
+  formSaveText: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
   overlayContainer: {
     position: 'absolute',
     top: 0,

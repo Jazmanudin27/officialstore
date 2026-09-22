@@ -19,6 +19,7 @@ export default function HomeScreen({
   onRefresh,
   refreshing = false,
   onSelectProduct,
+  user,
 }) {
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
@@ -60,7 +61,7 @@ export default function HomeScreen({
       ListHeaderComponent={
         <>
           {/* Member Floating Points Card */}
-          <MemberCard />
+          <MemberCard user={user} />
 
           {/* Main Promo Carousel Banner */}
           <PromoBanner />

@@ -92,7 +92,7 @@ export default function CartModal({
                       <Text style={styles.addressTitle}>
                         {selectedAddress?.isPickup
                           ? `${selectedAddress?.title} (Pickup)`
-                          : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Ade Fitri Nuraeni'}`}
+                          : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Pelanggan'}`}
                       </Text>
                       {selectedAddress?.isPickup ? (
                         <View style={[styles.utamaBadge, { backgroundColor: '#0284C7' }]}>
