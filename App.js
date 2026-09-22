@@ -142,6 +142,7 @@ export default function App() {
     updateQuantity,
     removeFromCart,
     clearCart,
+    getItemQuantity,
     totalCartCount,
   } = useCart();
 
@@ -175,6 +176,8 @@ export default function App() {
         return (
           <ExploreScreen
             onAddToCart={addToCart}
+            onUpdateQuantity={updateQuantity}
+            getItemQuantity={getItemQuantity}
             openSearch={() => setIsSearchOpen(true)}
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
@@ -208,6 +211,8 @@ export default function App() {
           <HomeScreen
             products={filteredProducts}
             onAddToCart={addToCart}
+            onUpdateQuantity={updateQuantity}
+            getItemQuantity={getItemQuantity}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             onSelectCategory={setSelectedCategory}
@@ -241,9 +246,7 @@ export default function App() {
       )}
 
       {/* Active Screen View */}
-      <View style={styles.mainContent}>
-        {renderTabContent()}
-      </View>
+      <View style={styles.mainContent}>{renderTabContent()}</View>
 
       {/* Interactive Search Screen Modal */}
       <SearchScreen
@@ -275,6 +278,10 @@ export default function App() {
         onCheckout={() => setIsCheckoutOpen(true)}
         selectedAddress={selectedAddress}
         onSelectAddress={setSelectedAddress}
+        onStartShopping={() => {
+          setIsCartOpen(false);
+          setActiveTab('belanja');
+        }}
       />
 
       {/* Ringkasan Pesanan / Checkout Screen Modal */}

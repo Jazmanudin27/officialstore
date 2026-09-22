@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { PRODUCTS } from '../data/mockProducts';
 
 export function useCart() {
-  const [cartItems, setCartItems] = useState([
-    { ...PRODUCTS[0], quantity: 1 },
-  ]);
+  const [cartItems, setCartItems] = useState([]);
 
   const addToCart = (product) => {
     setCartItems((prevCart) => {
@@ -44,12 +42,18 @@ export function useCart() {
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+  const getItemQuantity = (productId) => {
+    const item = cartItems.find((i) => i.id === productId || i.sku === productId);
+    return item ? item.quantity : 0;
+  };
+
   return {
     cartItems,
     addToCart,
     updateQuantity,
     removeFromCart,
     clearCart,
+    getItemQuantity,
     totalCartCount,
     subtotal,
   };

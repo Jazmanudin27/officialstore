@@ -9,6 +9,8 @@ import { COLORS } from '../constants/theme';
 export default function HomeScreen({
   products,
   onAddToCart,
+  onUpdateQuantity,
+  getItemQuantity,
   isFavorite,
   onToggleFavorite,
   onSelectCategory,
@@ -49,6 +51,8 @@ export default function HomeScreen({
         <ProductCard
           product={item}
           onAddToCart={onAddToCart}
+          onUpdateQuantity={onUpdateQuantity}
+          cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
           isFavorite={isFavorite(item.id)}
           onToggleFavorite={onToggleFavorite}
         />

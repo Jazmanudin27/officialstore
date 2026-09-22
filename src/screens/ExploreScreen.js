@@ -12,7 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 
-export default function ExploreScreen({ onAddToCart, openSearch, openCart, cartCount = 0 }) {
+export default function ExploreScreen({
+  onAddToCart,
+  onUpdateQuantity,
+  getItemQuantity,
+  openSearch,
+  openCart,
+  cartCount = 0,
+}) {
   const [activeTab, setActiveTab] = useState('rutin');
 
   // Produk Rutin / Sering Dibeli Berdasarkan Produk Populer
@@ -254,13 +261,39 @@ export default function ExploreScreen({ onAddToCart, openSearch, openCart, cartC
                   <Text style={styles.deliveryText}>{item.delivery}</Text>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.addToCartBtn}
-                  onPress={() => onAddToCart && onAddToCart(item)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
-                </TouchableOpacity>
+                {getItemQuantity && getItemQuantity(item.id) > 0 ? (
+                  <View style={styles.cardStepperRow}>
+                    <TouchableOpacity
+                      style={styles.cardStepperBtn}
+                      onPress={() => onUpdateQuantity && onUpdateQuantity(item.id, getItemQuantity(item.id) - 1)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={getItemQuantity(item.id) === 1 ? 'trash-outline' : 'remove'}
+                        size={14}
+                        color="#D91E28"
+                      />
+                    </TouchableOpacity>
+
+                    <Text style={styles.cardStepperValue}>{getItemQuantity(item.id)}</Text>
+
+                    <TouchableOpacity
+                      style={styles.cardStepperBtn}
+                      onPress={() => onUpdateQuantity && onUpdateQuantity(item.id, getItemQuantity(item.id) + 1)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={14} color="#D91E28" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.addToCartBtn}
+                    onPress={() => onAddToCart && onAddToCart(item)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))}
@@ -320,13 +353,39 @@ export default function ExploreScreen({ onAddToCart, openSearch, openCart, cartC
                   <Text style={styles.deliveryText}>{product.delivery}</Text>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.addToCartBtn}
-                  onPress={() => onAddToCart && onAddToCart(product)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
-                </TouchableOpacity>
+                {getItemQuantity && getItemQuantity(product.id) > 0 ? (
+                  <View style={styles.cardStepperRow}>
+                    <TouchableOpacity
+                      style={styles.cardStepperBtn}
+                      onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, getItemQuantity(product.id) - 1)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={getItemQuantity(product.id) === 1 ? 'trash-outline' : 'remove'}
+                        size={14}
+                        color="#D91E28"
+                      />
+                    </TouchableOpacity>
+
+                    <Text style={styles.cardStepperValue}>{getItemQuantity(product.id)}</Text>
+
+                    <TouchableOpacity
+                      style={styles.cardStepperBtn}
+                      onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, getItemQuantity(product.id) + 1)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="add" size={14} color="#D91E28" />
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <TouchableOpacity
+                    style={styles.addToCartBtn}
+                    onPress={() => onAddToCart && onAddToCart(product)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ))}
@@ -610,5 +669,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 4,
     elevation: 2,
+  },
+  cardStepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 4,
+    height: 34,
+  },
+  cardStepperBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  cardStepperValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#D91E28',
+    minWidth: 20,
+    textAlign: 'center',
   },
 });

@@ -4,7 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../../utils/formatters';
 import { COLORS } from '../../constants/theme';
 
-export default function ProductCard({ product, onAddToCart, isFavorite, onToggleFavorite }) {
+export default function ProductCard({
+  product,
+  onAddToCart,
+  onUpdateQuantity,
+  cartQuantity = 0,
+  isFavorite,
+  onToggleFavorite,
+}) {
   return (
     <View style={styles.card}>
       {/* Image & Badges Container */}
@@ -62,15 +69,41 @@ export default function ProductCard({ product, onAddToCart, isFavorite, onToggle
           )}
         </View>
 
-        {/* Add to Cart Button */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => onAddToCart(product)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="cart" size={15} color={COLORS.white} />
-          <Text style={styles.addButtonText}>+ Beli</Text>
-        </TouchableOpacity>
+        {/* Stepper if in Cart, else "+ Beli" Button */}
+        {cartQuantity > 0 ? (
+          <View style={styles.cardStepperRow}>
+            <TouchableOpacity
+              style={styles.cardStepperBtn}
+              onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, cartQuantity - 1)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={cartQuantity === 1 ? 'trash-outline' : 'remove'}
+                size={14}
+                color="#D91E28"
+              />
+            </TouchableOpacity>
+
+            <Text style={styles.cardStepperValue}>{cartQuantity}</Text>
+
+            <TouchableOpacity
+              style={styles.cardStepperBtn}
+              onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, cartQuantity + 1)}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="add" size={14} color="#D91E28" />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => onAddToCart(product)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="cart" size={15} color={COLORS.white} />
+            <Text style={styles.addButtonText}>+ Beli</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -198,5 +231,33 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 12,
     fontWeight: '800',
+  },
+  cardStepperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FEF2F2',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
+    paddingHorizontal: 4,
+    height: 34,
+  },
+  cardStepperBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 6,
+    backgroundColor: COLORS.white,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+  },
+  cardStepperValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#D91E28',
+    minWidth: 20,
+    textAlign: 'center',
   },
 });
