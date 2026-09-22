@@ -22,6 +22,7 @@ export default function AdminDashboardScreen({
   visible = true,
   onClose,
   onRefreshProducts,
+  onUpdateStoreSettings,
   adminUser,
   onLogout,
   showGoToStore = true,
@@ -149,9 +150,22 @@ export default function AdminDashboardScreen({
 
       const res = await apiService.updateStoreSettings(payload);
       if (res && res.status === 'ok') {
-        setStoreSettings((prev) => ({ ...prev, ...payload }));
-        Alert.alert('Sukses', 'Pengaturan toko berhasil diperbarui!');
-        await loadData();
+        const savedData = res.data || payload;
+        setStoreSettings(savedData);
+        setFormSettingName(savedData.nama_toko || formSettingName);
+        setFormSettingSlogan(savedData.slogan || formSettingSlogan);
+        setFormSettingLogo(savedData.logo_url || formSettingLogo);
+        setFormSettingAddress(savedData.alamat_utama || formSettingAddress);
+        setFormSettingWhatsapp(savedData.nomor_whatsapp || formSettingWhatsapp);
+        setFormSettingHours(savedData.jam_operasional || formSettingHours);
+        setFormSettingLat(String(savedData.latitude || formSettingLat));
+        setFormSettingLng(String(savedData.longitude || formSettingLng));
+
+        if (onUpdateStoreSettings) {
+          onUpdateStoreSettings(savedData);
+        }
+
+        Alert.alert('Sukses', `Pengaturan toko "${savedData.nama_toko}" berhasil diperbarui!`);
       } else {
         throw new Error(res?.message || 'Gagal menyimpan pengaturan toko');
       }

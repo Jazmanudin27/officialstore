@@ -816,6 +816,22 @@ async function ensureStoreSettingsTable() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
     `);
+    const [rows] = await pool.query('SELECT COUNT(*) AS count FROM store_settings');
+    if (rows && rows[0] && rows[0].count === 0) {
+      await pool.query(`
+        INSERT INTO store_settings (nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latitude, longitude)
+        VALUES (
+          'Official Store Tasikmalaya',
+          'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+          'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&auto=format&fit=crop&q=80',
+          'Jl. Perintis Kemerdekaan No. 158, Karsamenak, Kawalu, Tasikmalaya, Jawa Barat 46182',
+          '62895238888200',
+          '07:00 - 22:00 WIB',
+          -7.3512,
+          108.2145
+        )
+      `);
+    }
   } catch (err) {
     console.warn('ensureStoreSettingsTable warning:', err.message);
   }
@@ -848,18 +864,24 @@ app.put('/api/admin/settings', async (req, res) => {
   try {
     await ensureStoreSettingsTable();
     const {
-      nama_toko = 'Official Store Tasikmalaya',
-      slogan = 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
-      logo_url = '',
-      alamat_utama = '',
-      nomor_whatsapp = '',
-      jam_operasional = '07:00 - 22:00 WIB',
-      latitude = -7.3512,
-      longitude = 108.2145,
+      nama_toko,
+      slogan,
+      logo_url,
+      alamat_utama,
+      nomor_whatsapp,
+      jam_operasional,
+      latitude,
+      longitude,
     } = req.body;
 
-    const latNum = parseFloat(latitude) || -7.3512;
-    const lngNum = parseFloat(longitude) || 108.2145;
+    const nameVal = nama_toko !== undefined ? String(nama_toko).trim() : 'Official Store Tasikmalaya';
+    const sloganVal = slogan !== undefined ? String(slogan).trim() : 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya';
+    const logoVal = logo_url !== undefined ? String(logo_url).trim() : '';
+    const addressVal = alamat_utama !== undefined ? String(alamat_utama).trim() : '';
+    const waVal = nomor_whatsapp !== undefined ? String(nomor_whatsapp).trim() : '';
+    const hoursVal = jam_operasional !== undefined ? String(jam_operasional).trim() : '07:00 - 22:00 WIB';
+    const latNum = isNaN(parseFloat(latitude)) ? -7.3512 : parseFloat(latitude);
+    const lngNum = isNaN(parseFloat(longitude)) ? 108.2145 : parseFloat(longitude);
 
     const [rows] = await pool.query('SELECT setting_id FROM store_settings LIMIT 1');
     if (rows && rows.length > 0) {
@@ -874,28 +896,28 @@ app.put('/api/admin/settings', async (req, res) => {
           latitude = ?,
           longitude = ?
         WHERE setting_id = ?`,
-        [nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latNum, lngNum, rows[0].setting_id]
+        [nameVal, sloganVal, logoVal, addressVal, waVal, hoursVal, latNum, lngNum, rows[0].setting_id]
       );
     } else {
       await pool.query(
         `INSERT INTO store_settings (nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latitude, longitude)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latNum, lngNum]
+        [nameVal, sloganVal, logoVal, addressVal, waVal, hoursVal, latNum, lngNum]
       );
     }
 
     const updatedSettings = {
-      nama_toko,
-      slogan,
-      logo_url,
-      alamat_utama,
-      nomor_whatsapp,
-      jam_operasional,
+      nama_toko: nameVal,
+      slogan: sloganVal,
+      logo_url: logoVal,
+      alamat_utama: addressVal,
+      nomor_whatsapp: waVal,
+      jam_operasional: hoursVal,
       latitude: latNum,
       longitude: lngNum,
     };
 
-    console.log('⚙️ [DB UPDATE] store_settings successfully updated in MySQL:', updatedSettings);
+    console.log('⚙️ [DB UPDATE SUCCESS] store_settings updated in MySQL database:', updatedSettings);
     res.json({ status: 'ok', message: 'Pengaturan toko berhasil disimpan ke database!', data: updatedSettings });
   } catch (error) {
     console.error('❌ Error updating store settings in DB:', error);

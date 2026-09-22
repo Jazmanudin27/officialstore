@@ -19,6 +19,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function Header({
+  storeSettings = null,
   searchQuery,
   setSearchQuery,
   cartCount = 0,
@@ -74,8 +75,12 @@ export default function Header({
                   <Ionicons name="bag-handle" size={20} color="#D91E28" />
                 </View>
                 <View>
-                  <Text style={styles.brandTitle}>OFFICIAL STORE</Text>
-                  <Text style={styles.brandSubtitle}>Supermarket Belanja Online</Text>
+                  <Text style={styles.brandTitle}>
+                    {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
+                  </Text>
+                  <Text style={styles.brandSubtitle} numberOfLines={1}>
+                    {storeSettings?.slogan || 'Supermarket Belanja Online'}
+                  </Text>
                 </View>
               </TouchableOpacity>
 

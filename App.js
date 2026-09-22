@@ -45,10 +45,11 @@ export default function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [currentUser, setCurrentUser] = useState(null);
   const [adminUser, setAdminUser] = useState(null);
+  const [storeSettings, setStoreSettings] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
 
-  // Restore active sessions on page load / mount
+  // Restore active sessions and fetch Store Settings on page load / mount
   useEffect(() => {
     try {
       const savedAdmin = storage.getItem('official_store_admin_session');
@@ -62,6 +63,12 @@ export default function App() {
     } catch (e) {
       console.warn('Session restore warning:', e);
     }
+
+    apiService.getStoreSettings()
+      .then((settings) => {
+        if (settings) setStoreSettings(settings);
+      })
+      .catch((e) => console.warn('Get settings error:', e));
   }, []);
 
   const handleSaveAdminSession = (data) => {
@@ -379,6 +386,7 @@ export default function App() {
       {/* Header (Continuous on Desktop, Home-only on Mobile) */}
       {(isDesktop || activeTab === 'home') && (
         <Header
+          storeSettings={storeSettings}
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           cartCount={totalCartCount}
@@ -422,81 +430,61 @@ export default function App() {
         onClose={() => setIsNotificationOpen(false)}
       />
 
-      {/* Cart Modal View */}
+      {/* Shopping Cart Modal */}
       <CartModal
         visible={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         cartItems={cartItems}
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
-        onClearCart={clearCart}
-        onCheckout={() => setIsCheckoutOpen(true)}
-        selectedAddress={selectedAddress}
-        onSelectAddress={setSelectedAddress}
-        user={currentUser}
-        onStartShopping={() => {
+        totalAmount={cartTotal}
+        onProceedToCheckout={() => {
           setIsCartOpen(false);
-          setActiveTab('belanja');
+          setIsCheckoutOpen(true);
         }}
+        onOpenAddress={handleOpenAddressFromCart}
+        onOpenVoucher={handleOpenVoucherFromCart}
+        selectedVoucher={selectedVoucher}
+        selectedAddress={selectedAddress}
       />
 
-      {/* Ringkasan Pesanan / Checkout Screen Modal */}
+      {/* Checkout Screen Modal */}
       <CheckoutScreen
         visible={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={cartItems}
-        selectedVoucher={selectedVoucher}
-        onSelectVoucher={setSelectedVoucher}
+        totalAmount={cartTotal}
         selectedAddress={selectedAddress}
-        onSelectAddress={setSelectedAddress}
-        user={currentUser}
-        onCompleteCheckout={() => {
+        selectedVoucher={selectedVoucher}
+        onOpenAddress={handleOpenAddressFromCheckout}
+        onOpenVoucher={handleOpenVoucherFromCheckout}
+        onOrderSuccess={() => {
           clearCart();
           setSelectedVoucher(null);
-          setIsCartOpen(false);
         }}
       />
 
-      {/* Voucher Selection Screen Modal */}
+      {/* Voucher Selection Modal */}
       <VoucherScreen
         visible={isVoucherOpen}
         onClose={handleCloseVoucher}
-        onSelectVoucher={handleSelectVoucher}
+        onSelectVoucher={(v) => {
+          setSelectedVoucher(v);
+          handleCloseVoucher();
+        }}
+        selectedVoucher={selectedVoucher}
+        cartTotal={cartTotal}
       />
 
-      {/* Cara Belanja / Ganti Alamat Screen Overlay for Beranda */}
+      {/* Address Selection & Creation Modal */}
       <AddressModal
         visible={isAddressOpen}
-        onClose={() => setIsAddressOpen(false)}
+        onClose={handleCloseAddress}
         onSelectAddress={(addr) => {
           setSelectedAddress(addr);
-          setIsAddressOpen(false);
+          handleCloseAddress();
         }}
         selectedAddress={selectedAddress}
-        user={currentUser}
-        onOpenAuth={() => setIsAuthOpen(true)}
-      />
-
-      {/* Login & Registrasi Phone + OTP Modal */}
-      <AuthModal
-        visible={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={(userData) => {
-          handleSaveUserSession(userData);
-          setIsAuthOpen(false);
-          if (userData.alamat) {
-            setSelectedAddress({
-              id: 'user_addr',
-              title: 'Rumah',
-              isUtama: true,
-              recipient: userData.namaLengkap,
-              phone: userData.phone,
-              addressLine1: userData.alamat,
-              addressLine2: 'Alamat Utama Terdaftar',
-              note: null,
-            });
-          }
-        }}
       />
 
       {/* Detail Produk Modal Overlay */}
@@ -527,6 +515,7 @@ export default function App() {
             visible={isAdminOpen}
             onClose={() => setIsAdminOpen(false)}
             onRefreshProducts={handleRefresh}
+            onUpdateStoreSettings={(newSet) => setStoreSettings(newSet)}
             adminUser={adminUser || currentUser}
             onLogout={() => {
               handleAdminLogout();
