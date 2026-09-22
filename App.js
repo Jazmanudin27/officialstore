@@ -159,6 +159,7 @@ export default function App() {
           openCart={() => setIsCartOpen(true)}
           openChat={() => setIsChatOpen(true)}
           openNotification={() => setIsNotificationOpen(true)}
+          openAddress={() => setIsAddressOpen(true)}
           isScrolled={isScrolled}
           openSearch={() => setIsSearchOpen(true)}
         />
@@ -200,6 +201,7 @@ export default function App() {
         onRemoveItem={removeFromCart}
         onClearCart={clearCart}
         onCheckout={() => setIsCheckoutOpen(true)}
+        onOpenAddress={() => setIsAddressOpen(true)}
       />
 
       {/* Ringkasan Pesanan / Checkout Screen Modal */}
@@ -208,6 +210,7 @@ export default function App() {
         onClose={() => setIsCheckoutOpen(false)}
         cartItems={cartItems}
         onOpenVoucher={() => setIsVoucherOpen(true)}
+        onOpenAddress={() => setIsAddressOpen(true)}
         selectedVoucher={selectedVoucher}
         onCompleteCheckout={() => {
           clearCart();
@@ -221,6 +224,12 @@ export default function App() {
         visible={isVoucherOpen}
         onClose={() => setIsVoucherOpen(false)}
         onSelectVoucher={(voucher) => setSelectedVoucher(voucher)}
+      />
+
+      {/* Cara Belanja / Ganti Alamat Screen Modal */}
+      <AddressModal
+        visible={isAddressOpen}
+        onClose={() => setIsAddressOpen(false)}
       />
 
       {/* Bottom 5-Tab Navigation Bar */}
