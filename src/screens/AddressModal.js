@@ -309,7 +309,9 @@ export default function AddressModal({
                     <Text style={styles.benefitText}>Lihat benefit delivery di sini</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={18} color="#0284C7" />
-                </TouchableOpacit                {/* User Account Banner */}
+                </TouchableOpacity>
+
+                {/* User Account Banner */}
                 {user ? (
                   <View style={styles.userBannerBox}>
                     <Ionicons name="person-circle-outline" size={20} color="#0284C7" />
@@ -419,7 +421,7 @@ export default function AddressModal({
                     );
                   })}
                 </View>
-              </>   </>
+              </>
             ) : (
               /* ==================== PICKUP VIEW ==================== */
               <>
