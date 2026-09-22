@@ -188,8 +188,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
+    borderBottomWidth: 0,
     gap: 10,
   },
   backBtn: {
@@ -203,8 +202,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     height: 40,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderWidth: 0,
   },
   searchInput: {
     flex: 1,
