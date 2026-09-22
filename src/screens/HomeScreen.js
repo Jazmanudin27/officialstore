@@ -6,13 +6,27 @@ import CategoryGrid from '../components/category/CategoryGrid';
 import ProductCard from '../components/product/ProductCard';
 import { COLORS } from '../constants/theme';
 
-export default function HomeScreen({ products, onAddToCart, isFavorite, onToggleFavorite, onSelectCategory }) {
+export default function HomeScreen({
+  products,
+  onAddToCart,
+  isFavorite,
+  onToggleFavorite,
+  onSelectCategory,
+  onScrollStateChange,
+}) {
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    onScrollStateChange(offsetY > 35);
+  };
+
   return (
     <FlatList
       data={products}
       keyExtractor={(item) => item.id}
       numColumns={2}
       style={styles.container}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
       ListHeaderComponent={
         <>
           {/* Member Floating Points Card */}
@@ -26,8 +40,8 @@ export default function HomeScreen({ products, onAddToCart, isFavorite, onToggle
 
           {/* Section Header */}
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>🔥 Rekomendasi Spesial Untukmu</Text>
-            <Text style={styles.productCount}>{products.length} Produk</Text>
+            <Text style={styles.sectionTitle}>🔥 Penawaran Terbaik</Text>
+            <Text style={styles.productCount}>Lihat Semua</Text>
           </View>
         </>
       }
@@ -63,12 +77,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     color: COLORS.textDark,
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '800',
   },
   productCount: {
-    color: COLORS.primaryRed,
-    fontSize: 12,
-    fontWeight: '700',
+    color: '#0284C7',
+    fontSize: 13,
+    fontWeight: '800',
   },
 });

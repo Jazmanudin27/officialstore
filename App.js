@@ -27,6 +27,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Custom Hooks Management
   const {
@@ -79,6 +80,7 @@ export default function App() {
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             onSelectCategory={setSelectedCategory}
+            onScrollStateChange={setIsScrolled}
           />
         );
     }
@@ -88,12 +90,13 @@ export default function App() {
     <SafeAreaView style={styles.safeArea}>
       <ExpoStatusBar style="light" backgroundColor={COLORS.primaryRed} />
 
-      {/* Top Red Header Bar */}
+      {/* Top Red Collapsible Header Bar */}
       <Header
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         cartCount={totalCartCount}
         openCart={() => setIsCartOpen(true)}
+        isScrolled={isScrolled}
       />
 
       {/* Active Screen View */}

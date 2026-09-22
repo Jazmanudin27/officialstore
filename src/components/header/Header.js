@@ -1,80 +1,130 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
-export default function Header({ searchQuery, setSearchQuery, cartCount, openCart }) {
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
+export default function Header({ searchQuery, setSearchQuery, cartCount, openCart, isScrolled }) {
+  // Trigger smooth layout transition when collapsing/expanding
+  React.useEffect(() => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  }, [isScrolled]);
+
   return (
-    <View style={styles.headerBackground}>
-      {/* Top Address & Action Bar */}
-      <View style={styles.topRow}>
-        <View style={styles.addressContainer}>
-          <Text style={styles.addressLabel}>Alamat kirim:</Text>
-          <TouchableOpacity style={styles.addressSelector} activeOpacity={0.7}>
-            <Text style={styles.addressTitle}>Rumah</Text>
-            <View style={styles.utamaBadge}>
-              <Text style={styles.utamaText}>Utama</Text>
-            </View>
-            <Ionicons name="chevron-down" size={16} color={COLORS.white} />
-          </TouchableOpacity>
-          <Text style={styles.addressSub} numberOfLines={1}>
-            Jl. Pasir Bokor, Kp. Gunung Jambe,...
-          </Text>
-        </View>
+    <View style={[styles.headerBackground, isScrolled && styles.headerCompact]}>
+      {isScrolled ? (
+        /* COMPACT / COLLAPSED HEADER STATE (On Scroll Down) */
+        <View style={styles.compactRow}>
+          {/* Search Input inline left */}
+          <View style={styles.compactSearchBar}>
+            <Ionicons name="search-outline" size={18} color={COLORS.textGray} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="beli dancow fortigro"
+              placeholderTextColor={COLORS.textMuted}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
 
-        {/* Right Action Icons */}
-        <View style={styles.actionRow}>
-          {/* Chat Icon */}
-          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
-            <View style={styles.yellowBadge}>
-              <Text style={styles.badgeText}>1</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Notification Bell */}
-          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
-            <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
-            <View style={styles.yellowBadge}>
-              <Text style={styles.badgeText}>4</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* Shopping Cart */}
-          <TouchableOpacity style={styles.iconBtn} onPress={openCart} activeOpacity={0.7}>
-            <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
-            {cartCount > 0 && (
+          {/* Action Icons inline right */}
+          <View style={styles.actionRowCompact}>
+            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
               <View style={styles.yellowBadge}>
-                <Text style={styles.badgeText}>{cartCount}</Text>
+                <Text style={styles.badgeText}>1</Text>
               </View>
-            )}
-          </TouchableOpacity>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+              <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
+              <View style={styles.yellowBadge}>
+                <Text style={styles.badgeText}>6</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.iconBtn} onPress={openCart} activeOpacity={0.7}>
+              <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
+              {cartCount > 0 && (
+                <View style={styles.yellowBadge}>
+                  <Text style={styles.badgeText}>{cartCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      ) : (
+        /* FULL / EXPANDED HEADER STATE (At Top) */
+        <View>
+          {/* Top Address & Action Bar */}
+          <View style={styles.topRow}>
+            <View style={styles.addressContainer}>
+              <Text style={styles.addressLabel}>Alamat kirim:</Text>
+              <TouchableOpacity style={styles.addressSelector} activeOpacity={0.7}>
+                <Text style={styles.addressTitle}>Rumah</Text>
+                <View style={styles.utamaBadge}>
+                  <Text style={styles.utamaText}>Utama</Text>
+                </View>
+                <Ionicons name="chevron-down" size={16} color={COLORS.white} />
+              </TouchableOpacity>
+              <Text style={styles.addressSub} numberOfLines={1}>
+                Jl. Pasir Bokor, Kp. Gunung Jambe,...
+              </Text>
+            </View>
 
-      {/* Search Input Bar with Scan & Heart Icons */}
-      <View style={styles.searchRow}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={20} color={COLORS.textGray} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="vitamin untuk anak"
-            placeholderTextColor={COLORS.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+            {/* Right Action Icons */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+                <Ionicons name="chatbubble-ellipses-outline" size={22} color={COLORS.white} />
+                <View style={styles.yellowBadge}>
+                  <Text style={styles.badgeText}>1</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.iconBtn} activeOpacity={0.7}>
+                <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
+                <View style={styles.yellowBadge}>
+                  <Text style={styles.badgeText}>4</Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.iconBtn} onPress={openCart} activeOpacity={0.7}>
+                <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
+                {cartCount > 0 && (
+                  <View style={styles.yellowBadge}>
+                    <Text style={styles.badgeText}>{cartCount}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Search Input Bar with Scan & Heart Icons */}
+          <View style={styles.searchRow}>
+            <View style={styles.searchBar}>
+              <Ionicons name="search-outline" size={20} color={COLORS.textGray} style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="vitamin untuk anak"
+                placeholderTextColor={COLORS.textMuted}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.squareIconBtn} activeOpacity={0.8}>
+              <Ionicons name="scan-outline" size={20} color={COLORS.white} />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.squareIconBtn} activeOpacity={0.8}>
+              <Ionicons name="heart-outline" size={20} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
         </View>
-
-        {/* Barcode Scanner Button */}
-        <TouchableOpacity style={styles.squareIconBtn} activeOpacity={0.8}>
-          <Ionicons name="scan-outline" size={20} color={COLORS.white} />
-        </TouchableOpacity>
-
-        {/* Wishlist Heart Button */}
-        <TouchableOpacity style={styles.squareIconBtn} activeOpacity={0.8}>
-          <Ionicons name="heart-outline" size={20} color={COLORS.white} />
-        </TouchableOpacity>
-      </View>
+      )}
     </View>
   );
 }
@@ -84,7 +134,31 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primaryRed,
     paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 14,
+    zIndex: 100,
+  },
+  headerCompact: {
+    paddingTop: 10,
+    paddingBottom: 10,
+  },
+  compactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  compactSearchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 40,
+  },
+  actionRowCompact: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   topRow: {
     flexDirection: 'row',
