@@ -842,7 +842,7 @@ ensureStoreSettingsTable();
 app.get('/api/admin/settings', async (req, res) => {
   try {
     await ensureStoreSettingsTable();
-    const [rows] = await pool.query('SELECT * FROM store_settings ORDER BY setting_id ASC LIMIT 1');
+    const [rows] = await pool.query('SELECT * FROM store_settings ORDER BY setting_id DESC LIMIT 1');
     const settings = rows.length > 0 ? rows[0] : {
       nama_toko: 'Official Store Tasikmalaya',
       slogan: 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
@@ -883,7 +883,7 @@ app.put('/api/admin/settings', async (req, res) => {
     const latNum = isNaN(parseFloat(latitude)) ? -7.3512 : parseFloat(latitude);
     const lngNum = isNaN(parseFloat(longitude)) ? 108.2145 : parseFloat(longitude);
 
-    const [rows] = await pool.query('SELECT setting_id FROM store_settings LIMIT 1');
+    const [rows] = await pool.query('SELECT setting_id FROM store_settings ORDER BY setting_id DESC LIMIT 1');
     if (rows && rows.length > 0) {
       await pool.query(
         `UPDATE store_settings SET 

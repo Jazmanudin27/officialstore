@@ -1,4 +1,5 @@
 import { PRODUCTS, GRID_CATEGORIES } from '../data/mockProducts';
+import { storage } from '../utils/storage';
 
 // BASE_URL disesuaikan otomatis untuk Web (Metro/Dev/Production) & Mobile
 const getApiBaseUrl = () => {
@@ -40,6 +41,31 @@ let _cachedVouchersList = [
   { id: 1, code: 'OFFICIAL50', title: 'Potongan Rp 50.000', discountAmount: 50000, minSpend: 150000, quota: 50, expiryDate: '2026-12-31' },
   { id: 2, code: 'SUPERJAWARA', title: 'Diskon Spesial Rp 15.000', discountAmount: 15000, minSpend: 50000, quota: 100, expiryDate: '2026-10-15' },
 ];
+
+// Restore initial state from local storage on refresh (F5)
+try {
+  const sSet = storage.getItem('offstore_settings');
+  if (sSet) _cachedStoreSettings = JSON.parse(sSet);
+  const sStores = storage.getItem('offstore_branches');
+  if (sStores) _cachedStores = JSON.parse(sStores);
+  const sProds = storage.getItem('offstore_products');
+  if (sProds) _cachedProductsList = JSON.parse(sProds);
+  const sVouchers = storage.getItem('offstore_vouchers');
+  if (sVouchers) _cachedVouchersList = JSON.parse(sVouchers);
+} catch (e) {
+  console.warn('Cache restore warning:', e);
+}
+
+const syncStorageCache = () => {
+  try {
+    storage.setItem('offstore_settings', JSON.stringify(_cachedStoreSettings));
+    storage.setItem('offstore_branches', JSON.stringify(_cachedStores));
+    storage.setItem('offstore_products', JSON.stringify(_cachedProductsList));
+    storage.setItem('offstore_vouchers', JSON.stringify(_cachedVouchersList));
+  } catch (e) {
+    console.warn('Cache sync warning:', e);
+  }
+};
 
 export const apiService = {
   // 1. Ambil Semua Produk (dengan auto-fallback jika server database belum aktif)
@@ -423,6 +449,7 @@ export const apiService = {
         const json = await response.json();
         if (json.status === 'ok' && json.data) {
           _cachedStoreSettings = { ..._cachedStoreSettings, ...json.data };
+          syncStorageCache();
           return _cachedStoreSettings;
         }
       }
@@ -434,6 +461,7 @@ export const apiService = {
 
   async updateStoreSettings(settingsData) {
     _cachedStoreSettings = { ..._cachedStoreSettings, ...settingsData };
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/settings`, {
         method: 'PUT',
@@ -446,10 +474,12 @@ export const apiService = {
       }
       if (json.data) {
         _cachedStoreSettings = { ..._cachedStoreSettings, ...json.data };
+        syncStorageCache();
       }
       return json;
     } catch (e) {
       console.warn('ℹ️ Store settings update fallback:', e.message);
+      syncStorageCache();
       return { status: 'ok', message: 'Pengaturan toko berhasil diperbarui!', data: _cachedStoreSettings };
     }
   },
@@ -462,6 +492,7 @@ export const apiService = {
         const json = await response.json();
         if (json.status === 'ok' && Array.isArray(json.data)) {
           _cachedStores = json.data;
+          syncStorageCache();
           return _cachedStores;
         }
       }
@@ -474,6 +505,7 @@ export const apiService = {
   async createAdminStore(storeData) {
     const newStore = { id: Date.now(), ...storeData, active: 1 };
     _cachedStores = [newStore, ..._cachedStores];
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores`, {
         method: 'POST',
@@ -483,9 +515,11 @@ export const apiService = {
       const json = await response.json();
       if (json.status === 'ok' && json.data) {
         _cachedStores = _cachedStores.map((s) => (s.id === newStore.id ? { ...s, ...json.data } : s));
+        syncStorageCache();
       }
       return json;
     } catch (e) {
+      syncStorageCache();
       return { status: 'ok', message: 'Cabang toko ditambahkan', data: newStore };
     }
   },
@@ -494,6 +528,7 @@ export const apiService = {
     _cachedStores = _cachedStores.map((st) =>
       String(st.id) === String(id) ? { ...st, ...storeData } : st
     );
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, {
         method: 'PUT',
@@ -502,16 +537,19 @@ export const apiService = {
       });
       return await response.json();
     } catch (e) {
+      syncStorageCache();
       return { status: 'ok', message: 'Cabang toko diperbarui' };
     }
   },
 
   async deleteAdminStore(id) {
     _cachedStores = _cachedStores.filter((st) => String(st.id) !== String(id));
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, { method: 'DELETE' });
       return await response.json();
     } catch (e) {
+      syncStorageCache();
       return { status: 'ok', message: 'Cabang toko dihapus' };
     }
   },
