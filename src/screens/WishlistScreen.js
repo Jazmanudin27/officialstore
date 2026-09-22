@@ -5,7 +5,7 @@ import ProductCard from '../components/product/ProductCard';
 import { PRODUCTS } from '../data/mockProducts';
 import { COLORS } from '../constants/theme';
 
-export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onToggleFavorite }) {
+export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onToggleFavorite, onSelectProduct }) {
   const favProducts = PRODUCTS.filter((p) => favorites.includes(p.id));
 
   return (
@@ -28,6 +28,7 @@ export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onT
               onAddToCart={onAddToCart}
               isFavorite={isFavorite(item.id)}
               onToggleFavorite={onToggleFavorite}
+              onSelectProduct={onSelectProduct}
             />
           )}
           contentContainerStyle={styles.productListContent}

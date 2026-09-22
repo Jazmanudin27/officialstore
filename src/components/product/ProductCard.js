@@ -11,9 +11,14 @@ export default function ProductCard({
   cartQuantity = 0,
   isFavorite,
   onToggleFavorite,
+  onSelectProduct,
 }) {
   return (
-    <View style={styles.card}>
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => onSelectProduct && onSelectProduct(product)}
+      activeOpacity={0.85}
+    >
       {/* Image & Badges Container */}
       <View style={styles.imageContainer}>
         <Image source={{ uri: product.image }} style={styles.productImage} resizeMode="cover" />
@@ -27,7 +32,9 @@ export default function ProductCard({
 
         <TouchableOpacity
           style={styles.favoriteButton}
-          onPress={() => onToggleFavorite(product.id)}
+          onPress={(e) => {
+            onToggleFavorite(product.id);
+          }}
           activeOpacity={0.7}
         >
           <Ionicons
@@ -105,7 +112,7 @@ export default function ProductCard({
           </TouchableOpacity>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

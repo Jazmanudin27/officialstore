@@ -1,79 +1,100 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GRID_CATEGORIES } from '../../data/mockProducts';
 import { COLORS } from '../../constants/theme';
 
-export default function CategoryGrid({ onSelectCategory }) {
+export default function CategoryGrid({ selectedCategory = 'all', onSelectCategory }) {
   return (
-    <View style={styles.gridContainer}>
-      {GRID_CATEGORIES.map((cat) => (
-        <TouchableOpacity
-          key={cat.id}
-          style={styles.gridItem}
-          onPress={() => onSelectCategory(cat.id === 'all' ? 'all' : cat.name)}
-          activeOpacity={0.7}
-        >
-          <View style={styles.iconCircle}>
-            <Ionicons name={cat.icon} size={24} color={COLORS.primaryRed} />
-            {cat.badge && (
-              <View style={[styles.badge, { backgroundColor: cat.badgeBg || COLORS.primaryRed }]}>
-                <Text style={styles.badgeText}>{cat.badge}</Text>
-              </View>
-            )}
-          </View>
-          <Text style={styles.catName} numberOfLines={2}>
-            {cat.name}
-          </Text>
-        </TouchableOpacity>
-      ))}
+    <View style={styles.container}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {GRID_CATEGORIES.map((cat) => {
+          const isSelected =
+            (cat.id === 'all' && (selectedCategory === 'all' || selectedCategory === 'Semua')) ||
+            selectedCategory === cat.name;
+
+          return (
+            <TouchableOpacity
+              key={cat.id}
+              style={[styles.catPill, isSelected && styles.catPillActive]}
+              onPress={() => onSelectCategory(cat.id === 'all' ? 'all' : cat.name)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={cat.icon}
+                size={15}
+                color={isSelected ? COLORS.white : '#475569'}
+              />
+              <Text style={[styles.catPillText, isSelected && styles.catPillTextActive]}>
+                {cat.name}
+              </Text>
+              {cat.badge && (
+                <View
+                  style={[
+                    styles.badge,
+                    isSelected ? styles.badgeActive : { backgroundColor: cat.badgeBg || COLORS.primaryRed },
+                  ]}
+                >
+                  <Text style={styles.badgeText}>{cat.badge}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  gridContainer: {
+  container: {
+    backgroundColor: COLORS.white,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    marginBottom: 8,
+  },
+  scrollContent: {
+    paddingHorizontal: 14,
+    gap: 8,
+  },
+  catPill: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 10,
-    marginBottom: 16,
-  },
-  gridItem: {
-    width: '20%', // 5 items per row
     alignItems: 'center',
-    marginBottom: 14,
-    paddingHorizontal: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    gap: 6,
   },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#EFF6FF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: '#DBEAFE',
+  catPillActive: {
+    backgroundColor: '#D91E28',
+  },
+  catPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  catPillTextActive: {
+    color: COLORS.white,
   },
   badge: {
-    position: 'absolute',
-    top: -4,
-    left: -4,
     paddingHorizontal: 5,
     paddingVertical: 1,
     borderRadius: 8,
+    marginLeft: 2,
+  },
+  badgeActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
   },
   badgeText: {
     color: COLORS.white,
     fontSize: 8,
     fontWeight: '800',
   },
-  catName: {
-    color: COLORS.textDark,
-    fontSize: 11,
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 14,
-  },
 });
+

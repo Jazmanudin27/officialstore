@@ -27,6 +27,7 @@ export default function ExploreScreen({
   cartCount = 0,
   onRefresh,
   refreshing = false,
+  onSelectProduct,
 }) {
   const [activeTab, setActiveTab] = useState('rutin'); // 'rutin' | 'favorit'
   const [selectedCategory, setSelectedCategory] = useState('Semua');
@@ -186,6 +187,7 @@ export default function ExploreScreen({
                       cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
                       isFavorite={true}
                       onToggleFavorite={onToggleFavorite}
+                      onSelectProduct={onSelectProduct}
                     />
                   </View>
                 ))}
@@ -241,7 +243,12 @@ export default function ExploreScreen({
                   contentContainerStyle={styles.routineScroll}
                 >
                   {routinePopular.map((item) => (
-                    <View key={item.id} style={styles.routineCard}>
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.routineCard}
+                      onPress={() => onSelectProduct && onSelectProduct(item)}
+                      activeOpacity={0.85}
+                    >
                       <View style={styles.imageBox}>
                         <Image source={{ uri: item.image }} style={styles.productImg} />
                         <View style={styles.categoryStrip}>
@@ -300,7 +307,7 @@ export default function ExploreScreen({
                           </TouchableOpacity>
                         )}
                       </View>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
@@ -329,6 +336,7 @@ export default function ExploreScreen({
                       cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
                       isFavorite={isFavorite(product.id)}
                       onToggleFavorite={onToggleFavorite}
+                      onSelectProduct={onSelectProduct}
                     />
                   </View>
                 ))}

@@ -33,18 +33,12 @@ import PromoScreen from './src/screens/PromoScreen';
 import OrdersScreen from './src/screens/OrdersScreen';
 import AddressModal from './src/screens/AddressModal';
 import AuthModal from './src/screens/AuthModal';
+import ProductDetailModal from './src/screens/ProductDetailModal';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
-  const [currentUser, setCurrentUser] = useState({
-    id: 1,
-    namaLengkap: 'Ade Fitri Nuraeni',
-    phone: '62895238888200',
-    alamat: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya',
-    poin: 850,
-    role: 'buyer',
-  });
+  const [currentUser, setCurrentUser] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -57,7 +51,7 @@ export default function App() {
     id: 'addr1',
     title: 'Rumah',
     isUtama: true,
-    recipient: 'Ade Fitri Nuraeni',
+    recipient: 'Pelanggan',
     phone: '0895238888200',
     addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
     addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
@@ -68,6 +62,7 @@ export default function App() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -172,7 +167,7 @@ export default function App() {
   // Filter products for Home screen
   const filteredProducts = productList.filter((product) => {
     const matchesCategory =
-      selectedCategory === 'all' || product.category === selectedCategory;
+      selectedCategory === 'all' || selectedCategory === 'Semua' || product.category === selectedCategory;
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -216,6 +211,7 @@ export default function App() {
             cartCount={totalCartCount}
             onRefresh={handleRefresh}
             refreshing={refreshing}
+            onSelectProduct={(product) => setSelectedProduct(product)}
           />
         );
       case 'promo':
@@ -225,6 +221,7 @@ export default function App() {
             openSearch={() => setIsSearchOpen(true)}
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
+            onSelectProduct={(product) => setSelectedProduct(product)}
           />
         );
       case 'wishlist':
@@ -234,6 +231,7 @@ export default function App() {
             onAddToCart={addToCart}
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
+            onSelectProduct={(product) => setSelectedProduct(product)}
           />
         );
       case 'pesanan':
@@ -271,9 +269,11 @@ export default function App() {
             isFavorite={isFavorite}
             onToggleFavorite={toggleFavorite}
             onSelectCategory={setSelectedCategory}
+            selectedCategory={selectedCategory}
             onScrollStateChange={setIsScrolled}
             onRefresh={handleRefresh}
             refreshing={refreshing}
+            onSelectProduct={(product) => setSelectedProduct(product)}
           />
         );
     }
@@ -394,6 +394,27 @@ export default function App() {
               note: null,
             });
           }
+        }}
+      />
+
+      {/* Detail Produk Modal Overlay */}
+      <ProductDetailModal
+        visible={!!selectedProduct}
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onAddToCart={addToCart}
+        onUpdateQuantity={updateQuantity}
+        cartQuantity={selectedProduct ? getItemQuantity(selectedProduct.id) : 0}
+        isFavorite={selectedProduct ? isFavorite(selectedProduct.id) : false}
+        onToggleFavorite={toggleFavorite}
+        openCart={() => {
+          setSelectedProduct(null);
+          setIsCartOpen(true);
+        }}
+        cartCount={totalCartCount}
+        onBuyNow={(prod) => {
+          setSelectedProduct(null);
+          setIsCheckoutOpen(true);
         }}
       />
 

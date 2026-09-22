@@ -14,9 +14,11 @@ export default function HomeScreen({
   isFavorite,
   onToggleFavorite,
   onSelectCategory,
+  selectedCategory,
   onScrollStateChange,
   onRefresh,
   refreshing = false,
+  onSelectProduct,
 }) {
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
@@ -63,8 +65,11 @@ export default function HomeScreen({
           {/* Main Promo Carousel Banner */}
           <PromoBanner />
 
-          {/* 2-Row Icon Category Grid */}
-          <CategoryGrid onSelectCategory={onSelectCategory} />
+          {/* Horizontal Icon Category Bar */}
+          <CategoryGrid
+            selectedCategory={selectedCategory}
+            onSelectCategory={onSelectCategory}
+          />
 
           {/* Section Header */}
           <View style={styles.sectionHeaderRow}>
@@ -81,6 +86,7 @@ export default function HomeScreen({
           cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
           isFavorite={isFavorite(item.id)}
           onToggleFavorite={onToggleFavorite}
+          onSelectProduct={onSelectProduct}
         />
       )}
       contentContainerStyle={styles.productListContent}

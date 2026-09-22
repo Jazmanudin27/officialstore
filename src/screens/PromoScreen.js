@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 
-export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCount = 0 }) {
+export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCount = 0, onSelectProduct }) {
   const [activePromoTab, setActivePromoTab] = useState('harga_spesial');
   const [selectedFilter, setSelectedFilter] = useState('rekomendasi');
 
@@ -248,7 +248,12 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
       <ScrollView style={styles.gridScrollView} contentContainerStyle={styles.gridContent}>
         <View style={styles.gridRow}>
           {getActiveProducts().map((product) => (
-            <View key={product.id} style={styles.productCard}>
+            <TouchableOpacity
+              key={product.id}
+              style={styles.productCard}
+              onPress={() => onSelectProduct && onSelectProduct(product)}
+              activeOpacity={0.85}
+            >
               {/* Image & Category Overlay Strip */}
               <View style={styles.imageBox}>
                 <Image source={{ uri: product.image }} style={styles.productImg} />
@@ -301,7 +306,7 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
                   <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
