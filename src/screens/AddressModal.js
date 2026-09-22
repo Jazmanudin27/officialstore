@@ -17,6 +17,7 @@ export default function AddressModal({
   onSelectAddress,
   selectedAddress,
   user,
+  onOpenAuth,
 }) {
   const [fulfillmentMode, setFulfillmentMode] = useState(
     selectedAddress?.isPickup ? 'pickup' : 'delivery'
@@ -40,42 +41,21 @@ export default function AddressModal({
   const [formNote, setFormNote] = useState('');
 
   const getInitialAddresses = (currentUser) => {
-    if (currentUser && currentUser.namaLengkap) {
+    if (currentUser && currentUser.namaLengkap && currentUser.alamat) {
       return [
         {
           id: `user_addr_main_${currentUser.id || 1}`,
           title: 'Rumah',
           isUtama: true,
           recipient: currentUser.namaLengkap,
-          phone: currentUser.phone || '0895238888200',
-          addressLine1: currentUser.alamat || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
-          addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
-          note: 'Alamat Utama Terdaftar',
-        },
-        {
-          id: `user_addr_kantor_${currentUser.id || 1}`,
-          title: 'KANTOR',
-          isUtama: false,
-          recipient: currentUser.namaLengkap,
-          phone: currentUser.phone || '0895238888200',
-          addressLine1: 'Jl Cagak, RT 04 RW 07 Karikil Kec. Mangkubumi',
-          addressLine2: 'Kota Tasikmalaya, Jawa Barat, Indonesia',
+          phone: currentUser.phone || '',
+          addressLine1: currentUser.alamat,
+          addressLine2: 'Alamat Utama Terdaftar',
           note: null,
         },
       ];
     }
-    return [
-      {
-        id: 'guest_addr_1',
-        title: 'Rumah',
-        isUtama: true,
-        recipient: 'Pelanggan',
-        phone: '0895238888200',
-        addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
-        addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
-        note: 'Patokan Rafasya Cell',
-      },
-    ];
+    return [];
   };
 
   const [addressList, setAddressList] = useState(() => getInitialAddresses(user));
@@ -338,89 +318,116 @@ export default function AddressModal({
                 </View>
 
                 {/* Address Cards List */}
-                <View style={styles.addressList}>
-                  {addressList.map((item) => {
-                    const isSelected = item.id === selectedAddressId;
-
-                    return (
+                {addressList.length === 0 ? (
+                  <View style={styles.emptyAddressBox}>
+                    <View style={styles.emptyIconCircle}>
+                      <Ionicons name="location-outline" size={36} color="#94A3B8" />
+                    </View>
+                    <Text style={styles.emptyTitle}>Belum Ada Alamat Pengiriman</Text>
+                    <Text style={styles.emptySub}>
+                      {user
+                        ? 'Anda belum memiliki alamat tersimpan. Klik "Tambah Alamat" di atas untuk menyimpan lokasi pengiriman Anda.'
+                        : 'Anda belum masuk ke akun. Silakan masuk untuk menyimpan alamat Anda atau klik "Tambah Alamat".'}
+                    </Text>
+                    {!user && onOpenAuth && (
                       <TouchableOpacity
-                        key={item.id}
-                        style={[
-                          styles.addressCard,
-                          isSelected && styles.addressCardSelected,
-                        ]}
-                        onPress={() => !isSelected && handleSelectAddress(item)}
-                        activeOpacity={isSelected ? 1 : 0.75}
+                        style={styles.loginFromAddressBtn}
+                        onPress={() => {
+                          onClose();
+                          onOpenAuth();
+                        }}
+                        activeOpacity={0.85}
                       >
-                        {/* Selected Address Ribbon */}
-                        {isSelected && (
-                          <View style={styles.selectedRibbon}>
-                            <Text style={styles.selectedRibbonText}>Alamat Terpilih</Text>
-                          </View>
-                        )}
+                        <Ionicons name="log-in-outline" size={18} color="#FFFFFF" />
+                        <Text style={styles.loginFromAddressText}>Masuk / Daftar Sekarang</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.addressList}>
+                    {addressList.map((item) => {
+                      const isSelected = item.id === selectedAddressId;
 
-                        {/* Header Title Row */}
-                        <View style={styles.cardHeaderRow}>
-                          <View style={styles.titleWithBadge}>
-                            <Text style={styles.addressTitle}>{item.title}</Text>
-                            {item.isUtama && (
-                              <View style={styles.utamaRedBadge}>
-                                <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[
+                            styles.addressCard,
+                            isSelected && styles.addressCardSelected,
+                          ]}
+                          onPress={() => !isSelected && handleSelectAddress(item)}
+                          activeOpacity={isSelected ? 1 : 0.75}
+                        >
+                          {/* Selected Address Ribbon */}
+                          {isSelected && (
+                            <View style={styles.selectedRibbon}>
+                              <Text style={styles.selectedRibbonText}>Alamat Terpilih</Text>
+                            </View>
+                          )}
+
+                          {/* Header Title Row */}
+                          <View style={styles.cardHeaderRow}>
+                            <View style={styles.titleWithBadge}>
+                              <Text style={styles.addressTitle}>{item.title}</Text>
+                              {item.isUtama && (
+                                <View style={styles.utamaRedBadge}>
+                                  <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                                </View>
+                              )}
+                            </View>
+
+                            {!isSelected && (
+                              <View style={styles.pilihBtn}>
+                                <Text style={styles.pilihBtnText}>Pilih</Text>
                               </View>
                             )}
                           </View>
 
-                          {!isSelected && (
-                            <View style={styles.pilihBtn}>
-                              <Text style={styles.pilihBtnText}>Pilih</Text>
+                          {/* Recipient Line */}
+                          <Text style={styles.recipientLine}>
+                            {item.recipient} - <Text style={{ color: '#475569' }}>{item.phone}</Text>
+                          </Text>
+
+                          {/* Full Address Lines */}
+                          <Text style={styles.addressLine}>{item.addressLine1}</Text>
+                          <Text style={styles.subAddressLine}>{item.addressLine2}</Text>
+
+                          {/* Optional Note */}
+                          {item.note && (
+                            <View style={styles.noteRow}>
+                              <Ionicons name="document-text-outline" size={13} color="#64748B" />
+                              <Text style={styles.noteText}>{item.note}</Text>
                             </View>
                           )}
-                        </View>
 
-                        {/* Recipient Line */}
-                        <Text style={styles.recipientLine}>
-                          {item.recipient} - <Text style={{ color: '#475569' }}>{item.phone}</Text>
-                        </Text>
+                          {/* Divider */}
+                          <View style={styles.cardDivider} />
 
-                        {/* Full Address Lines */}
-                        <Text style={styles.addressLine}>{item.addressLine1}</Text>
-                        <Text style={styles.subAddressLine}>{item.addressLine2}</Text>
-
-                        {/* Optional Note */}
-                        {item.note && (
-                          <View style={styles.noteRow}>
-                            <Ionicons name="document-text-outline" size={13} color="#64748B" />
-                            <Text style={styles.noteText}>{item.note}</Text>
-                          </View>
-                        )}
-
-                        {/* Divider */}
-                        <View style={styles.cardDivider} />
-
-                        {/* Bottom Action Row */}
-                        {isSelected ? (
-                          <TouchableOpacity style={styles.ubahBtnSingle} onPress={() => handleOpenEdit(item)}>
-                            <Text style={styles.actionText}>Ubah</Text>
-                          </TouchableOpacity>
-                        ) : (
-                          <View style={styles.actionRowMulti}>
-                            <TouchableOpacity onPress={() => handleMakeUtama(item)}>
-                              <Text style={styles.actionText}>Jadikan Alamat Utama</Text>
-                            </TouchableOpacity>
-                            <View style={styles.verticalDivider} />
-                            <TouchableOpacity onPress={() => handleDeleteAddress(item.id)}>
-                              <Text style={styles.actionText}>Hapus</Text>
-                            </TouchableOpacity>
-                            <View style={styles.verticalDivider} />
-                            <TouchableOpacity onPress={() => handleOpenEdit(item)}>
+                          {/* Bottom Action Row */}
+                          {isSelected ? (
+                            <TouchableOpacity style={styles.ubahBtnSingle} onPress={() => handleOpenEdit(item)}>
                               <Text style={styles.actionText}>Ubah</Text>
                             </TouchableOpacity>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                          ) : (
+                            <View style={styles.actionRowMulti}>
+                              <TouchableOpacity onPress={() => handleMakeUtama(item)}>
+                                <Text style={styles.actionText}>Jadikan Alamat Utama</Text>
+                              </TouchableOpacity>
+                              <View style={styles.verticalDivider} />
+                              <TouchableOpacity onPress={() => handleDeleteAddress(item.id)}>
+                                <Text style={styles.actionText}>Hapus</Text>
+                              </TouchableOpacity>
+                              <View style={styles.verticalDivider} />
+                              <TouchableOpacity onPress={() => handleOpenEdit(item)}>
+                                <Text style={styles.actionText}>Ubah</Text>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
               </>
             ) : (
               /* ==================== PICKUP VIEW ==================== */
@@ -729,6 +736,52 @@ const styles = StyleSheet.create({
     fontSize: 12.5,
     color: '#92400E',
     flex: 1,
+  },
+  emptyAddressBox: {
+    backgroundColor: COLORS.white,
+    borderRadius: 14,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginVertical: 8,
+  },
+  emptyIconCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: COLORS.textDark,
+    marginBottom: 6,
+  },
+  emptySub: {
+    fontSize: 12.5,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  loginFromAddressBtn: {
+    backgroundColor: '#D91E28',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  loginFromAddressText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
   formModalOverlay: {
     position: 'absolute',

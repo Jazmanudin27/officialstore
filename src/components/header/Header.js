@@ -78,11 +78,15 @@ export default function Header({
               activeOpacity={0.7}
             >
               <Text style={styles.addressLabel}>
-                {selectedAddress?.isPickup ? 'Ambil di toko:' : 'Alamat kirim:'}
+                {selectedAddress
+                  ? selectedAddress.isPickup
+                    ? 'Ambil di toko:'
+                    : 'Alamat kirim:'
+                  : 'Lokasi Pengiriman:'}
               </Text>
               <View style={styles.addressSelector}>
                 <Text style={styles.addressTitle}>
-                  {selectedAddress?.title || 'Rumah'}
+                  {selectedAddress ? selectedAddress.title : 'Belum Ada Alamat'}
                 </Text>
                 {selectedAddress?.isPickup ? (
                   <View style={[styles.utamaBadge, { backgroundColor: 'rgba(2, 132, 199, 0.9)' }]}>
@@ -98,7 +102,9 @@ export default function Header({
                 <Ionicons name="chevron-down" size={16} color={COLORS.white} />
               </View>
               <Text style={styles.addressSub} numberOfLines={1}>
-                {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe,...'}
+                {selectedAddress
+                  ? selectedAddress.addressLine1
+                  : 'Masuk / pilih lokasi pengiriman Anda'}
               </Text>
             </TouchableOpacity>
 

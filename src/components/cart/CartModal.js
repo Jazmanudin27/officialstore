@@ -90,9 +90,11 @@ export default function CartModal({
                   <View style={styles.addressDetails}>
                     <View style={styles.addressTitleRow}>
                       <Text style={styles.addressTitle}>
-                        {selectedAddress?.isPickup
-                          ? `${selectedAddress?.title} (Pickup)`
-                          : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Pelanggan'}`}
+                        {selectedAddress
+                          ? selectedAddress.isPickup
+                            ? `${selectedAddress.title} (Pickup)`
+                            : `${selectedAddress.title || 'Rumah'} - ${selectedAddress.recipient || 'Pelanggan'}`
+                          : 'Belum Ada Alamat Terpilih'}
                       </Text>
                       {selectedAddress?.isPickup ? (
                         <View style={[styles.utamaBadge, { backgroundColor: '#0284C7' }]}>
@@ -107,7 +109,9 @@ export default function CartModal({
                       )}
                     </View>
                     <Text style={styles.addressSub} numberOfLines={1}>
-                      {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe...'}
+                      {selectedAddress
+                        ? selectedAddress.addressLine1
+                        : 'Klik untuk memilih atau menambah alamat pengiriman'}
                     </Text>
                     {selectedAddress?.note ? (
                       <View style={styles.noteRow}>

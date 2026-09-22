@@ -292,12 +292,16 @@ export default function CheckoutScreen({
                 <View style={styles.addressBodyTopRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.recipientTitle}>
-                      {selectedAddress?.isPickup
-                        ? selectedAddress?.title
-                        : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Pelanggan'}`}
+                      {selectedAddress
+                        ? selectedAddress.isPickup
+                          ? selectedAddress.title
+                          : `${selectedAddress.title || 'Rumah'} - ${selectedAddress.recipient || 'Pelanggan'}`
+                        : 'Belum Ada Alamat Terpilih'}
                     </Text>
                     <Text style={styles.recipientAddress} numberOfLines={2}>
-                      {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09'}
+                      {selectedAddress
+                        ? selectedAddress.addressLine1
+                        : 'Silakan pilih atau tambahkan lokasi pengiriman.'}
                     </Text>
                     {selectedAddress?.isPickup ? (
                       <View style={styles.patokanRow}>

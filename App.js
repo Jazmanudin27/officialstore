@@ -47,16 +47,7 @@ export default function App() {
   const [isVoucherOpen, setIsVoucherOpen] = useState(false);
   const [isAddressOpen, setIsAddressOpen] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
-  const [selectedAddress, setSelectedAddress] = useState({
-    id: 'addr1',
-    title: 'Rumah',
-    isUtama: true,
-    recipient: 'Pelanggan',
-    phone: '0895238888200',
-    addressLine1: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09',
-    addressLine2: 'Cipawitra, Kec. Mangkubumi, Kab. Tasikmalaya, Jawa Barat 46181, Indonesia',
-    note: 'Patokan Rafasya Cell',
-  });
+  const [selectedAddress, setSelectedAddress] = useState(null);
   const [addressReturnTarget, setAddressReturnTarget] = useState(null);
   const [voucherReturnTarget, setVoucherReturnTarget] = useState(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -395,6 +386,7 @@ export default function App() {
         }}
         selectedAddress={selectedAddress}
         user={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       {/* Login & Registrasi Phone + OTP Modal */}
