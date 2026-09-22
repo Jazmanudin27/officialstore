@@ -4,10 +4,14 @@
   "main": "index.js",
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.2",
     "expo": "~57.0.24",
     "expo-font": "^57.0.4",
     "expo-linear-gradient": "^57.0.2",
     "expo-status-bar": "~57.0.1",
+    "express": "^5.2.1",
+    "mysql2": "^3.24.4",
     "react": "19.2.3",
     "react-dom": "^19.2.3",
     "react-native": "0.86.3",
@@ -17,7 +21,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "server": "node server/index.js",
+    "init-db": "node server/init-db.js"
   },
   "private": true
 }

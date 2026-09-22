@@ -8,6 +8,7 @@ import { IONICONS_BASE64 } from './src/constants/ioniconsBase64';
 // Constants & Data
 import { COLORS } from './src/constants/theme';
 import { PRODUCTS } from './src/data/mockProducts';
+import { apiService } from './src/services/api';
 
 // Custom Hooks
 import { useCart } from './src/hooks/useCart';
@@ -145,14 +146,24 @@ export default function App() {
   } = useCart();
 
   const { favorites, toggleFavorite, isFavorite, favoriteCount } = useFavorites();
+  const [productList, setProductList] = useState(PRODUCTS);
+
+  // Ambil data produk real-time dari API Database (dengan auto fallback)
+  useEffect(() => {
+    apiService.getProducts().then((data) => {
+      if (data && data.length > 0) {
+        setProductList(data);
+      }
+    });
+  }, []);
 
   // Filter products for Home screen
-  const filteredProducts = PRODUCTS.filter((product) => {
+  const filteredProducts = productList.filter((product) => {
     const matchesCategory =
       selectedCategory === 'all' || product.category === selectedCategory;
-    const matchesSearch = product.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 

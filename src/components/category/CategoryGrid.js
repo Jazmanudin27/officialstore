@@ -11,7 +11,7 @@ export default function CategoryGrid({ onSelectCategory }) {
         <TouchableOpacity
           key={cat.id}
           style={styles.gridItem}
-          onPress={() => onSelectCategory(cat.id)}
+          onPress={() => onSelectCategory(cat.id === 'all' ? 'all' : cat.name)}
           activeOpacity={0.7}
         >
           <View style={styles.iconCircle}>
