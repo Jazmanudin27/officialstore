@@ -38,6 +38,7 @@ export default function AdminDashboardScreen({
 
   // Search & Filter States
   const [productSearch, setProductSearch] = useState('');
+  const [branchSearch, setBranchSearch] = useState('');
   const [orderStatusFilter, setOrderStatusFilter] = useState('all');
 
   // Modals for Create/Edit
@@ -397,6 +398,12 @@ export default function AdminDashboardScreen({
 
   const filteredOrders = orders.filter((o) =>
     orderStatusFilter === 'all' ? true : o.status === orderStatusFilter
+  );
+
+  const filteredBranches = (storesList || []).filter((st) =>
+    (st.name || '').toLowerCase().includes(branchSearch.toLowerCase()) ||
+    (st.code || '').toLowerCase().includes(branchSearch.toLowerCase()) ||
+    (st.address || '').toLowerCase().includes(branchSearch.toLowerCase())
   );
 
   return (
@@ -769,44 +776,52 @@ export default function AdminDashboardScreen({
               </View>
 
               {/* Branch Stores Table List (Identik 100% dengan Tampilan Produk) */}
-              {filteredBranches.map((st) => (
-                <View key={st.id} style={styles.tableRowCard}>
-                  <View style={[styles.productThumb, { backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center' }]}>
-                    <Ionicons name="business" size={26} color="#2563EB" />
-                  </View>
+              {filteredBranches.length === 0 ? (
+                <View style={styles.emptyBox}>
+                  <Ionicons name="business-outline" size={48} color="#94A3B8" />
+                  <Text style={styles.emptyTitle}>Belum Ada Cabang Toko</Text>
+                  <Text style={styles.emptySub}>Klik tombol "+ Tambah Cabang" untuk membuat cabang toko baru</Text>
+                </View>
+              ) : (
+                filteredBranches.map((st) => (
+                  <View key={st.id} style={styles.tableRowCard}>
+                    <View style={[styles.productThumb, { backgroundColor: '#EFF6FF', justifyContent: 'center', alignItems: 'center' }]}>
+                      <Ionicons name="business" size={26} color="#2563EB" />
+                    </View>
 
-                  <View style={styles.productMetaBox}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                      <Text style={styles.productMetaTitle} numberOfLines={1}>
-                        {st.name}
-                      </Text>
-                      <View style={styles.badgeCategory}>
-                        <Text style={styles.badgeCategoryText}>{st.code}</Text>
+                    <View style={styles.productMetaBox}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                        <Text style={styles.productMetaTitle} numberOfLines={1}>
+                          {st.name}
+                        </Text>
+                        <View style={styles.badgeCategory}>
+                          <Text style={styles.badgeCategoryText}>{st.code}</Text>
+                        </View>
+                        <View style={[styles.badgeCategory, { backgroundColor: st.active ? '#DCFCE7' : '#FEE2E2' }]}>
+                          <Text style={[styles.badgeCategoryText, { color: st.active ? '#15803D' : '#B91C1C' }]}>
+                            {st.active ? '● AKTIF' : 'NON-AKTIF'}
+                          </Text>
+                        </View>
                       </View>
-                      <View style={[styles.badgeCategory, { backgroundColor: st.active ? '#DCFCE7' : '#FEE2E2' }]}>
-                        <Text style={[styles.badgeCategoryText, { color: st.active ? '#15803D' : '#B91C1C' }]}>
-                          {st.active ? '● AKTIF' : 'NON-AKTIF'}
+                      <Text style={styles.productMetaSku} numberOfLines={2}>📍 {st.address}</Text>
+                      <View style={styles.priceRow}>
+                        <Text style={{ fontSize: 12, color: '#64748B', fontWeight: '600' }}>
+                          📞 {st.phone || '0895238888200'} | 🕒 {st.hours}
                         </Text>
                       </View>
                     </View>
-                    <Text style={styles.productMetaSku} numberOfLines={2}>📍 {st.address}</Text>
-                    <View style={styles.priceRow}>
-                      <Text style={{ fontSize: 12, color: '#64748B', fontWeight: '600' }}>
-                        📞 {st.phone || '0895238888200'} | 🕒 {st.hours}
-                      </Text>
+
+                    <View style={styles.actionBtnGroup}>
+                      <TouchableOpacity style={styles.editBtn} onPress={() => openBranchForm(st)} activeOpacity={0.7}>
+                        <Ionicons name="pencil" size={16} color="#0284C7" />
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteBranch(st)} activeOpacity={0.7}>
+                        <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                      </TouchableOpacity>
                     </View>
                   </View>
-
-                  <View style={styles.actionBtnGroup}>
-                    <TouchableOpacity style={styles.editBtn} onPress={() => openBranchForm(st)} activeOpacity={0.7}>
-                      <Ionicons name="pencil" size={16} color="#0284C7" />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.deleteBtn} onPress={() => handleDeleteBranch(st)} activeOpacity={0.7}>
-                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
+                ))
+              )}
             </View>
           )}
 
