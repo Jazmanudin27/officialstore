@@ -80,17 +80,29 @@ export default function CartModal({
           >
             <View style={styles.addressLeft}>
               <View style={styles.truckIconBox}>
-                <Ionicons name="bicycle" size={24} color="#D91E28" />
+                <Ionicons
+                  name={selectedAddress?.isPickup ? 'storefront' : 'bicycle'}
+                  size={24}
+                  color="#D91E28"
+                />
               </View>
               <View style={styles.addressDetails}>
                 <View style={styles.addressTitleRow}>
                   <Text style={styles.addressTitle}>
-                    {selectedAddress?.title || 'Rumah'} - {selectedAddress?.recipient || 'Ade Fitri Nuraeni'}
+                    {selectedAddress?.isPickup
+                      ? `${selectedAddress?.title} (Pickup)`
+                      : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Ade Fitri Nuraeni'}`}
                   </Text>
-                  {selectedAddress?.isUtama && (
-                    <View style={styles.utamaBadge}>
-                      <Text style={styles.utamaText}>Utama</Text>
+                  {selectedAddress?.isPickup ? (
+                    <View style={[styles.utamaBadge, { backgroundColor: '#0284C7' }]}>
+                      <Text style={styles.utamaText}>Pickup</Text>
                     </View>
+                  ) : (
+                    selectedAddress?.isUtama && (
+                      <View style={styles.utamaBadge}>
+                        <Text style={styles.utamaText}>Utama</Text>
+                      </View>
+                    )
                   )}
                 </View>
                 <Text style={styles.addressSub} numberOfLines={1}>

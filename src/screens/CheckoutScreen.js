@@ -252,7 +252,7 @@ export default function CheckoutScreen({
             </View>
           </View>
 
-          {/* Delivery Address Card */}
+          {/* Delivery or Pickup Card */}
           <TouchableOpacity
             style={styles.addressCardContainer}
             onPress={() => setIsAddressModalOpen(true)}
@@ -260,16 +260,30 @@ export default function CheckoutScreen({
           >
             <View style={styles.addressHeaderRow}>
               <View style={styles.addressHeaderLeft}>
-                <Ionicons name="bicycle" size={20} color="#D91E28" />
-                <Text style={styles.addressHeaderTitle}>Kirim ke Alamat</Text>
-                {selectedAddress?.isUtama && (
-                  <View style={styles.utamaRedBadge}>
-                    <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                <Ionicons
+                  name={selectedAddress?.isPickup ? 'storefront' : 'bicycle'}
+                  size={20}
+                  color="#D91E28"
+                />
+                <Text style={styles.addressHeaderTitle}>
+                  {selectedAddress?.isPickup ? 'Ambil di Toko Cabang' : 'Kirim ke Alamat'}
+                </Text>
+                {selectedAddress?.isPickup ? (
+                  <View style={[styles.utamaRedBadge, { backgroundColor: '#0284C7' }]}>
+                    <Text style={styles.utamaRedBadgeText}>Pickup</Text>
                   </View>
+                ) : (
+                  selectedAddress?.isUtama && (
+                    <View style={styles.utamaRedBadge}>
+                      <Text style={styles.utamaRedBadgeText}>Utama</Text>
+                    </View>
+                  )
                 )}
               </View>
               <View>
-                <Text style={styles.gantiAlamatText}>Ganti Alamat</Text>
+                <Text style={styles.gantiAlamatText}>
+                  {selectedAddress?.isPickup ? 'Ganti Toko' : 'Ganti Alamat'}
+                </Text>
               </View>
             </View>
 
@@ -278,12 +292,21 @@ export default function CheckoutScreen({
                 <View style={styles.addressBodyTopRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.recipientTitle}>
-                      {selectedAddress?.title || 'Rumah'} - {selectedAddress?.recipient || 'Ade Fitri Nuraeni'}
+                      {selectedAddress?.isPickup
+                        ? selectedAddress?.title
+                        : `${selectedAddress?.title || 'Rumah'} - ${selectedAddress?.recipient || 'Ade Fitri Nuraeni'}`}
                     </Text>
-                    <Text style={styles.recipientAddress} numberOfLines={1}>
+                    <Text style={styles.recipientAddress} numberOfLines={2}>
                       {selectedAddress?.addressLine1 || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/R...'}
                     </Text>
-                    {selectedAddress?.note ? (
+                    {selectedAddress?.isPickup ? (
+                      <View style={styles.patokanRow}>
+                        <Ionicons name="time-outline" size={13} color="#0284C7" />
+                        <Text style={[styles.patokanText, { color: '#0284C7', fontWeight: '700' }]}>
+                          {selectedAddress?.addressLine2 || 'Toko Buka • 07:00 - 22:00'}
+                        </Text>
+                      </View>
+                    ) : selectedAddress?.note ? (
                       <View style={styles.patokanRow}>
                         <Ionicons name="document-text-outline" size={13} color="#64748B" />
                         <Text style={styles.patokanText}>{selectedAddress.note}</Text>
@@ -295,23 +318,40 @@ export default function CheckoutScreen({
                   </View>
                 </View>
 
-                {/* Lobby Notice */}
+                {/* Pickup / Delivery Notice */}
                 <View style={styles.lobbyNoticeBox}>
-                  <Ionicons name="information-circle" size={16} color="#0284C7" style={{ marginTop: 1 }} />
+                  <Ionicons
+                    name={selectedAddress?.isPickup ? 'storefront-outline' : 'information-circle'}
+                    size={16}
+                    color="#0284C7"
+                    style={{ marginTop: 1 }}
+                  />
                   <Text style={styles.lobbyNoticeText}>
-                    Khusus gedung, mal, apartemen, kos & area terlarang,{' '}
-                    <Text style={{ fontWeight: '800' }}>
-                      pengantaran hanya sampai lobby/pos penjagaan.
-                    </Text>
+                    {selectedAddress?.isPickup ? (
+                      <>
+                        Pesanan siap diambil di kasir{' '}
+                        <Text style={{ fontWeight: '800' }}>{selectedAddress?.title || 'Toko Pilihan'}</Text>{' '}
+                        setelah Anda menyelesaikan pembayaran.
+                      </>
+                    ) : (
+                      <>
+                        Khusus gedung, mal, apartemen, kos & area terlarang,{' '}
+                        <Text style={{ fontWeight: '800' }}>
+                          pengantaran hanya sampai lobby/pos penjagaan.
+                        </Text>
+                      </>
+                    )}
                   </Text>
                 </View>
               </View>
             </View>
           </TouchableOpacity>
 
-          {/* Warning Location Text */}
+          {/* Warning Location / Info Text */}
           <Text style={styles.warningLocationText}>
-            Alamat terdeteksi jauh dari lokasi saat ini. Pastikan alamat pengiriman sudah sesuai
+            {selectedAddress?.isPickup
+              ? 'Toko terdekat otomatis dipilih berdasarkan estimasi jarak ke lokasimu.'
+              : 'Alamat terdeteksi jauh dari lokasi saat ini. Pastikan alamat pengiriman sudah sesuai'}
           </Text>
         </ScrollView>
 

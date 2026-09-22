@@ -77,15 +77,23 @@ export default function Header({
               onPress={openAddress}
               activeOpacity={0.7}
             >
-              <Text style={styles.addressLabel}>Alamat kirim:</Text>
+              <Text style={styles.addressLabel}>
+                {selectedAddress?.isPickup ? 'Ambil di toko:' : 'Alamat kirim:'}
+              </Text>
               <View style={styles.addressSelector}>
                 <Text style={styles.addressTitle}>
                   {selectedAddress?.title || 'Rumah'}
                 </Text>
-                {selectedAddress?.isUtama && (
-                  <View style={styles.utamaBadge}>
-                    <Text style={styles.utamaText}>Utama</Text>
+                {selectedAddress?.isPickup ? (
+                  <View style={[styles.utamaBadge, { backgroundColor: 'rgba(2, 132, 199, 0.9)' }]}>
+                    <Text style={styles.utamaText}>Pickup</Text>
                   </View>
+                ) : (
+                  selectedAddress?.isUtama && (
+                    <View style={styles.utamaBadge}>
+                      <Text style={styles.utamaText}>Utama</Text>
+                    </View>
+                  )
                 )}
                 <Ionicons name="chevron-down" size={16} color={COLORS.white} />
               </View>
