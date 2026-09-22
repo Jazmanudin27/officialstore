@@ -37,13 +37,243 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// 2. Trigger auto setup database (buat tabel & isi data awal)
-app.post('/api/init-db', async (req, res) => {
-  const success = await initDatabase();
-  if (success) {
-    res.json({ status: 'ok', message: 'Database officialstore berhasil diinisialisasi & di-seed!' });
-  } else {
-    res.status(500).json({ status: 'error', message: 'Gagal inisialisasi database. Cek log server.' });
+// Temporary in-memory OTP cache (Production can use Redis / MySQL / SMS Gateway)
+const otpStore = new Map();
+
+// Helper sanitize nomor HP
+function sanitizePhone(phone) {
+  if (!phone) return '';
+  let clean = phone.replace(/[^0-9]/g, '');
+  if (clean.startsWith('0')) clean = '62' + clean.slice(1);
+  if (!clean.startsWith('62')) clean = '62' + clean;
+  return clean;
+}
+
+// =====================================================
+// AUTHENTICATION API (PHONE & OTP)
+// =====================================================
+
+// A. Kirim Kode OTP ke Nomor HP
+app.post('/api/auth/send-otp', async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) {
+      return res.status(400).json({ status: 'error', message: 'Nomor HP wajib diisi.' });
+    }
+
+    const cleanPhone = sanitizePhone(phone);
+    // Generate 6 digit OTP (Demo default: 123456)
+    const otp = '123456';
+    otpStore.set(cleanPhone, {
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 menit
+    });
+
+    // Cek apakah user sudah terdaftar di database MySQL
+    let isRegistered = false;
+    let userName = '';
+    try {
+      const [rows] = await pool.query(
+        'SELECT user_id, nama_lengkap FROM users WHERE nomor_telepon = ? OR nomor_telepon = ?',
+        [cleanPhone, phone]
+      );
+      if (rows && rows.length > 0) {
+        isRegistered = true;
+        userName = rows[0].nama_lengkap;
+      }
+    } catch (dbErr) {
+      console.warn('DB check warning:', dbErr.message);
+    }
+
+    console.log(`📲 [OTP SENT] No HP: ${cleanPhone} | Kode OTP: ${otp} | Terdaftar: ${isRegistered}`);
+
+    res.json({
+      status: 'ok',
+      message: `Kode OTP berhasil dikirim ke +${cleanPhone}`,
+      data: {
+        phone: cleanPhone,
+        isRegistered,
+        userName,
+        otp, // Disediakan langsung untuk kemudahan pengujian
+      },
+    });
+  } catch (error) {
+    console.error('Error send-otp:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// B. Verifikasi OTP (Login)
+app.post('/api/auth/verify-otp', async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+    if (!phone || !otp) {
+      return res.status(400).json({ status: 'error', message: 'Nomor HP dan kode OTP wajib diisi.' });
+    }
+
+    const cleanPhone = sanitizePhone(phone);
+    const stored = otpStore.get(cleanPhone);
+
+    // Verifikasi kode OTP (menerima OTP tersimpan atau 123456)
+    const isValid = otp === '123456' || (stored && stored.otp === otp && Date.now() <= stored.expiresAt);
+    if (!isValid) {
+      return res.status(400).json({ status: 'error', message: 'Kode OTP salah atau sudah kadaluarsa.' });
+    }
+
+    // Ambil data user dari MySQL
+    let user = null;
+    let address = null;
+
+    try {
+      const [userRows] = await pool.query(
+        'SELECT user_id, nama_lengkap, nomor_telepon, email, role, poin_member FROM users WHERE nomor_telepon = ? OR nomor_telepon = ?',
+        [cleanPhone, phone]
+      );
+
+      if (userRows && userRows.length > 0) {
+        user = userRows[0];
+
+        // Ambil alamat utama
+        const [addrRows] = await pool.query(
+          'SELECT address_id, label_alamat, nama_penerima, nomor_telepon, alamat_lengkap, catatan_patokan FROM user_addresses WHERE user_id = ? ORDER BY is_utama DESC LIMIT 1',
+          [user.user_id]
+        );
+        if (addrRows && addrRows.length > 0) {
+          address = addrRows[0];
+        }
+      }
+    } catch (dbErr) {
+      console.warn('DB fetch warning:', dbErr.message);
+    }
+
+    if (!user) {
+      return res.json({
+        status: 'ok',
+        isRegistered: false,
+        message: 'Nomor HP belum terdaftar. Silakan lengkapi formulir registrasi.',
+        data: { phone: cleanPhone },
+      });
+    }
+
+    otpStore.delete(cleanPhone);
+
+    res.json({
+      status: 'ok',
+      isRegistered: true,
+      message: 'Login berhasil!',
+      data: {
+        user: {
+          id: user.user_id,
+          namaLengkap: user.nama_lengkap,
+          phone: user.nomor_telepon,
+          email: user.email,
+          role: user.role,
+          poin: user.poin_member || 500,
+          alamat: address ? address.alamat_lengkap : 'Belum ada alamat',
+          addressDetail: address,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error verify-otp:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// C. Registrasi Akun Baru (Nama, No HP, Alamat)
+app.post('/api/auth/register', async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { namaLengkap, phone, alamat, otp } = req.body;
+
+    if (!namaLengkap || !phone || !alamat) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nama Lengkap, Nomor HP, dan Alamat wajib diisi.',
+      });
+    }
+
+    const cleanPhone = sanitizePhone(phone);
+
+    // Cek OTP jika dikirimkan
+    if (otp && otp !== '123456') {
+      const stored = otpStore.get(cleanPhone);
+      if (!stored || stored.otp !== otp) {
+        return res.status(400).json({ status: 'error', message: 'Kode OTP tidak valid.' });
+      }
+    }
+
+    await connection.beginTransaction();
+
+    // 1. Cek apakah nomor sudah ada
+    const [existing] = await connection.query(
+      'SELECT user_id FROM users WHERE nomor_telepon = ?',
+      [cleanPhone]
+    );
+
+    let userId;
+    if (existing.length > 0) {
+      userId = existing[0].user_id;
+      // Update nama
+      await connection.query(
+        'UPDATE users SET nama_lengkap = ? WHERE user_id = ?',
+        [namaLengkap, userId]
+      );
+    } else {
+      // Insert user baru
+      const [insertUser] = await connection.query(
+        'INSERT INTO users (nama_lengkap, nomor_telepon, role, poin_member) VALUES (?, ?, "buyer", 500)',
+        [namaLengkap, cleanPhone]
+      );
+      userId = insertUser.insertId;
+    }
+
+    // 2. Simpan atau update alamat utama
+    const [existingAddr] = await connection.query(
+      'SELECT address_id FROM user_addresses WHERE user_id = ?',
+      [userId]
+    );
+
+    let addressId;
+    if (existingAddr.length > 0) {
+      addressId = existingAddr[0].address_id;
+      await connection.query(
+        'UPDATE user_addresses SET nama_penerima = ?, nomor_telepon = ?, alamat_lengkap = ? WHERE address_id = ?',
+        [namaLengkap, cleanPhone, alamat, addressId]
+      );
+    } else {
+      const [insertAddr] = await connection.query(
+        'INSERT INTO user_addresses (user_id, label_alamat, nama_penerima, nomor_telepon, alamat_lengkap, is_utama) VALUES (?, "Rumah", ?, ?, ?, TRUE)',
+        [userId, namaLengkap, cleanPhone, alamat]
+      );
+      addressId = insertAddr.insertId;
+    }
+
+    await connection.commit();
+    otpStore.delete(cleanPhone);
+
+    console.log(`🎉 [REGISTER SUCCESS] User: ${namaLengkap} (${cleanPhone}) ID: ${userId}`);
+
+    res.json({
+      status: 'ok',
+      message: 'Registrasi berhasil! Selamat datang di Official Store.',
+      data: {
+        user: {
+          id: userId,
+          namaLengkap,
+          phone: cleanPhone,
+          alamat,
+          poin: 500,
+          role: 'buyer',
+        },
+      },
+    });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error register:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  } finally {
+    connection.release();
   }
 });
 

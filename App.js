@@ -31,10 +31,20 @@ import CheckoutScreen from './src/screens/CheckoutScreen';
 import VoucherScreen from './src/screens/VoucherScreen';
 import PromoScreen from './src/screens/PromoScreen';
 import AddressModal from './src/screens/AddressModal';
+import AuthModal from './src/screens/AuthModal';
 import SplashScreen from './src/components/splash/SplashScreen';
 
 export default function App() {
   const [showSplash, setShowSplash] = useState(true);
+  const [currentUser, setCurrentUser] = useState({
+    id: 1,
+    namaLengkap: 'Ade Fitri Nuraeni',
+    phone: '62895238888200',
+    alamat: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya',
+    poin: 850,
+    role: 'buyer',
+  });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -224,7 +234,14 @@ export default function App() {
       case 'pesanan':
       case 'akun':
       case 'profile':
-        return <ProfileScreen />;
+        return (
+          <ProfileScreen
+            user={currentUser}
+            onOpenAuth={() => setIsAuthOpen(true)}
+            onLogout={() => setCurrentUser(null)}
+            onOpenAddress={() => setIsAddressOpen(true)}
+          />
+        );
       case 'home':
       default:
         return (
@@ -338,6 +355,28 @@ export default function App() {
           setIsAddressOpen(false);
         }}
         selectedAddress={selectedAddress}
+      />
+
+      {/* Login & Registrasi Phone + OTP Modal */}
+      <AuthModal
+        visible={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLoginSuccess={(userData) => {
+          setCurrentUser(userData);
+          setIsAuthOpen(false);
+          if (userData.alamat) {
+            setSelectedAddress({
+              id: 'user_addr',
+              title: 'Rumah',
+              isUtama: true,
+              recipient: userData.namaLengkap,
+              phone: userData.phone,
+              addressLine1: userData.alamat,
+              addressLine2: 'Alamat Utama Terdaftar',
+              note: null,
+            });
+          }
+        }}
       />
 
       {/* Bottom 5-Tab Navigation Bar */}

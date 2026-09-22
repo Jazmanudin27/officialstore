@@ -8,10 +8,11 @@ USE officialstore;
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
     nama_lengkap VARCHAR(100) NOT NULL,
-    email VARCHAR(100) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    nomor_telepon VARCHAR(20),
+    nomor_telepon VARCHAR(20) UNIQUE NOT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    password_hash VARCHAR(255) DEFAULT NULL,
     role ENUM('admin', 'seller', 'buyer') DEFAULT 'buyer',
+    poin_member INT DEFAULT 500,
     status_aktif BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
