@@ -1197,24 +1197,52 @@ export default function AdminDashboardScreen({
           <View style={styles.modalOverlay}>
             <View style={styles.modalCard}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  {editingProduct ? 'Edit Data Produk' : '+ Tambah Produk Baru'}
-                </Text>
-                <TouchableOpacity onPress={() => setIsProductModalOpen(false)}>
-                  <Ionicons name="close" size={24} color="#475569" />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center' }}>
+                    <Ionicons name="cube-outline" size={20} color="#D91E28" />
+                  </View>
+                  <Text style={styles.modalTitle}>
+                    {editingProduct ? 'Edit Data Produk' : '+ Tambah Produk Baru'}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setIsProductModalOpen(false)} style={{ padding: 4 }}>
+                  <Ionicons name="close" size={24} color="#64748B" />
                 </TouchableOpacity>
               </View>
 
-              <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
-                <Text style={styles.formLabel}>Nama Produk *</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="Contoh: Aida Bumbu Tabur Cabe 25g"
-                  value={formProdName}
-                  onChangeText={setFormProdName}
-                />
+              <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
+                {/* Image Preview & URL Row */}
+                <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start', backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                  <Image
+                    source={{ uri: formProdImage || 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&q=80' }}
+                    style={{ width: 72, height: 72, borderRadius: 10, backgroundColor: '#E2E8F0' }}
+                  />
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={styles.formLabel}>URL Foto Produk</Text>
+                    <TextInput
+                      style={[styles.formInput, { backgroundColor: '#FFFFFF' }]}
+                      placeholder="https://..."
+                      value={formProdImage}
+                      onChangeText={setFormProdImage}
+                    />
+                    <Text style={{ fontSize: 11, color: '#64748B' }}>
+                      Tempel URL gambar (JPG/PNG). Gambar akan ditampilkan langsung pada pratinjau di samping.
+                    </Text>
+                  </View>
+                </View>
 
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+                {/* Nama Produk & Kategori */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <View style={{ flex: 2 }}>
+                    <Text style={styles.formLabel}>Nama Produk *</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="Contoh: Aida Bumbu Tabur Cabe 25g"
+                      value={formProdName}
+                      onChangeText={setFormProdName}
+                    />
+                  </View>
+
                   <View style={{ flex: 1 }}>
                     <Text style={styles.formLabel}>Kategori</Text>
                     <TextInput
@@ -1224,6 +1252,10 @@ export default function AdminDashboardScreen({
                       onChangeText={setFormProdCategory}
                     />
                   </View>
+                </View>
+
+                {/* SKU & Stok */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.formLabel}>Kode SKU</Text>
                     <TextInput
@@ -1233,9 +1265,21 @@ export default function AdminDashboardScreen({
                       onChangeText={setFormProdSku}
                     />
                   </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Jumlah Stok</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="100"
+                      keyboardType="numeric"
+                      value={formProdStock}
+                      onChangeText={setFormProdStock}
+                    />
+                  </View>
                 </View>
 
-                <View style={{ flexDirection: 'row', gap: 10 }}>
+                {/* Harga & Harga Coret */}
+                <View style={{ flexDirection: 'row', gap: 12 }}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.formLabel}>Harga Jual (Rp) *</Text>
                     <TextInput
@@ -1258,35 +1302,69 @@ export default function AdminDashboardScreen({
                   </View>
                 </View>
 
-                <Text style={styles.formLabel}>Jumlah Stok</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="100"
-                  keyboardType="numeric"
-                  value={formProdStock}
-                  onChangeText={setFormProdStock}
-                />
+                {/* Deskripsi */}
+                <View>
+                  <Text style={styles.formLabel}>Deskripsi Produk</Text>
+                  <TextInput
+                    style={[styles.formInput, { height: 80, textAlignVertical: 'top' }]}
+                    multiline
+                    numberOfLines={3}
+                    placeholder="Penjelasan singkat deskripsi produk..."
+                    value={formProdDesc}
+                    onChangeText={setFormProdDesc}
+                  />
+                </View>
 
-                <Text style={styles.formLabel}>URL Foto Produk</Text>
-                <TextInput
-                  style={styles.formInput}
-                  placeholder="https://..."
-                  value={formProdImage}
-                  onChangeText={setFormProdImage}
-                />
+                {/* Action Buttons Row */}
+                <View style={{ flexDirection: 'row', gap: 12, marginTop: 8 }}>
+                  <TouchableOpacity
+                    style={{
+                      flex: 1,
+                      height: 48,
+                      backgroundColor: '#F1F5F9',
+                      borderRadius: 12,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderWidth: 1,
+                      borderColor: '#CBD5E1',
+                    }}
+                    onPress={() => setIsProductModalOpen(false)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ color: '#475569', fontWeight: '700', fontSize: 14 }}>Batal</Text>
+                  </TouchableOpacity>
 
-                <Text style={styles.formLabel}>Deskripsi Produk</Text>
-                <TextInput
-                  style={[styles.formInput, { height: 70 }]}
-                  multiline
-                  placeholder="Penjelasan singkat produk..."
-                  value={formProdDesc}
-                  onChangeText={setFormProdDesc}
-                />
-
-                <TouchableOpacity style={styles.saveSubmitBtn} onPress={handleSaveProduct} activeOpacity={0.85}>
-                  <Text style={styles.saveSubmitText}>Simpan Produk</Text>
-                </TouchableOpacity>
+                  <TouchableOpacity
+                    style={{
+                      flex: 2,
+                      height: 48,
+                      backgroundColor: '#D91E28',
+                      borderRadius: 12,
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      shadowColor: '#D91E28',
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.3,
+                      shadowRadius: 8,
+                      elevation: 5,
+                    }}
+                    onPress={handleSaveProduct}
+                    activeOpacity={0.85}
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <ActivityIndicator color="#FFFFFF" size="small" />
+                    ) : (
+                      <>
+                        <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" style={{ marginRight: 8 }} />
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 15 }}>
+                          {editingProduct ? 'Simpan Perubahan' : 'Tambah Produk'}
+                        </Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </ScrollView>
             </View>
           </View>
@@ -1742,12 +1820,17 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   modalCard: {
-    width: 520,
-    maxWidth: '100%',
+    width: 780,
+    maxWidth: '94%',
     maxHeight: '90%',
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.2,
+    shadowRadius: 25,
+    elevation: 10,
   },
   modalHeader: {
     flexDirection: 'row',
