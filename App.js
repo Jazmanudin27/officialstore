@@ -1,6 +1,24 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, SafeAreaView, StatusBar } from 'react-native';
+import { StyleSheet, View, SafeAreaView, StatusBar, Platform } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
+import { useFonts } from 'expo-font';
+import IoniconsFont from '@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/Ionicons.ttf';
+
+// Inject font-face CSS for web platform
+if (Platform.OS === 'web' && typeof document !== 'undefined') {
+  const iconFontStyles = `@font-face {
+    font-family: 'Ionicons';
+    src: url(${IoniconsFont});
+  }`;
+  const style = document.createElement('style');
+  style.type = 'text/css';
+  if (style.styleSheet) {
+    style.styleSheet.cssText = iconFontStyles;
+  } else {
+    style.appendChild(document.createTextNode(iconFontStyles));
+  }
+  document.head.appendChild(style);
+}
 
 // Constants & Data
 import { COLORS } from './src/constants/theme';
@@ -23,6 +41,10 @@ import WishlistScreen from './src/screens/WishlistScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Ionicons: IoniconsFont,
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -40,6 +62,10 @@ export default function App() {
   } = useCart();
 
   const { favorites, toggleFavorite, isFavorite, favoriteCount } = useFavorites();
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   // Filter products for Home screen
   const filteredProducts = PRODUCTS.filter((product) => {
