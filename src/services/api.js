@@ -369,6 +369,96 @@ export const apiService = {
       return { status: 'ok', message: 'Status pesanan diperbarui (Demo Mode)' };
     }
   },
+
+  // 16. Admin & Public: Store Settings
+  async getStoreSettings() {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/settings`);
+      if (response.ok) {
+        const json = await response.json();
+        if (json.status === 'ok') return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Store settings fallback:', e.message);
+    }
+    return {
+      nama_toko: 'Official Store Tasikmalaya',
+      slogan: 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+      logo_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&auto=format&fit=crop&q=80',
+      alamat_utama: 'Jl. Perintis Kemerdekaan No. 158, Karsamenak, Kawalu, Tasikmalaya, Jawa Barat 46182',
+      nomor_whatsapp: '62895238888200',
+      jam_operasional: '07:00 - 22:00 WIB',
+      latitude: -7.3512,
+      longitude: 108.2145,
+    };
+  },
+
+  async updateStoreSettings(settingsData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settingsData),
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Pengaturan toko disimpan (Demo Mode)' };
+    }
+  },
+
+  // 17. Admin & Public: Branch Stores Management
+  async getAdminStores() {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/stores`);
+      if (response.ok) {
+        const json = await response.json();
+        if (json.status === 'ok') return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Admin stores fallback:', e.message);
+    }
+    return [
+      { id: 1, code: 'CAB-158', name: 'PERINTIS 158', address: 'Jl Perintis Kemerdekaan No 158 Rt 002 Rw 002 Kawalu', phone: '0895238888200', hours: '07:00 - 22:00', lat: -7.3512, lng: 108.2145, active: 1 },
+      { id: 2, code: 'CAB-AMN', name: 'PESANTREN AMANAH', address: 'Jl Sambong Jaya No 50 Mangkubumi', phone: '081234567890', hours: '07:00 - 22:00', lat: -7.3489, lng: 108.2091, active: 1 },
+      { id: 3, code: 'CAB-MGB', name: 'MANGKUBUMI 2', address: 'Jl. Mayor SL Tobing No. 42 Mangkubumi', phone: '085723456789', hours: '07:00 - 22:00', lat: -7.3412, lng: 108.2013, active: 1 },
+      { id: 4, code: 'CAB-CHD', name: 'CIHIDEUNG TASIK', address: 'Jl. Cihideung Balong No. 12 Cihideung', phone: '082123456789', hours: '06:30 - 22:00', lat: -7.3325, lng: 108.2210, active: 1 },
+    ];
+  },
+
+  async createAdminStore(storeData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/stores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(storeData),
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Cabang toko ditambahkan (Demo Mode)' };
+    }
+  },
+
+  async updateAdminStore(id, storeData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(storeData),
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Cabang toko diperbarui (Demo Mode)' };
+    }
+  },
+
+  async deleteAdminStore(id) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, { method: 'DELETE' });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Cabang toko dinonaktifkan (Demo Mode)' };
+    }
+  },
 };
 
 export default apiService;

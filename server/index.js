@@ -799,6 +799,154 @@ app.put('/api/admin/orders/:id', async (req, res) => {
   }
 });
 
+// 16. Admin: Get & Update Store Settings
+app.get('/api/admin/settings', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM store_settings ORDER BY setting_id ASC LIMIT 1');
+    const settings = rows.length > 0 ? rows[0] : {
+      nama_toko: 'Official Store Tasikmalaya',
+      slogan: 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+      logo_url: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&auto=format&fit=crop&q=80',
+      alamat_utama: 'Jl. Perintis Kemerdekaan No. 158, Karsamenak, Kawalu, Tasikmalaya, Jawa Barat 46182',
+      nomor_whatsapp: '62895238888200',
+      jam_operasional: '07:00 - 22:00 WIB',
+      latitude: -7.351200,
+      longitude: 108.214500,
+    };
+    res.json({ status: 'ok', data: settings });
+  } catch (error) {
+    console.error('Error fetching store settings:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+app.put('/api/admin/settings', async (req, res) => {
+  try {
+    const {
+      nama_toko,
+      slogan,
+      logo_url,
+      alamat_utama,
+      nomor_whatsapp,
+      jam_operasional,
+      latitude,
+      longitude,
+    } = req.body;
+
+    const [rows] = await pool.query('SELECT setting_id FROM store_settings LIMIT 1');
+    if (rows.length > 0) {
+      await pool.query(
+        `UPDATE store_settings SET 
+          nama_toko = COALESCE(?, nama_toko),
+          slogan = COALESCE(?, slogan),
+          logo_url = COALESCE(?, logo_url),
+          alamat_utama = COALESCE(?, alamat_utama),
+          nomor_whatsapp = COALESCE(?, nomor_whatsapp),
+          jam_operasional = COALESCE(?, jam_operasional),
+          latitude = COALESCE(?, latitude),
+          longitude = COALESCE(?, longitude)
+        WHERE setting_id = ?`,
+        [nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latitude, longitude, rows[0].setting_id]
+      );
+    } else {
+      await pool.query(
+        `INSERT INTO store_settings (nama_toko, slogan, logo_url, alamat_utama, nomor_whatsapp, jam_operasional, latitude, longitude)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          nama_toko || 'Official Store Tasikmalaya',
+          slogan || 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+          logo_url || null,
+          alamat_utama || null,
+          nomor_whatsapp || '62895238888200',
+          jam_operasional || '07:00 - 22:00 WIB',
+          latitude || -7.351200,
+          longitude || 108.214500,
+        ]
+      );
+    }
+
+    res.json({ status: 'ok', message: 'Pengaturan toko berhasil disimpan!' });
+  } catch (error) {
+    console.error('Error updating store settings:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 17. Admin: Get, Create, Update, Delete Branch Stores
+app.get('/api/admin/stores', async (req, res) => {
+  try {
+    const [stores] = await pool.query(
+      'SELECT store_id AS id, kode_toko AS code, nama_toko AS name, alamat_toko AS address, nomor_telepon AS phone, jam_operasional AS hours, latitude AS lat, longitude AS lng, status_aktif AS active FROM stores ORDER BY store_id ASC'
+    );
+    res.json({ status: 'ok', data: stores });
+  } catch (error) {
+    console.error('Error fetching admin stores:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+app.post('/api/admin/stores', async (req, res) => {
+  try {
+    const { code, name, address, phone = '', hours = '07:00 - 22:00', lat = -7.3512, lng = 108.2145 } = req.body;
+    if (!name || !address) {
+      return res.status(400).json({ status: 'error', message: 'Nama cabang dan alamat wajib diisi.' });
+    }
+
+    const finalCode = code || `CAB-${Date.now().toString().slice(-4)}`;
+
+    const [result] = await pool.query(
+      'INSERT INTO stores (kode_toko, nama_toko, alamat_toko, nomor_telepon, jam_operasional, latitude, longitude, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, TRUE)',
+      [finalCode, name, address, phone, hours, lat, lng]
+    );
+
+    res.json({
+      status: 'ok',
+      message: 'Cabang toko baru berhasil ditambahkan!',
+      data: { id: result.insertId, code: finalCode, name, address },
+    });
+  } catch (error) {
+    console.error('Error creating store branch:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+app.put('/api/admin/stores/:id', async (req, res) => {
+  try {
+    const storeId = req.params.id;
+    const { code, name, address, phone, hours, lat, lng, active } = req.body;
+
+    await pool.query(
+      `UPDATE stores SET 
+        kode_toko = COALESCE(?, kode_toko),
+        nama_toko = COALESCE(?, nama_toko),
+        alamat_toko = COALESCE(?, alamat_toko),
+        nomor_telepon = COALESCE(?, nomor_telepon),
+        jam_operasional = COALESCE(?, jam_operasional),
+        latitude = COALESCE(?, latitude),
+        longitude = COALESCE(?, longitude),
+        status_aktif = COALESCE(?, status_aktif)
+      WHERE store_id = ?`,
+      [code || null, name || null, address || null, phone || null, hours || null, lat || null, lng || null, active !== undefined ? active : null, storeId]
+    );
+
+    res.json({ status: 'ok', message: 'Data cabang berhasil diperbarui!' });
+  } catch (error) {
+    console.error('Error updating store branch:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+app.delete('/api/admin/stores/:id', async (req, res) => {
+  try {
+    const storeId = req.params.id;
+    await pool.query('UPDATE stores SET status_aktif = FALSE WHERE store_id = ?', [storeId]);
+    res.json({ status: 'ok', message: 'Cabang toko telah dinonaktifkan.' });
+  } catch (error) {
+    console.error('Error deleting store branch:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // =====================================================
 // SERVE PRODUCTION BUILD (dist/)
 // =====================================================

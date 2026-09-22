@@ -62,21 +62,58 @@ export default function AdminDashboardScreen({
   const [formVoucherMinSpend, setFormVoucherMinSpend] = useState('0');
   const [formVoucherQuota, setFormVoucherQuota] = useState('100');
 
+  // Store Settings state
+  const [storeSettings, setStoreSettings] = useState(null);
+  const [formSettingName, setFormSettingName] = useState('');
+  const [formSettingSlogan, setFormSettingSlogan] = useState('');
+  const [formSettingLogo, setFormSettingLogo] = useState('');
+  const [formSettingAddress, setFormSettingAddress] = useState('');
+  const [formSettingWhatsapp, setFormSettingWhatsapp] = useState('');
+  const [formSettingHours, setFormSettingHours] = useState('');
+  const [formSettingLat, setFormSettingLat] = useState('');
+  const [formSettingLng, setFormSettingLng] = useState('');
+
+  // Branch Stores state
+  const [storesList, setStoresList] = useState([]);
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [editingBranch, setEditingBranch] = useState(null);
+  const [formBranchCode, setFormBranchCode] = useState('');
+  const [formBranchName, setFormBranchName] = useState('');
+  const [formBranchAddress, setFormBranchAddress] = useState('');
+  const [formBranchPhone, setFormBranchPhone] = useState('');
+  const [formBranchHours, setFormBranchHours] = useState('');
+  const [formBranchLat, setFormBranchLat] = useState('');
+  const [formBranchLng, setFormBranchLng] = useState('');
+
   // Load Data
   const loadData = async () => {
     setLoading(true);
     try {
-      const [statsData, prodsData, vKimData, ordsData] = await Promise.all([
+      const [statsData, prodsData, vKimData, ordsData, settingsData, storesData] = await Promise.all([
         apiService.getAdminStats(),
         apiService.getProducts('Semua', ''),
         apiService.getAdminVouchers(),
         apiService.getAdminOrders(),
+        apiService.getStoreSettings(),
+        apiService.getAdminStores(),
       ]);
 
       if (statsData) setStats(statsData);
       if (prodsData) setProducts(prodsData);
       if (vKimData) setVouchers(vKimData);
       if (ordsData) setOrders(ordsData);
+      if (settingsData) {
+        setStoreSettings(settingsData);
+        setFormSettingName(settingsData.nama_toko || '');
+        setFormSettingSlogan(settingsData.slogan || '');
+        setFormSettingLogo(settingsData.logo_url || '');
+        setFormSettingAddress(settingsData.alamat_utama || '');
+        setFormSettingWhatsapp(settingsData.nomor_whatsapp || '');
+        setFormSettingHours(settingsData.jam_operasional || '');
+        setFormSettingLat(String(settingsData.latitude || ''));
+        setFormSettingLng(String(settingsData.longitude || ''));
+      }
+      if (storesData) setStoresList(storesData);
     } catch (err) {
       console.warn('Error loading admin data:', err);
     } finally {
@@ -89,6 +126,109 @@ export default function AdminDashboardScreen({
       loadData();
     }
   }, [visible]);
+
+  // Save Store Settings Handler
+  const handleSaveStoreSettings = async () => {
+    if (!formSettingName || !formSettingAddress) {
+      Alert.alert('Perhatian', 'Nama Toko dan Alamat Utama wajib diisi.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await apiService.updateStoreSettings({
+        nama_toko: formSettingName,
+        slogan: formSettingSlogan,
+        logo_url: formSettingLogo,
+        alamat_utama: formSettingAddress,
+        nomor_whatsapp: formSettingWhatsapp,
+        jam_operasional: formSettingHours,
+        latitude: parseFloat(formSettingLat) || -7.3512,
+        longitude: parseFloat(formSettingLng) || 108.2145,
+      });
+      Alert.alert('Sukses', 'Pengaturan toko berhasil diperbarui!');
+      loadData();
+    } catch (e) {
+      Alert.alert('Gagal', e.message || 'Gagal menyimpan pengaturan toko');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Branch Store Handlers
+  const openBranchForm = (branch = null) => {
+    if (branch) {
+      setEditingBranch(branch);
+      setFormBranchCode(branch.code || '');
+      setFormBranchName(branch.name || '');
+      setFormBranchAddress(branch.address || '');
+      setFormBranchPhone(branch.phone || '');
+      setFormBranchHours(branch.hours || '07:00 - 22:00');
+      setFormBranchLat(String(branch.lat || -7.3512));
+      setFormBranchLng(String(branch.lng || 108.2145));
+    } else {
+      setEditingBranch(null);
+      setFormBranchCode(`CAB-${Date.now().toString().slice(-4)}`);
+      setFormBranchName('');
+      setFormBranchAddress('');
+      setFormBranchPhone('');
+      setFormBranchHours('07:00 - 22:00');
+      setFormBranchLat('-7.3512');
+      setFormBranchLng('108.2145');
+    }
+    setIsBranchModalOpen(true);
+  };
+
+  const handleSaveBranch = async () => {
+    if (!formBranchName || !formBranchAddress) {
+      Alert.alert('Perhatian', 'Nama Cabang dan Alamat wajib diisi.');
+      return;
+    }
+    setLoading(true);
+    try {
+      const payload = {
+        code: formBranchCode,
+        name: formBranchName,
+        address: formBranchAddress,
+        phone: formBranchPhone,
+        hours: formBranchHours,
+        lat: parseFloat(formBranchLat) || -7.3512,
+        lng: parseFloat(formBranchLng) || 108.2145,
+      };
+      if (editingBranch) {
+        await apiService.updateAdminStore(editingBranch.id, payload);
+      } else {
+        await apiService.createAdminStore(payload);
+      }
+      setIsBranchModalOpen(false);
+      loadData();
+      Alert.alert('Sukses', editingBranch ? 'Data cabang diperbarui!' : 'Cabang toko baru ditambahkan!');
+    } catch (e) {
+      Alert.alert('Gagal', e.message || 'Gagal menyimpan data cabang');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteBranch = (branch) => {
+    Alert.alert('Hapus Cabang', `Nonaktifkan cabang "${branch.name}"?`, [
+      { text: 'Batal', style: 'cancel' },
+      {
+        text: 'Hapus',
+        style: 'destructive',
+        onPress: async () => {
+          setLoading(true);
+          try {
+            await apiService.deleteAdminStore(branch.id);
+            loadData();
+          } catch (e) {
+            console.warn(e);
+          } finally {
+            setLoading(false);
+          }
+        },
+      },
+    ]);
+  };
 
   // Open Form Product Modal (Create / Edit)
   const openProductForm = (prod = null) => {
@@ -330,6 +470,28 @@ export default function AdminDashboardScreen({
               <Ionicons name="receipt-outline" size={18} color={activeTab === 'orders' ? '#D91E28' : '#64748B'} />
               <Text style={[styles.tabText, activeTab === 'orders' && styles.tabTextActive]}>
                 Pesanan Masuk ({orders.length})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'stores' && styles.tabBtnActive]}
+              onPress={() => setActiveTab('stores')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="business-outline" size={18} color={activeTab === 'stores' ? '#D91E28' : '#64748B'} />
+              <Text style={[styles.tabText, activeTab === 'stores' && styles.tabTextActive]}>
+                Cabang Toko ({storesList.length})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tabBtn, activeTab === 'settings' && styles.tabBtnActive]}
+              onPress={() => setActiveTab('settings')}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="settings-outline" size={18} color={activeTab === 'settings' ? '#D91E28' : '#64748B'} />
+              <Text style={[styles.tabText, activeTab === 'settings' && styles.tabTextActive]}>
+                Pengaturan Toko
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -577,7 +739,270 @@ export default function AdminDashboardScreen({
               ))}
             </View>
           )}
+
+          {/* TAB 5: KELOLA CABANG TOKO (STORES) */}
+          {activeTab === 'stores' && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeaderRow}>
+                <View>
+                  <Text style={styles.sectionTitle}>🏪 Kelola Cabang Toko (Pickup Stores)</Text>
+                  <Text style={styles.sectionSub}>Daftar outlet cabang resmi untuk metode pengambilan barang (Pickup)</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.addBtn}
+                  onPress={() => openBranchForm(null)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="add" size={18} color="#FFFFFF" />
+                  <Text style={styles.addBtnText}>Tambah Cabang</Text>
+                </TouchableOpacity>
+              </View>
+
+              {storesList.map((st) => (
+                <View key={st.id} style={styles.productCardRow}>
+                  <View style={[styles.productThumbContainer, { backgroundColor: '#EFF6FF' }]}>
+                    <Ionicons name="business" size={28} color="#2563EB" />
+                  </View>
+
+                  <View style={styles.productInfoWrap}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[styles.skuBadge, { backgroundColor: '#DBEAFE', color: '#1E40AF' }]}>
+                        {st.code}
+                      </Text>
+                      <Text style={styles.productNameText}>{st.name}</Text>
+                    </View>
+                    <Text style={{ fontSize: 13, color: '#475569', marginTop: 4 }}>
+                      📍 {st.address}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#64748B', marginTop: 2 }}>
+                      📞 {st.phone || '-'} | 🕒 {st.hours} | 🌐 {st.lat}, {st.lng}
+                    </Text>
+                  </View>
+
+                  <View style={styles.actionCol}>
+                    <TouchableOpacity
+                      style={styles.editIconBtn}
+                      onPress={() => openBranchForm(st)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="pencil" size={16} color="#0284C7" />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.deleteIconBtn}
+                      onPress={() => handleDeleteBranch(st)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* TAB 6: PENGATURAN TOKO UTAMA (SETTINGS) */}
+          {activeTab === 'settings' && (
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeaderRow}>
+                <View>
+                  <Text style={styles.sectionTitle}>⚙️ Pengaturan Identitas Toko Utama</Text>
+                  <Text style={styles.sectionSub}>Kelola nama official store, logo, slogan, lokasi maps, dan nomor CS</Text>
+                </View>
+              </View>
+
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, gap: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                <View>
+                  <Text style={styles.formLabel}>Nama Store Official *</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Contoh: Official Store Tasikmalaya"
+                    value={formSettingName}
+                    onChangeText={setFormSettingName}
+                  />
+                </View>
+
+                <View>
+                  <Text style={styles.formLabel}>Slogan / Tagline Toko</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="Contoh: Pusat Bumbu, Saus & Cabai Asli Tasikmalaya"
+                    value={formSettingSlogan}
+                    onChangeText={setFormSettingSlogan}
+                  />
+                </View>
+
+                <View>
+                  <Text style={styles.formLabel}>URL Logo Store (HTTPS Image Link)</Text>
+                  <TextInput
+                    style={styles.formInput}
+                    placeholder="https://..."
+                    value={formSettingLogo}
+                    onChangeText={setFormSettingLogo}
+                  />
+                </View>
+
+                <View>
+                  <Text style={styles.formLabel}>Alamat Utama Pusat / Toko *</Text>
+                  <TextInput
+                    style={[styles.formInput, { height: 70 }]}
+                    placeholder="Alamat lengkap toko pusat..."
+                    multiline
+                    value={formSettingAddress}
+                    onChangeText={setFormSettingAddress}
+                  />
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Nomor WhatsApp CS</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="62895238888200"
+                      value={formSettingWhatsapp}
+                      onChangeText={setFormSettingWhatsapp}
+                    />
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Jam Operasional Toko</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="07:00 - 22:00 WIB"
+                      value={formSettingHours}
+                      onChangeText={setFormSettingHours}
+                    />
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Titik Latitude Maps</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="-7.351200"
+                      value={formSettingLat}
+                      onChangeText={setFormSettingLat}
+                    />
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Titik Longitude Maps</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="108.214500"
+                      value={formSettingLng}
+                      onChangeText={setFormSettingLng}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={[styles.saveModalBtn, { marginTop: 10, backgroundColor: '#D91E28' }]}
+                  onPress={handleSaveStoreSettings}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="save-outline" size={20} color="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.saveModalBtnText}>Simpan Pengaturan Toko</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </ScrollView>
+
+        {/* MODAL FORM TAMBAH / EDIT CABANG TOKO */}
+        <Modal visible={isBranchModalOpen} animationType="slide" transparent={true}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalCard}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {editingBranch ? 'Edit Data Cabang Toko' : '+ Tambah Cabang Toko Baru'}
+                </Text>
+                <TouchableOpacity onPress={() => setIsBranchModalOpen(false)}>
+                  <Ionicons name="close" size={24} color="#475569" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Kode Cabang Toko *</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="CAB-158"
+                      value={formBranchCode}
+                      onChangeText={setFormBranchCode}
+                    />
+                  </View>
+                  <View style={{ flex: 2 }}>
+                    <Text style={styles.formLabel}>Nama Cabang *</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="Contoh: PERINTIS 158"
+                      value={formBranchName}
+                      onChangeText={setFormBranchName}
+                    />
+                  </View>
+                </View>
+
+                <Text style={styles.formLabel}>Alamat Lengkap Cabang Toko *</Text>
+                <TextInput
+                  style={[styles.formInput, { height: 65 }]}
+                  placeholder="Jl. Perintis Kemerdekaan No 158..."
+                  multiline
+                  value={formBranchAddress}
+                  onChangeText={setFormBranchAddress}
+                />
+
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>No. Telepon / WhatsApp</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="0895238888200"
+                      value={formBranchPhone}
+                      onChangeText={setFormBranchPhone}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Jam Operasional</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="07:00 - 22:00"
+                      value={formBranchHours}
+                      onChangeText={setFormBranchHours}
+                    />
+                  </View>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Latitude Maps</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="-7.3512"
+                      value={formBranchLat}
+                      onChangeText={setFormBranchLat}
+                    />
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.formLabel}>Longitude Maps</Text>
+                    <TextInput
+                      style={styles.formInput}
+                      placeholder="108.2145"
+                      value={formBranchLng}
+                      onChangeText={setFormBranchLng}
+                    />
+                  </View>
+                </View>
+
+                <TouchableOpacity style={styles.saveModalBtn} onPress={handleSaveBranch} activeOpacity={0.85}>
+                  <Text style={styles.saveModalBtnText}>Simpan Cabang Toko</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
 
         {/* MODAL FORM TAMBAH / EDIT PRODUK */}
         <Modal visible={isProductModalOpen} animationType="slide" transparent={true}>

@@ -4,6 +4,20 @@
 CREATE DATABASE IF NOT EXISTS officialstore CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE officialstore;
 
+-- 0. Tabel Pengaturan Toko Utama
+CREATE TABLE IF NOT EXISTS store_settings (
+    setting_id INT AUTO_INCREMENT PRIMARY KEY,
+    nama_toko VARCHAR(150) DEFAULT 'Official Store Tasikmalaya',
+    slogan VARCHAR(255) DEFAULT 'Pusat Bumbu, Saus & Cabai Asli Tasikmalaya',
+    logo_url TEXT,
+    alamat_utama TEXT,
+    nomor_whatsapp VARCHAR(20) DEFAULT '62895238888200',
+    jam_operasional VARCHAR(100) DEFAULT '07:00 - 22:00 WIB',
+    latitude DECIMAL(10, 8) DEFAULT -7.351200,
+    longitude DECIMAL(11, 8) DEFAULT 108.214500,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- 1. Tabel Users
 CREATE TABLE IF NOT EXISTS users (
     user_id INT AUTO_INCREMENT PRIMARY KEY,
