@@ -5,6 +5,7 @@ import PromoBanner from '../components/promo/PromoBanner';
 import CategoryGrid from '../components/category/CategoryGrid';
 import ProductCard from '../components/product/ProductCard';
 import ScrollReveal from '../components/common/ScrollReveal';
+import { COLORS } from '../constants/theme';
 
 export default function HomeScreen({
   products,
