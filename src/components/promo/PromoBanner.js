@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { PROMO_BANNERS } from '../../data/mockProducts';
 import { COLORS } from '../../constants/theme';
 
-const { width } = Dimensions.get('window');
-const cardWidth = width - 20; // 10px padding on each side
-
 export default function PromoBanner() {
+  const { width } = useWindowDimensions();
+  const cardWidth = Math.max(300, (width || 360) - 20);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollViewRef = useRef(null);
 

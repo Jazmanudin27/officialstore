@@ -36,11 +36,11 @@ import AddressModal from './src/screens/AddressModal';
 import AuthModal from './src/screens/AuthModal';
 import ProductDetailModal from './src/screens/ProductDetailModal';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
-import AdminAuthScreen from './src/screens/AdminAuthScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
+import ErrorBoundary from './src/components/ErrorBoundary';
 import { storage } from './src/utils/storage';
 
-export default function App() {
+function AppContent() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [showSplash, setShowSplash] = useState(true);
@@ -554,9 +554,19 @@ export default function App() {
   );
 }
 
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
+  );
+}
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    height: Platform.OS === 'web' ? '100vh' : '100%',
+    width: '100%',
     backgroundColor: COLORS.primaryRed,
     paddingTop: StatusBar.currentHeight || 0,
   },
