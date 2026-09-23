@@ -202,8 +202,10 @@ export const apiService = {
       }
       throw new Error(json.message || 'Anda belum terdaftar, silahkan daftar terlebih dahulu.');
     } catch (err) {
-      console.warn('ℹ️ Auth API response / status:', err.message);
-      if (err.message && err.message.includes('terdaftar')) throw err;
+      console.warn('ℹ️ Auth API verify error:', err.message);
+      if (err.message && (err.message.includes('terdaftar') || err.message.includes('OTP') || err.message.includes('salah') || err.message.includes('kadaluarsa') || err.message.includes('tidak valid'))) {
+        throw err;
+      }
 
       const cleanPhone = phone.replace(/[^0-9]/g, '');
       if (otp === '123456') {
@@ -229,7 +231,7 @@ export const apiService = {
     }
   },
 
-  // 6. Registrasi Akun Baru
+  // 6. Registrasi Akun Baru (Disimpan ke Database MySQL)
   async registerUser({ namaLengkap, phone, alamat, otp }) {
     try {
       const response = await fetch(`${BASE_URL}/api/auth/register`, {
@@ -238,10 +240,16 @@ export const apiService = {
         body: JSON.stringify({ namaLengkap, phone, alamat, otp }),
       });
       const json = await response.json();
-      if (json.status === 'ok') return json;
+      if (json.status === 'ok') {
+        return json;
+      }
       throw new Error(json.message || 'Registrasi gagal');
     } catch (err) {
-      console.warn('ℹ️ Auth API offline, registrasi lokal:', err.message);
+      console.warn('ℹ️ Auth API register error:', err.message);
+      // Jika server mengembalikan pesan error (OTP salah, nomor terdaftar, dll), langsung lempar error agar UI menampilkan Alert!
+      if (err.message && (err.message.includes('OTP') || err.message.includes('wajib') || err.message.includes('terdaftar') || err.message.includes('gagal') || err.message.includes('salah') || err.message.includes('tidak valid'))) {
+        throw err;
+      }
       return {
         status: 'ok',
         message: 'Registrasi Berhasil (Offline Mode)',

@@ -196,12 +196,15 @@ app.post('/api/auth/register', async (req, res) => {
 
     const cleanPhone = sanitizePhone(phone);
 
-    // Cek OTP jika dikirimkan
-    if (otp && otp !== '123456') {
-      const stored = otpStore.get(cleanPhone);
-      if (!stored || stored.otp !== otp) {
-        return res.status(400).json({ status: 'error', message: 'Kode OTP tidak valid.' });
-      }
+    // Verifikasi Wajib OTP
+    if (!otp) {
+      return res.status(400).json({ status: 'error', message: 'Kode OTP wajib diisi.' });
+    }
+
+    const stored = otpStore.get(cleanPhone);
+    const isValidOtp = otp === '123456' || (stored && stored.otp === otp && Date.now() <= stored.expiresAt);
+    if (!isValidOtp) {
+      return res.status(400).json({ status: 'error', message: 'Kode OTP salah atau tidak cocok.' });
     }
 
     await connection.beginTransaction();
