@@ -232,12 +232,13 @@ export default function App() {
   }, []);
 
   // Filter products for Home screen
-  const filteredProducts = productList.filter((product) => {
+  const filteredProducts = (Array.isArray(productList) ? productList : []).filter((product) => {
+    if (!product) return false;
     const matchesCategory =
       selectedCategory === 'all' || selectedCategory === 'Semua' || product.category === selectedCategory;
     const matchesSearch =
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
+      (product.name || '').toLowerCase().includes((searchQuery || '').toLowerCase()) ||
+      (product.sku && String(product.sku).toLowerCase().includes((searchQuery || '').toLowerCase()));
     return matchesCategory && matchesSearch;
   });
 

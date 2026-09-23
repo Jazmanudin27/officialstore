@@ -405,19 +405,19 @@ export default function AdminDashboardScreen({
 
   if (!visible) return null;
 
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-    (p.sku && p.sku.toLowerCase().includes(productSearch.toLowerCase()))
+  const filteredProducts = (Array.isArray(products) ? products : []).filter((p) =>
+    (p?.name || '').toLowerCase().includes((productSearch || '').toLowerCase()) ||
+    (p?.sku && String(p.sku).toLowerCase().includes((productSearch || '').toLowerCase()))
   );
 
-  const filteredOrders = orders.filter((o) =>
-    orderStatusFilter === 'all' ? true : o.status === orderStatusFilter
+  const filteredOrders = (Array.isArray(orders) ? orders : []).filter((o) =>
+    orderStatusFilter === 'all' ? true : o?.status === orderStatusFilter
   );
 
-  const filteredBranches = (storesList || []).filter((st) =>
-    (st.name || '').toLowerCase().includes(branchSearch.toLowerCase()) ||
-    (st.code || '').toLowerCase().includes(branchSearch.toLowerCase()) ||
-    (st.address || '').toLowerCase().includes(branchSearch.toLowerCase())
+  const filteredBranches = (Array.isArray(storesList) ? storesList : []).filter((st) =>
+    (st?.name || '').toLowerCase().includes((branchSearch || '').toLowerCase()) ||
+    (st?.code || '').toLowerCase().includes((branchSearch || '').toLowerCase()) ||
+    (st?.address || '').toLowerCase().includes((branchSearch || '').toLowerCase())
   );
 
   return (
