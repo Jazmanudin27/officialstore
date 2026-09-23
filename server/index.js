@@ -310,7 +310,10 @@ app.get('/api/products', async (req, res) => {
         v.harga_coret AS originalPrice,
         v.berat_gram AS weight,
         v.stok AS stock,
-        p.gambar_utama AS image,
+        COALESCE(
+          (SELECT pi.url_gambar FROM product_images pi WHERE pi.product_id = p.product_id ORDER BY pi.image_id DESC LIMIT 1),
+          p.gambar_utama
+        ) AS image,
         p.deskripsi AS description,
         p.is_populer AS isPopuler,
         4.9 AS rating,
@@ -685,37 +688,56 @@ app.put('/api/admin/products/:id', async (req, res) => {
   const connection = await pool.getConnection();
   try {
     const rawId = req.params.id;
-    const { name, category, price, originalPrice, stock, image, description, sku, satuan = 'PCS' } = req.body;
+    const { productId: reqProdId, name, category, price, originalPrice, stock, image, description, sku, satuan = 'PCS' } = req.body;
 
     await connection.beginTransaction();
 
     let productId = null;
     let targetVariantId = null;
 
-    // 1. Lookup by numeric ID (variant_id or product_id)
-    if (!isNaN(Number(rawId))) {
-      const numId = Number(rawId);
+    // 1. Direct match by reqProdId or numeric rawId
+    const possibleProdId = parseInt(reqProdId || rawId, 10);
+    const possibleVarId = parseInt(rawId, 10);
+
+    if (!isNaN(possibleVarId) && possibleVarId > 0) {
       const [varRows] = await connection.query(
         'SELECT variant_id, product_id FROM product_variants WHERE variant_id = ? LIMIT 1',
-        [numId]
+        [possibleVarId]
       );
       if (varRows.length > 0) {
         targetVariantId = varRows[0].variant_id;
         productId = varRows[0].product_id;
-      } else {
-        const [prodRows] = await connection.query(
-          'SELECT product_id FROM products WHERE product_id = ? LIMIT 1',
-          [numId]
+      }
+    }
+
+    if (!productId && !isNaN(possibleProdId) && possibleProdId > 0) {
+      const [prodRows] = await connection.query(
+        'SELECT product_id FROM products WHERE product_id = ? LIMIT 1',
+        [possibleProdId]
+      );
+      if (prodRows.length > 0) {
+        productId = prodRows[0].product_id;
+        const [vRows] = await connection.query('SELECT variant_id FROM product_variants WHERE product_id = ? LIMIT 1', [productId]);
+        if (vRows.length > 0) targetVariantId = vRows[0].variant_id;
+      }
+    }
+
+    // 2. Extract numeric digits if format is string like 'p1' or 'p_1'
+    if (!productId && typeof rawId === 'string') {
+      const cleanNum = parseInt(rawId.replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(cleanNum) && cleanNum > 0 && cleanNum < 100000) {
+        const [varRows] = await connection.query(
+          'SELECT variant_id, product_id FROM product_variants WHERE variant_id = ? OR product_id = ? LIMIT 1',
+          [cleanNum, cleanNum]
         );
-        if (prodRows.length > 0) {
-          productId = prodRows[0].product_id;
-          const [vRows] = await connection.query('SELECT variant_id FROM product_variants WHERE product_id = ? LIMIT 1', [productId]);
-          if (vRows.length > 0) targetVariantId = vRows[0].variant_id;
+        if (varRows.length > 0) {
+          targetVariantId = varRows[0].variant_id;
+          productId = varRows[0].product_id;
         }
       }
     }
 
-    // 2. Lookup by SKU if not found yet
+    // 3. Lookup by SKU if not found yet
     if (!productId && sku) {
       const [skuRows] = await connection.query(
         'SELECT variant_id, product_id FROM product_variants WHERE sku = ? LIMIT 1',
@@ -727,7 +749,7 @@ app.put('/api/admin/products/:id', async (req, res) => {
       }
     }
 
-    // 3. Lookup by Product Name if not found yet
+    // 4. Lookup by Product Name if not found yet
     if (!productId && name) {
       const [nameRows] = await connection.query(
         'SELECT product_id FROM products WHERE LOWER(nama_produk) = LOWER(?) LIMIT 1',

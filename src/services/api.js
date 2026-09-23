@@ -82,7 +82,7 @@ export const apiService = {
   // 1. Ambil Semua Produk (dengan auto-fallback jika server database belum aktif)
   async getProducts(category = 'Semua', search = '') {
     try {
-      let url = `${BASE_URL}/api/products?`;
+      let url = `${BASE_URL}/api/products?t=${Date.now()}&`;
       if (category && category !== 'Semua') url += `category=${encodeURIComponent(category)}&`;
       if (search) url += `search=${encodeURIComponent(search)}&`;
 
@@ -331,7 +331,7 @@ export const apiService = {
   // 9. Admin: Update Product
   async updateProduct(id, productData) {
     _cachedProductsList = _cachedProductsList.map((p) =>
-      String(p.id) === String(id) || (p.sku && productData.sku && p.sku === productData.sku)
+      String(p.id) === String(id) || String(p.productId) === String(id) || (p.sku && productData.sku && p.sku === productData.sku)
         ? { ...p, ...productData }
         : p
     );
@@ -343,10 +343,13 @@ export const apiService = {
         body: JSON.stringify(productData),
       });
       const json = await response.json();
+      if (!response.ok || json.status !== 'ok') {
+        throw new Error(json.message || 'Gagal menyimpan ke database server MySQL');
+      }
       return json;
     } catch (e) {
-      console.warn('ℹ️ Product update offline fallback:', e.message);
-      return { status: 'ok', message: 'Produk diperbarui' };
+      console.warn('ℹ️ Product update error:', e.message);
+      throw e;
     }
   },
 
