@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, SafeAreaView, StatusBar, Platform, useWindowDimensions } from 'react-native';
+import { StyleSheet, View, SafeAreaView, StatusBar, Platform, useWindowDimensions, Modal, TouchableOpacity } from 'react-native';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 
 // Base64 Embedded Font Data for Web (Bulletproof vector icon rendering)
 import { IONICONS_BASE64 } from './src/constants/ioniconsBase64';

@@ -67,6 +67,17 @@ const syncStorageCache = () => {
   }
 };
 
+// Helper untuk fetch JSON yang aman dari respon non-JSON / fallback HTML SPA
+const safeFetchJson = async (url, options = {}) => {
+  const response = await fetch(url, options);
+  if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+  const contentType = response.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error('Respon server bukan JSON (HTML/Static fallback)');
+  }
+  return await response.json();
+};
+
 export const apiService = {
   // 1. Ambil Semua Produk (dengan auto-fallback jika server database belum aktif)
   async getProducts(category = 'Semua', search = '') {
@@ -75,9 +86,7 @@ export const apiService = {
       if (category && category !== 'Semua') url += `category=${encodeURIComponent(category)}&`;
       if (search) url += `search=${encodeURIComponent(search)}&`;
 
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const json = await response.json();
+      const json = await safeFetchJson(url);
       if (json.status === 'ok' && Array.isArray(json.data) && json.data.length > 0) {
         _cachedProductsList = json.data;
         return _cachedProductsList;
@@ -103,9 +112,7 @@ export const apiService = {
   // 2. Ambil Semua Kategori
   async getCategories() {
     try {
-      const response = await fetch(`${BASE_URL}/api/categories`);
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const json = await response.json();
+      const json = await safeFetchJson(`${BASE_URL}/api/categories`);
       if (json.status === 'ok' && Array.isArray(json.data) && json.data.length > 0) {
         return [{ id: 'all', name: 'Semua' }, ...json.data];
       }
@@ -416,14 +423,11 @@ export const apiService = {
   // 16. Admin & Public: Store Settings
   async getStoreSettings() {
     try {
-      const response = await fetch(`${BASE_URL}/api/admin/settings`);
-      if (response.ok) {
-        const json = await response.json();
-        if (json.status === 'ok' && json.data) {
-          _cachedStoreSettings = { ..._cachedStoreSettings, ...json.data };
-          syncStorageCache();
-          return _cachedStoreSettings;
-        }
+      const json = await safeFetchJson(`${BASE_URL}/api/admin/settings`);
+      if (json.status === 'ok' && json.data) {
+        _cachedStoreSettings = { ..._cachedStoreSettings, ...json.data };
+        syncStorageCache();
+        return _cachedStoreSettings;
       }
     } catch (e) {
       console.warn('ℹ️ Store settings fallback:', e.message);
