@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 import { GRID_CATEGORIES } from '../../data/mockProducts';
 import { COLORS } from '../../constants/theme';
+import ScrollReveal from '../common/ScrollReveal';
 
 export default function CategoryGrid({ selectedCategory = 'all', onSelectCategory }) {
   return (
@@ -12,37 +13,38 @@ export default function CategoryGrid({ selectedCategory = 'all', onSelectCategor
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {GRID_CATEGORIES.map((cat) => {
+        {GRID_CATEGORIES.map((cat, idx) => {
           const isSelected =
             (cat.id === 'all' && (selectedCategory === 'all' || selectedCategory === 'Semua')) ||
             selectedCategory === cat.name;
 
           return (
-            <TouchableOpacity
-              key={cat.id}
-              style={[styles.catPill, isSelected && styles.catPillActive]}
-              onPress={() => onSelectCategory(cat.id === 'all' ? 'all' : cat.name)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={cat.icon}
-                size={15}
-                color={isSelected ? COLORS.white : '#475569'}
-              />
-              <Text style={[styles.catPillText, isSelected && styles.catPillTextActive]}>
-                {cat.name}
-              </Text>
-              {cat.badge && (
-                <View
-                  style={[
-                    styles.badge,
-                    isSelected ? styles.badgeActive : { backgroundColor: cat.badgeBg || COLORS.primaryRed },
-                  ]}
-                >
-                  <Text style={styles.badgeText}>{cat.badge}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
+            <ScrollReveal key={cat.id} index={idx} delay={40}>
+              <TouchableOpacity
+                style={[styles.catPill, isSelected && styles.catPillActive]}
+                onPress={() => onSelectCategory(cat.id === 'all' ? 'all' : cat.name)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={cat.icon}
+                  size={15}
+                  color={isSelected ? COLORS.white : '#475569'}
+                />
+                <Text style={[styles.catPillText, isSelected && styles.catPillTextActive]}>
+                  {cat.name}
+                </Text>
+                {cat.badge && (
+                  <View
+                    style={[
+                      styles.badge,
+                      isSelected ? styles.badgeActive : { backgroundColor: cat.badgeBg || COLORS.primaryRed },
+                    ]}
+                  >
+                    <Text style={styles.badgeText}>{cat.badge}</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </ScrollReveal>
           );
         })}
       </ScrollView>

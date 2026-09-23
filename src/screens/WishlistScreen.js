@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ProductCard from '../components/product/ProductCard';
+import ScrollReveal from '../components/common/ScrollReveal';
 import { PRODUCTS } from '../data/mockProducts';
 import { COLORS } from '../constants/theme';
 
@@ -25,15 +26,17 @@ export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onT
           data={favProducts}
           keyExtractor={(item) => item.id}
           numColumns={numColumns}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <View style={{ width: `${100 / numColumns}%`, maxWidth: `${100 / numColumns}%` }}>
-              <ProductCard
-                product={item}
-                onAddToCart={onAddToCart}
-                isFavorite={isFavorite(item.id)}
-                onToggleFavorite={onToggleFavorite}
-                onSelectProduct={onSelectProduct}
-              />
+              <ScrollReveal index={index}>
+                <ProductCard
+                  product={item}
+                  onAddToCart={onAddToCart}
+                  isFavorite={isFavorite(item.id)}
+                  onToggleFavorite={onToggleFavorite}
+                  onSelectProduct={onSelectProduct}
+                />
+              </ScrollReveal>
             </View>
           )}
           contentContainerStyle={styles.productListContent}

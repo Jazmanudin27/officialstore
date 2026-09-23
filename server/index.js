@@ -1497,6 +1497,54 @@ app.post('/api/orders', async (req, res) => {
 });
 
 // =====================================================
+// =====================================================
+// DIGIFLAZZ PPOB API ENDPOINTS (12 PRODUK DIGITAL)
+// =====================================================
+app.get('/api/ppob/services', (req, res) => {
+  res.json({
+    status: 'success',
+    digiflazzUsername: process.env.DIGIFLAZZ_USERNAME || 'DemoDigiFlazzUser',
+    services: [
+      { id: 'pulsa', title: 'Pulsa Reguler', icon: 'phone-portrait', type: 'prabayar' },
+      { id: 'paket_data', title: 'Paket Data', icon: 'wifi', type: 'prabayar' },
+      { id: 'token_pln', title: 'Token PLN', icon: 'flash', type: 'prabayar' },
+      { id: 'tagihan_pln', title: 'Tagihan PLN', icon: 'bulb', type: 'pascabayar' },
+      { id: 'tv_kabel', title: 'TV Berlangganan', icon: 'tv', type: 'pascabayar' },
+      { id: 'hp_pascabayar', title: 'HP Pascabayar', icon: 'call', type: 'pascabayar' },
+      { id: 'pdam', title: 'PDAM Air', icon: 'water', type: 'pascabayar' },
+      { id: 'bpjs', title: 'BPJS Kesehatan', icon: 'medkit', type: 'pascabayar' },
+      { id: 'internet', title: 'Internet & TV', icon: 'globe', type: 'pascabayar' },
+      { id: 'voucher_game', title: 'Voucher Game', icon: 'game-controller', type: 'prabayar' },
+      { id: 'voucher_digital', title: 'Voucher Digital', icon: 'card', type: 'prabayar' },
+      { id: 'topup_ewallet', title: 'Top Up E-Wallet', icon: 'wallet', type: 'prabayar' },
+    ]
+  });
+});
+
+app.post('/api/ppob/check-bill', async (req, res) => {
+  try {
+    const { serviceId, customerNumber } = req.body;
+    if (!customerNumber) {
+      return res.status(400).json({ status: 'error', message: 'Nomor pelanggan wajib diisi.' });
+    }
+
+    // Demo / DigiFlazz Pascabayar Bill Check
+    res.json({
+      status: 'success',
+      data: {
+        customerNumber,
+        namaPelanggan: 'Pelanggan Resmi Official Store',
+        periode: 'September 2026',
+        tagihan: 148500,
+        biayaAdmin: 2500,
+        totalBayar: 151000,
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // SERVE PRODUCTION BUILD (dist/)
 // =====================================================
 // Jika di server production, backend ini juga otomatis menyajikan file dist/ website!

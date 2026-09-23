@@ -15,6 +15,7 @@ import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import PromoBanner from '../components/promo/PromoBanner';
 import ProductCard from '../components/product/ProductCard';
+import ScrollReveal from '../components/common/ScrollReveal';
 
 export default function PromoScreen({
   products = [],
@@ -326,17 +327,19 @@ export default function PromoScreen({
 
         {/* Product Cards Responsive Grid */}
         <View style={styles.productGridRow}>
-          {getActiveProducts().map((product) => (
+          {getActiveProducts().map((product, idx) => (
             <View key={product.id} style={[styles.gridItemWrapper, { width: itemWidthPercent }]}>
-              <ProductCard
-                product={product}
-                onAddToCart={onAddToCart}
-                onUpdateQuantity={onUpdateQuantity}
-                cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
-                isFavorite={isFavorite ? isFavorite(product.id) : false}
-                onToggleFavorite={onToggleFavorite}
-                onSelectProduct={onSelectProduct}
-              />
+              <ScrollReveal index={idx}>
+                <ProductCard
+                  product={product}
+                  onAddToCart={onAddToCart}
+                  onUpdateQuantity={onUpdateQuantity}
+                  cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
+                  isFavorite={isFavorite ? isFavorite(product.id) : false}
+                  onToggleFavorite={onToggleFavorite}
+                  onSelectProduct={onSelectProduct}
+                />
+              </ScrollReveal>
             </View>
           ))}
         </View>

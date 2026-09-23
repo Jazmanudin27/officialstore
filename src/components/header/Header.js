@@ -37,6 +37,7 @@ export default function Header({
   onOpenAuth = () => {},
   favoriteCount = 0,
   onOpenAdmin = () => {},
+  openPpob = () => {},
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -48,6 +49,7 @@ export default function Header({
   const navTabs = [
     { id: 'home', label: 'Beranda', icon: 'home-outline' },
     { id: 'belanja', label: 'Belanja', icon: 'storefront-outline' },
+    { id: 'ppob', label: 'Pulsa & PPOB', icon: 'flash-outline' },
     { id: 'promo', label: 'Promo Spesial', icon: 'pricetag-outline' },
     { id: 'pesanan', label: 'Pesanan Saya', icon: 'document-text-outline' },
     { id: 'wishlist', label: 'Wishlist', icon: 'heart-outline' },
@@ -213,7 +215,13 @@ export default function Header({
                 <TouchableOpacity
                   key={tab.id}
                   style={[styles.desktopNavItem, isActive && styles.desktopNavItemActive]}
-                  onPress={() => setActiveTab(tab.id)}
+                  onPress={() => {
+                    if (tab.id === 'ppob') {
+                      openPpob();
+                    } else {
+                      setActiveTab(tab.id);
+                    }
+                  }}
                   activeOpacity={0.75}
                 >
                   <Ionicons

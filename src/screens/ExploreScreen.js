@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import ProductCard from '../components/product/ProductCard';
+import ScrollReveal from '../components/common/ScrollReveal';
 
 export default function ExploreScreen({
   products = [],
@@ -215,17 +216,19 @@ export default function ExploreScreen({
               </View>
             ) : (
               <View style={styles.productGridRow}>
-                {favoriteProducts.map((item) => (
+                {favoriteProducts.map((item, idx) => (
                   <View key={item.id} style={[styles.gridItemWrapper, { width: itemWidthPercent }]}>
-                    <ProductCard
-                      product={item}
-                      onAddToCart={onAddToCart}
-                      onUpdateQuantity={onUpdateQuantity}
-                      cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
-                      isFavorite={true}
-                      onToggleFavorite={onToggleFavorite}
-                      onSelectProduct={onSelectProduct}
-                    />
+                    <ScrollReveal index={idx}>
+                      <ProductCard
+                        product={item}
+                        onAddToCart={onAddToCart}
+                        onUpdateQuantity={onUpdateQuantity}
+                        cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
+                        isFavorite={true}
+                        onToggleFavorite={onToggleFavorite}
+                        onSelectProduct={onSelectProduct}
+                      />
+                    </ScrollReveal>
                   </View>
                 ))}
               </View>
@@ -364,17 +367,19 @@ export default function ExploreScreen({
               </View>
 
               <View style={styles.productGridRow}>
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product, idx) => (
                   <View key={product.id} style={[styles.gridItemWrapper, { width: itemWidthPercent }]}>
-                    <ProductCard
-                      product={product}
-                      onAddToCart={onAddToCart}
-                      onUpdateQuantity={onUpdateQuantity}
-                      cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
-                      isFavorite={isFavorite(product.id)}
-                      onToggleFavorite={onToggleFavorite}
-                      onSelectProduct={onSelectProduct}
-                    />
+                    <ScrollReveal index={idx}>
+                      <ProductCard
+                        product={product}
+                        onAddToCart={onAddToCart}
+                        onUpdateQuantity={onUpdateQuantity}
+                        cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
+                        isFavorite={isFavorite(product.id)}
+                        onToggleFavorite={onToggleFavorite}
+                        onSelectProduct={onSelectProduct}
+                      />
+                    </ScrollReveal>
                   </View>
                 ))}
               </View>

@@ -41,6 +41,7 @@ import SplashScreen from './src/components/splash/SplashScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { storage } from './src/utils/storage';
 
+import PpobModal from './src/screens/PpobModal';
 import PageTransition from './src/components/navigation/PageTransition';
 
 function AppContent() {
@@ -52,6 +53,7 @@ function AppContent() {
   const [storeSettings, setStoreSettings] = useState(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [isPpobOpen, setIsPpobOpen] = useState(false);
 
   // Restore active sessions and fetch Store Settings on page load / mount
   useEffect(() => {
@@ -427,6 +429,7 @@ function AppContent() {
             onSelectProduct={(product) => setSelectedProduct(product)}
             user={currentUser}
             onGoToShop={() => setActiveTab('belanja')}
+            openPpob={() => setIsPpobOpen(true)}
           />
         );
     }
@@ -480,6 +483,7 @@ function AppContent() {
           onOpenAuth={() => setIsAuthOpen(true)}
           favoriteCount={favoriteCount}
           onOpenAdmin={() => setIsAdminOpen(true)}
+          openPpob={() => setIsPpobOpen(true)}
         />
       )}
 
@@ -587,6 +591,14 @@ function AppContent() {
           setSelectedProduct(null);
           setIsCheckoutOpen(true);
         }}
+      />
+
+      {/* DigiFlazz PPOB & Pulsa Modal Overlay */}
+      <PpobModal
+        visible={isPpobOpen}
+        onClose={() => setIsPpobOpen(false)}
+        onAddToCart={addToCart}
+        user={currentUser}
       />
 
       {/* User Auth Modal (Login / Register) */}
