@@ -41,6 +41,8 @@ import SplashScreen from './src/components/splash/SplashScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { storage } from './src/utils/storage';
 
+import PageTransition from './src/components/navigation/PageTransition';
+
 function AppContent() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -224,6 +226,44 @@ function AppContent() {
             * {
               -ms-overflow-style: none !important;  /* IE and Edge */
               scrollbar-width: none !important;  /* Firefox */
+            }
+
+            /* Desktop & Web Smooth Animation Keyframes */
+            @keyframes fadeInUp {
+              from {
+                opacity: 0;
+                transform: translateY(16px) scale(0.985);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+              }
+            }
+
+            @keyframes modalPopIn {
+              from {
+                opacity: 0;
+                transform: scale(0.94) translateY(14px);
+              }
+              to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+              }
+            }
+
+            @keyframes pulseBadge {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.15); }
+            }
+
+            @keyframes floatSubtle {
+              0%, 100% { transform: translateY(0); }
+              50% { transform: translateY(-4px); }
+            }
+
+            /* Micro-Interactions & Hover Smoothness */
+            div, button, a {
+              transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
             }
           `)
         );
@@ -445,7 +485,9 @@ function AppContent() {
 
       {/* Active Screen View (Centered Container on Desktop) */}
       <View style={[styles.mainContent, isDesktop && styles.desktopMainWrapper]}>
-        {renderTabContent()}
+        <PageTransition activeTab={activeTab}>
+          {renderTabContent()}
+        </PageTransition>
       </View>
 
       {/* Interactive Search Screen Modal */}
