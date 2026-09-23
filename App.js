@@ -276,6 +276,11 @@ function AppContent() {
   const handleLogout = () => {
     setCurrentUser(null);
     setSelectedAddress(null);
+    try {
+      storage.removeItem('official_store_user_session');
+    } catch (e) {
+      console.warn('Remove user session error:', e);
+    }
   };
 
   // Render view based on Active Bottom Tab
