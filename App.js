@@ -36,6 +36,7 @@ import AddressModal from './src/screens/AddressModal';
 import AuthModal from './src/screens/AuthModal';
 import ProductDetailModal from './src/screens/ProductDetailModal';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
+import AdminAuthScreen from './src/screens/AdminAuthScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { storage } from './src/utils/storage';
@@ -575,12 +576,16 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     height: Platform.OS === 'web' ? '100vh' : '100%',
+    maxHeight: Platform.OS === 'web' ? '100vh' : undefined,
     width: '100%',
     backgroundColor: COLORS.primaryRed,
     paddingTop: StatusBar.currentHeight || 0,
+    overflow: 'hidden',
   },
   mainContent: {
     flex: 1,
+    minHeight: 0,
+    overflow: 'hidden',
     backgroundColor: '#F8FAFC',
   },
   desktopMainWrapper: {

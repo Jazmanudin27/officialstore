@@ -54,6 +54,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     elevation: 8,
+    flexShrink: 0,
+    width: '100%',
+    zIndex: 100,
   },
   tabItem: {
     alignItems: 'center',
