@@ -618,12 +618,7 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'web' ? 64 : 0,
   },
   desktopMainWrapper: {
-    maxWidth: 1240,
     width: '100%',
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
+    flex: 1,
   },
 });

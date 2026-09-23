@@ -397,9 +397,8 @@ const styles = StyleSheet.create({
   },
   desktopLayoutRow: {
     flexDirection: 'row',
-    maxWidth: 1240,
     width: '100%',
-    alignSelf: 'center',
+    flex: 1,
   },
   desktopSidebar: {
     width: 240,
