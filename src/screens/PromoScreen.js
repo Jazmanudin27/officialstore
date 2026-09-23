@@ -7,21 +7,20 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
-  FlatList,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
+import PromoBanner from '../components/promo/PromoBanner';
 
 export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCount = 0, onSelectProduct }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const numColumns = width >= 1024 ? 4 : width >= 768 ? 3 : 2;
-  const itemWidthPercent = `${100 / numColumns}%`;
+  const numColumns = width >= 1200 ? 5 : width >= 992 ? 4 : width >= 768 ? 3 : 2;
 
   const [activePromoTab, setActivePromoTab] = useState('harga_spesial');
-  const [selectedFilter, setSelectedFilter] = useState('rekomendasi');
 
   // Products Data for "Harga Spesial"
   const hargaSpesialProducts = [
@@ -69,6 +68,29 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
       delivery: 'Pengiriman Instan',
       specialBadge: 'MURAH BANGET',
       image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&q=80',
+    },
+    {
+      id: 'hs5',
+      name: 'Bumbu Tabur Balado Spesial Official 250 g',
+      price: 15500,
+      originalPrice: 19500,
+      discount: '20%',
+      categoryTag: 'Bumbu Tabur',
+      weightTag: '250 g',
+      delivery: 'Pengiriman Instan',
+      specialBadge: 'TERLARIS',
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+    {
+      id: 'hs6',
+      name: 'Cabai Bubuk Super Pedas Level 15 Botol 100 g',
+      price: 12500,
+      originalPrice: 16000,
+      discount: '22%',
+      categoryTag: 'Cabai Olahan',
+      weightTag: '100 g',
+      delivery: 'Pengiriman Instan',
+      image: 'https://images.unsplash.com/photo-1588870995846-f4ffbc3d8144?w=400&q=80',
     },
   ];
 
@@ -185,7 +207,7 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
       {/* Top Red Header Bar (Mobile Only) */}
       {!isDesktop && (
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Promo</Text>
+          <Text style={styles.headerTitle}>Promo Toko</Text>
           <View style={styles.headerActions}>
             <TouchableOpacity onPress={openSearch} style={styles.iconBtn} activeOpacity={0.7}>
               <Ionicons name="search-outline" size={22} color={COLORS.white} />
@@ -194,71 +216,101 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
             <TouchableOpacity onPress={openCart} style={styles.iconBtn} activeOpacity={0.7}>
               <Ionicons name="bag-handle-outline" size={22} color={COLORS.white} />
               <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cartCount || 3}</Text>
+                <Text style={styles.cartBadgeText}>{cartCount || 0}</Text>
               </View>
             </TouchableOpacity>
           </View>
         </View>
       )}
 
-      {/* Main Promo Categories Scroll Tabs */}
-      <View style={styles.tabsContainer}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-          <TouchableOpacity
-            style={[styles.tabItem, activePromoTab === 'harga_spesial' && styles.tabActive]}
-            onPress={() => setActivePromoTab('harga_spesial')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="pricetag" size={16} color={activePromoTab === 'harga_spesial' ? '#D91E28' : '#64748B'} />
-            <Text style={[styles.tabText, activePromoTab === 'harga_spesial' && styles.tabTextActive]}>
-              Harga Spesial
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        {/* Desktop Header Title Banner */}
+        {isDesktop && (
+          <View style={styles.desktopBannerHeader}>
+            <View style={styles.desktopBannerTitleRow}>
+              <Ionicons name="sparkles" size={28} color="#F59E0B" />
+              <Text style={styles.desktopBannerTitle}>Pusat Promo & Diskon Spesial</Text>
+            </View>
+            <Text style={styles.desktopBannerSubtitle}>
+              Hemat hingga 50% untuk bumbu, kebutuhan dapur, dan belanja harian di Official Store.
             </Text>
-          </TouchableOpacity>
+          </View>
+        )}
 
-          <TouchableOpacity
-            style={[styles.tabItem, activePromoTab === 'gratis_produk' && styles.tabActive]}
-            onPress={() => setActivePromoTab('gratis_produk')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="gift-outline" size={16} color={activePromoTab === 'gratis_produk' ? '#0284C7' : '#64748B'} />
-            <Text style={[styles.tabText, activePromoTab === 'gratis_produk' && styles.tabTextActive]}>
-              Gratis Produk
-            </Text>
-          </TouchableOpacity>
+        {/* Hero Promo Banner Carousel */}
+        <View style={styles.bannerContainer}>
+          <PromoBanner />
+        </View>
 
-          <TouchableOpacity
-            style={[styles.tabItem, activePromoTab === 'paket' && styles.tabActive]}
-            onPress={() => setActivePromoTab('paket')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="cube-outline" size={16} color={activePromoTab === 'paket' ? '#0284C7' : '#64748B'} />
-            <Text style={[styles.tabText, activePromoTab === 'paket' && styles.tabTextActive]}>
-              Paket
-            </Text>
-          </TouchableOpacity>
+        {/* Main Promo Categories Scroll Tabs */}
+        <View style={[styles.tabsContainer, isDesktop && styles.desktopTabsContainer]}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
+            <TouchableOpacity
+              style={[styles.tabItem, activePromoTab === 'harga_spesial' && styles.tabActive]}
+              onPress={() => setActivePromoTab('harga_spesial')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="pricetag" size={18} color={activePromoTab === 'harga_spesial' ? '#D91E28' : '#64748B'} />
+              <Text style={[styles.tabText, activePromoTab === 'harga_spesial' && styles.tabTextActive]}>
+                Harga Spesial
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.tabItem, activePromoTab === 'tebus_murah' && styles.tabActive]}
-            onPress={() => setActivePromoTab('tebus_murah')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="flash-outline" size={16} color={activePromoTab === 'tebus_murah' ? '#0284C7' : '#64748B'} />
-            <Text style={[styles.tabText, activePromoTab === 'tebus_murah' && styles.tabTextActive]}>
-              Tebus Murah
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+            <TouchableOpacity
+              style={[styles.tabItem, activePromoTab === 'gratis_produk' && styles.tabActive]}
+              onPress={() => setActivePromoTab('gratis_produk')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="gift-outline" size={18} color={activePromoTab === 'gratis_produk' ? '#0284C7' : '#64748B'} />
+              <Text style={[styles.tabText, activePromoTab === 'gratis_produk' && styles.tabTextActive]}>
+                Gratis Produk
+              </Text>
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={[styles.tabItem, activePromoTab === 'paket' && styles.tabActive]}
+              onPress={() => setActivePromoTab('paket')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="cube-outline" size={18} color={activePromoTab === 'paket' ? '#0284C7' : '#64748B'} />
+              <Text style={[styles.tabText, activePromoTab === 'paket' && styles.tabTextActive]}>
+                Paket Hemat
+              </Text>
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={[styles.tabItem, activePromoTab === 'tebus_murah' && styles.tabActive]}
+              onPress={() => setActivePromoTab('tebus_murah')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="flash-outline" size={18} color={activePromoTab === 'tebus_murah' ? '#0284C7' : '#64748B'} />
+              <Text style={[styles.tabText, activePromoTab === 'tebus_murah' && styles.tabTextActive]}>
+                Tebus Murah
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
 
-      {/* Product Cards Grid (2-Column) */}
-      <ScrollView style={styles.gridScrollView} contentContainerStyle={styles.gridContent}>
+        {/* Section Title */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {activePromoTab === 'harga_spesial' && '🔥 Diskon Harga Spesial Minggu Ini'}
+            {activePromoTab === 'gratis_produk' && '🎁 Beli 1 Gratis 1 / Hadiah Langsung'}
+            {activePromoTab === 'paket' && '📦 Paket Super Hemat Komplit'}
+            {activePromoTab === 'tebus_murah' && '⚡ Tebus Murah Mulai Rp 1.000'}
+          </Text>
+          <Text style={styles.sectionBadge}>{getActiveProducts().length} Produk Promo</Text>
+        </View>
+
+        {/* Product Cards Responsive Grid */}
         <View style={styles.gridRow}>
           {getActiveProducts().map((product) => (
             <TouchableOpacity
               key={product.id}
-              style={styles.productCard}
+              style={[
+                styles.productCard,
+                isDesktop ? { width: `calc(${100 / numColumns}% - 14px)` } : styles.mobileProductCard,
+              ]}
               onPress={() => onSelectProduct && onSelectProduct(product)}
               activeOpacity={0.85}
             >
@@ -311,6 +363,7 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
                   onPress={() => onAddToCart && onAddToCart(product)}
                   activeOpacity={0.8}
                 >
+                  <Ionicons name="cart-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
                   <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
                 </TouchableOpacity>
               </View>
@@ -366,11 +419,57 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  /* Desktop Header Banner */
+  desktopBannerHeader: {
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    borderRadius: 16,
+    margin: 16,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+  },
+  desktopBannerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 6,
+  },
+  desktopBannerTitle: {
+    color: COLORS.white,
+    fontSize: 22,
+    fontWeight: '900',
+  },
+  desktopBannerSubtitle: {
+    color: '#94A3B8',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  bannerContainer: {
+    marginVertical: 8,
+  },
   /* Scroll Tabs */
   tabsContainer: {
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
+    marginHorizontal: 0,
+  },
+  desktopTabsContainer: {
+    marginHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 16,
   },
   tabsScroll: {
     paddingHorizontal: 16,
@@ -380,12 +479,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 14,
-    gap: 6,
+    gap: 8,
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: '#0284C7',
+    borderBottomColor: '#D91E28',
   },
   tabText: {
     fontSize: 14,
@@ -393,83 +492,64 @@ const styles = StyleSheet.create({
     color: '#64748B',
   },
   tabTextActive: {
-    color: '#0284C7',
+    color: '#D91E28',
     fontWeight: '800',
   },
-  /* Sub-Filter Pills Row */
-  filtersContainer: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-  },
-  filtersScroll: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  filterPillDropdown: {
+  sectionHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    gap: 6,
+    paddingHorizontal: 16,
+    marginVertical: 12,
   },
-  filterPill: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
   },
-  filterPillText: {
-    fontSize: 13,
-    color: COLORS.textDark,
-    fontWeight: '600',
+  sectionBadge: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284C7',
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   /* Product Grid */
-  gridScrollView: {
-    flex: 1,
-  },
-  gridContent: {
-    padding: 12,
-    paddingBottom: 90,
-  },
   gridRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 10,
+    paddingHorizontal: 16,
+    gap: 14,
+  },
+  mobileProductCard: {
+    width: '48%',
   },
   productCard: {
-    width: '48%',
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    marginBottom: 4,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
     elevation: 2,
   },
   imageBox: {
     width: '100%',
-    height: 150,
+    height: 160,
     backgroundColor: COLORS.white,
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
   },
   productImg: {
-    width: '80%',
-    height: '80%',
+    width: '85%',
+    height: '85%',
     resizeMode: 'contain',
   },
   categoryStrip: {
@@ -492,8 +572,8 @@ const styles = StyleSheet.create({
     top: 8,
     right: 0,
     backgroundColor: '#FEF08A',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderTopLeftRadius: 6,
     borderBottomLeftRadius: 6,
   },
@@ -509,8 +589,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#D91E28',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderRadius: 10,
     gap: 3,
   },
@@ -521,18 +601,18 @@ const styles = StyleSheet.create({
   },
   /* Card Body */
   cardInfo: {
-    padding: 10,
+    padding: 12,
     gap: 4,
   },
   productTitle: {
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.textDark,
-    minHeight: 34,
-    lineHeight: 17,
+    minHeight: 36,
+    lineHeight: 18,
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800',
     color: COLORS.textDark,
   },
@@ -543,8 +623,8 @@ const styles = StyleSheet.create({
   },
   discountBadge: {
     backgroundColor: '#D91E28',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
     borderRadius: 4,
   },
   discountBadgeText: {
@@ -569,11 +649,13 @@ const styles = StyleSheet.create({
     color: '#D91E28',
   },
   addToCartBtn: {
-    backgroundColor: '#005691',
+    backgroundColor: COLORS.primaryRed,
     borderRadius: 8,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    justifyContent: 'center',
+    marginTop: 6,
   },
   addToCartBtnText: {
     color: COLORS.white,
