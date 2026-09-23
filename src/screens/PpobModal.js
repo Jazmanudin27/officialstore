@@ -11,167 +11,107 @@ import {
   useWindowDimensions,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 
-export const PPOB_SERVICES = [
+// Categorized PPOB Services (Alfagift Style)
+export const PPOB_CATEGORIES = [
   {
-    id: 'pulsa',
-    title: 'Pulsa Reguler',
-    icon: 'phone-portrait-outline',
-    color: '#D91E28',
-    bgColor: '#FEE2E2',
-    type: 'prabayar',
-    desc: 'Telkomsel, Indosat, XL, Tri, Smartfren, Axis',
+    category: 'Isi Ulang',
+    services: [
+      { id: 'pulsa', title: 'Pulsa', icon: 'phone-portrait', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+      { id: 'paket_data', title: 'Paket Data', icon: 'wifi', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+      { id: 'roaming', title: 'Roaming', icon: 'globe-outline', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: 'Baru', type: 'prabayar' },
+      { id: 'token_pln', title: 'PLN', icon: 'bulb', iconColor: '#F59E0B', bgColor: '#FEF3C7', badge: null, type: 'prabayar' },
+      { id: 'topup_ewallet', title: 'Top Up\nE-Wallet', icon: 'wallet', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+      { id: 'tukar_pulsa', title: 'Tukar Pulsa &\nPaket Data', icon: 'swap-horizontal', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: null, type: 'prabayar' },
+    ],
   },
   {
-    id: 'paket_data',
-    title: 'Paket Data',
-    icon: 'wifi-outline',
-    color: '#0284C7',
-    bgColor: '#E0F2FE',
-    type: 'prabayar',
-    desc: 'Kuota Internet Harian, Mingguan & Bulanan',
+    category: 'Tagihan',
+    services: [
+      { id: 'pdam', title: 'Tagihan Air\nPDAM', icon: 'water', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: null, type: 'pascabayar' },
+      { id: 'bpjs', title: 'BPJS', icon: 'medkit', iconColor: '#16A34A', bgColor: '#DCFCE7', badge: null, type: 'pascabayar' },
+      { id: 'tv_internet', title: 'TV Kabel &\nInternet', icon: 'tv', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: null, type: 'pascabayar' },
+      { id: 'hp_pascabayar', title: 'Tagihan\nPascabayar', icon: 'phone-portrait-outline', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'pascabayar' },
+      { id: 'multifinance', title: 'Multifinance', icon: 'card', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'pascabayar' },
+      { id: 'pbb', title: 'PBB', icon: 'home', iconColor: '#EA580C', bgColor: '#FFEDD5', badge: null, type: 'pascabayar' },
+      { id: 'pgn', title: 'Tagihan PGN', icon: 'flame', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: 'Baru', type: 'pascabayar' },
+    ],
   },
   {
-    id: 'token_pln',
-    title: 'Token PLN',
-    icon: 'flash-outline',
-    color: '#EAB308',
-    bgColor: '#FEF9C3',
-    type: 'prabayar',
-    desc: 'Listrik Prabayar Rp 20rb - Rp 1 Juta',
+    category: 'Layanan lain',
+    services: [
+      { id: 'esim', title: 'e-SIM', icon: 'hardware-chip-outline', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+      { id: 'gift_card', title: 'Gift Card', icon: 'gift', iconColor: '#F59E0B', bgColor: '#FEF3C7', badge: null, type: 'prabayar' },
+      { id: 'mypertamina', title: 'Voucher\nMyPertamina', icon: 'speedometer', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: 'Baru', type: 'prabayar' },
+      { id: 'google_play', title: 'Google Play', icon: 'logo-google-playstore', iconColor: '#34A853', bgColor: '#E6F4EA', badge: null, type: 'prabayar' },
+    ],
   },
-  {
-    id: 'tagihan_pln',
-    title: 'Tagihan PLN',
-    icon: 'bulb-outline',
-    color: '#CA8A04',
-    bgColor: '#FEF08A',
-    type: 'pascabayar',
-    desc: 'Bayar Tagihan Listrik Bulanan PLN',
-  },
-  {
-    id: 'tv_kabel',
-    title: 'TV Berlangganan',
-    icon: 'tv-outline',
-    color: '#9333EA',
-    bgColor: '#F3E8FF',
-    type: 'pascabayar',
-    desc: 'K-Vision, Nex Parabola, MNC Vision, Transvision',
-  },
-  {
-    id: 'hp_pascabayar',
-    title: 'HP Pascabayar',
-    icon: 'call-outline',
-    color: '#2563EB',
-    bgColor: '#DBEAFE',
-    type: 'pascabayar',
-    desc: 'Kartu Halo, XL Prioritas, Indosat Matrix',
-  },
-  {
-    id: 'pdam',
-    title: 'PDAM Air',
-    icon: 'water-outline',
-    color: '#06B6D4',
-    bgColor: '#CFFAFE',
-    type: 'pascabayar',
-    desc: 'Tagihan Air PDAM Kab/Kota Seluruh Indonesia',
-  },
-  {
-    id: 'bpjs',
-    title: 'BPJS Kesehatan',
-    icon: 'medkit-outline',
-    color: '#16A34A',
-    bgColor: '#DCFCE7',
-    type: 'pascabayar',
-    desc: 'Bayar Iuran BPJS Kesehatan Keluarga',
-  },
-  {
-    id: 'internet',
-    title: 'Internet & TV',
-    icon: 'globe-outline',
-    color: '#0D9488',
-    bgColor: '#CCFBF1',
-    type: 'pascabayar',
-    desc: 'IndiHome, Biznet, First Media, MyRepublic',
-  },
-  {
-    id: 'voucher_game',
-    title: 'Voucher Game',
-    icon: 'game-controller-outline',
-    color: '#EA580C',
-    bgColor: '#FFEDD5',
-    type: 'prabayar',
-    desc: 'Mobile Legends, Free Fire, PUBG, Roblox',
-  },
-  {
-    id: 'voucher_digital',
-    title: 'Voucher Digital',
-    icon: 'card-outline',
-    color: '#4F46E5',
-    bgColor: '#EEF2FF',
-    type: 'prabayar',
-    desc: 'Google Play, Steam Wallet, Alfamart, Spotify',
-  },
-  {
-    id: 'topup_ewallet',
-    title: 'Top Up E-Wallet',
-    icon: 'wallet-outline',
-    color: '#059669',
-    bgColor: '#D1FAE5',
-    type: 'prabayar',
-    desc: 'DANA, OVO, GoPay, ShopeePay, LinkAja',
-  },
+];
+
+// Flat list for main grid display
+const MAIN_GRID_SERVICES = [
+  { id: 'pulsa', title: 'Pulsa', icon: 'phone-portrait', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+  { id: 'paket_data', title: 'Paket Data', icon: 'wifi', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+  { id: 'pgn', title: 'Tagihan PGN', icon: 'flame', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: 'Baru', type: 'pascabayar' },
+  { id: 'pdam', title: 'Tagihan Air\nPDAM', icon: 'water', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: null, type: 'pascabayar' },
+  { id: 'token_pln', title: 'PLN', icon: 'bulb', iconColor: '#F59E0B', bgColor: '#FEF3C7', badge: null, type: 'prabayar' },
+  { id: 'bpjs', title: 'BPJS', icon: 'medkit', iconColor: '#16A34A', bgColor: '#DCFCE7', badge: null, type: 'pascabayar' },
+  { id: 'topup_ewallet', title: 'Top Up\nE-Wallet', icon: 'wallet', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+  { id: 'tv_internet', title: 'TV Kabel &\nInternet', icon: 'tv', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: null, type: 'pascabayar' },
+  { id: 'esim', title: 'e-SIM', icon: 'hardware-chip-outline', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'prabayar' },
+  { id: 'gift_card', title: 'Gift Card', icon: 'gift', iconColor: '#F59E0B', bgColor: '#FEF3C7', badge: null, type: 'prabayar' },
+  { id: 'hp_pascabayar', title: 'Tagihan\nPascabayar', icon: 'phone-portrait-outline', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'pascabayar' },
+  { id: 'multifinance', title: 'Multifinance', icon: 'card', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: null, type: 'pascabayar' },
+  { id: 'pbb', title: 'PBB', icon: 'home', iconColor: '#EA580C', bgColor: '#FFEDD5', badge: null, type: 'pascabayar' },
+  { id: 'mypertamina', title: 'Voucher\nMyPertamina', icon: 'speedometer', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: 'Baru', type: 'prabayar' },
+  { id: 'roaming', title: 'Roaming', icon: 'globe-outline', iconColor: '#EF4444', bgColor: '#FEF2F2', badge: 'Baru', type: 'prabayar' },
+  { id: 'semua_menu', title: 'Semua Menu', icon: 'grid', iconColor: '#0284C7', bgColor: '#E0F2FE', badge: null, isMoreBtn: true },
 ];
 
 // Sample Nominal Options for Demo
 const NOMINAL_OPTIONS = {
   pulsa: [
-    { id: 'p5', name: 'Pulsa 5.000', price: 6250, admin: 0 },
-    { id: 'p10', name: 'Pulsa 10.000', price: 11250, admin: 0 },
-    { id: 'p15', name: 'Pulsa 15.000', price: 16100, admin: 0 },
-    { id: 'p20', name: 'Pulsa 20.000', price: 20900, admin: 0 },
-    { id: 'p25', name: 'Pulsa 25.000', price: 25800, admin: 0 },
-    { id: 'p50', name: 'Pulsa 50.000', price: 50500, admin: 0 },
-    { id: 'p100', name: 'Pulsa 100.000', price: 99500, admin: 0 },
+    { id: 'p5', name: 'Pulsa 5.000', price: 6250 },
+    { id: 'p10', name: 'Pulsa 10.000', price: 11250 },
+    { id: 'p15', name: 'Pulsa 15.000', price: 16100 },
+    { id: 'p20', name: 'Pulsa 20.000', price: 20900 },
+    { id: 'p25', name: 'Pulsa 25.000', price: 25800 },
+    { id: 'p50', name: 'Pulsa 50.000', price: 50500 },
+    { id: 'p100', name: 'Pulsa 100.000', price: 99500 },
   ],
   paket_data: [
-    { id: 'd1', name: 'Freedom 3GB / 5 Hari', price: 15500, admin: 0 },
-    { id: 'd2', name: 'Combo Sakti 10GB / 30 Hari', price: 42000, admin: 0 },
-    { id: 'd3', name: 'Extra Unlimited 25GB', price: 78000, admin: 0 },
-    { id: 'd4', name: 'Super Internet 50GB', price: 115000, admin: 0 },
+    { id: 'd1', name: 'Freedom 7GB / 28 Hari', price: 33900 },
+    { id: 'd2', name: 'Freedom 18GB / 28 Hari', price: 55000 },
+    { id: 'd3', name: 'Freedom 35GB / 28 Hari', price: 77600 },
+    { id: 'd4', name: 'Freedom 55GB / 28 Hari', price: 97300 },
   ],
   token_pln: [
-    { id: 'pln20', name: 'Token PLN 20.000', price: 21500, admin: 0 },
-    { id: 'pln50', name: 'Token PLN 50.000', price: 51500, admin: 0 },
-    { id: 'pln100', name: 'Token PLN 100.000', price: 101500, admin: 0 },
-    { id: 'pln200', name: 'Token PLN 200.000', price: 201500, admin: 0 },
-    { id: 'pln500', name: 'Token PLN 500.000', price: 501500, admin: 0 },
+    { id: 'pln20', name: 'Token PLN 20.000', price: 21500 },
+    { id: 'pln50', name: 'Token PLN 50.000', price: 51500 },
+    { id: 'pln100', name: 'Token PLN 100.000', price: 101500 },
+    { id: 'pln200', name: 'Token PLN 200.000', price: 201500 },
   ],
   topup_ewallet: [
-    { id: 'ew1', name: 'Saldo DANA 20.000', price: 21000, admin: 0 },
-    { id: 'ew2', name: 'Saldo GoPay 50.000', price: 51000, admin: 0 },
-    { id: 'ew3', name: 'Saldo OVO 50.000', price: 51000, admin: 0 },
-    { id: 'ew4', name: 'Saldo ShopeePay 100.000', price: 101000, admin: 0 },
-  ],
-  voucher_game: [
-    { id: 'g1', name: '86 Diamonds Mobile Legends', price: 22000, admin: 0 },
-    { id: 'g2', name: '140 Diamonds Free Fire', price: 20000, admin: 0 },
-    { id: 'g3', name: '60 UC PUBG Mobile', price: 16500, admin: 0 },
-    { id: 'g4', name: '800 Robux Roblox', price: 145000, admin: 0 },
+    { id: 'ew1', name: 'Saldo DANA 20.000', price: 21000 },
+    { id: 'ew2', name: 'Saldo GoPay 50.000', price: 51000 },
+    { id: 'ew3', name: 'Saldo OVO 50.000', price: 51000 },
+    { id: 'ew4', name: 'Saldo ShopeePay 100.000', price: 101000 },
   ],
 };
 
 export default function PpobModal({ visible, onClose, onAddToCart, user }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const numColumns = width >= 1024 ? 4 : width >= 768 ? 3 : 2;
 
-  const [selectedFilter, setSelectedFilter] = useState('semua');
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeService, setActiveService] = useState(null);
+  const [showSemuaMenuSheet, setShowSemuaMenuSheet] = useState(false);
+
   const [customerNumber, setCustomerNumber] = useState('');
   const [selectedNominal, setSelectedNominal] = useState(null);
   const [isCheckingBill, setIsCheckingBill] = useState(false);
@@ -179,14 +119,13 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
 
   if (!visible) return null;
 
-  const filteredServices = PPOB_SERVICES.filter((item) => {
-    if (selectedFilter === 'prabayar') return item.type === 'prabayar';
-    if (selectedFilter === 'pascabayar') return item.type === 'pascabayar';
-    return true;
-  });
-
   const handleSelectService = (service) => {
+    if (service.isMoreBtn) {
+      setShowSemuaMenuSheet(true);
+      return;
+    }
     setActiveService(service);
+    setShowSemuaMenuSheet(false);
     setCustomerNumber('');
     setSelectedNominal(null);
     setBillResult(null);
@@ -194,20 +133,20 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
 
   const handleCheckBill = () => {
     if (!customerNumber.trim()) {
-      Alert.alert('Perhatian', 'Harap masukkan Nomor Pelanggan / Nomor HP.');
+      Alert.alert('Perhatian', 'Harap masukkan Nomor Pelanggan / ID.');
       return;
     }
     setIsCheckingBill(true);
     setTimeout(() => {
       setIsCheckingBill(false);
       setBillResult({
-        namaPelanggan: 'Bpk. Jazmanudin (Pelanggan Resmi)',
+        namaPelanggan: 'Bpk. Jazmanudin (Official Store)',
         periode: 'September 2026',
         tagihan: 148500,
         biayaAdmin: 2500,
         totalBayar: 151000,
       });
-    }, 800);
+    }, 700);
   };
 
   const handleProcessTransaction = () => {
@@ -217,12 +156,12 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
     }
 
     if (activeService.type === 'prabayar' && !selectedNominal) {
-      Alert.alert('Perhatian', 'Pilih nominal produk / kuota yang ingin dibeli.');
+      Alert.alert('Perhatian', 'Pilih nominal produk / paket yang ingin dibeli.');
       return;
     }
 
     const itemPrice = activeService.type === 'prabayar' ? selectedNominal.price : billResult.totalBayar;
-    const itemName = activeService.type === 'prabayar' 
+    const itemName = activeService.type === 'prabayar'
       ? `${activeService.title} - ${selectedNominal.name} (${customerNumber})`
       : `${activeService.title} - ${billResult.namaPelanggan} (${customerNumber})`;
 
@@ -255,55 +194,69 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
     }
   };
 
+  const filteredMainServices = MAIN_GRID_SERVICES.filter((s) =>
+    s.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.modalOverlay}>
         <View style={[styles.modalContainer, isDesktop && styles.desktopModalContainer]}>
-          {/* Header Modal */}
-          <View style={styles.headerRow}>
-            <View style={styles.titleWrap}>
-              <View style={styles.iconCircleHeader}>
-                <Ionicons name="flash" size={20} color="#D91E28" />
-              </View>
-              <View>
-                <Text style={styles.modalTitle}>DigiFlazz PPOB & Pulsa</Text>
-                <Text style={styles.modalSubtitle}>Isi ulang pulsa, token, kuota & bayar tagihan 24 jam</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn} activeOpacity={0.7}>
-              <Ionicons name="close" size={24} color="#64748B" />
+          
+          {/* Header Bar Alfagift Style */}
+          <View style={styles.headerBar}>
+            <TouchableOpacity onPress={onClose} style={styles.headerBackBtn} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={24} color="#0F172A" />
             </TouchableOpacity>
+
+            <View style={styles.searchBarBox}>
+              <Ionicons name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Cari di Top Up & Tagihan"
+                placeholderTextColor="#94A3B8"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
 
-          {/* If Service Selected: Form View */}
+          {/* Form View / Grid View / Semua Menu View */}
           {activeService ? (
-            <ScrollView style={styles.formScrollView} contentContainerStyle={{ padding: 16 }}>
+            /* ======================================= */
+            /* VIEW 1: FORM TRANSAKSI SERVIS           */
+            /* ======================================= */
+            <ScrollView style={styles.bodyScrollView} contentContainerStyle={{ padding: 16 }}>
               <TouchableOpacity
                 onPress={() => setActiveService(null)}
-                style={styles.backBtnRow}
+                style={styles.backLinkRow}
                 activeOpacity={0.7}
               >
-                <Ionicons name="arrow-back" size={18} color="#0284C7" />
-                <Text style={styles.backBtnText}>Kembali ke Daftar Layanan</Text>
+                <Ionicons name="arrow-back" size={16} color="#0284C7" />
+                <Text style={styles.backLinkText}>Kembali ke Menu Utama</Text>
               </TouchableOpacity>
 
-              {/* Selected Service Card Info */}
-              <View style={[styles.selectedServiceCard, { backgroundColor: activeService.bgColor }]}>
-                <Ionicons name={activeService.icon} size={28} color={activeService.color} />
+              <View style={[styles.activeServiceCard, { backgroundColor: activeService.bgColor }]}>
+                <View style={[styles.activeIconCircle, { backgroundColor: activeService.iconColor }]}>
+                  <Ionicons name={activeService.icon} size={24} color="#FFFFFF" />
+                </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.selectedServiceTitle}>{activeService.title}</Text>
-                  <Text style={styles.selectedServiceDesc}>{activeService.desc}</Text>
+                  <Text style={styles.activeServiceTitle}>{activeService.title.replace('\n', ' ')}</Text>
+                  <Text style={styles.activeServiceSub}>Isi ulang & bayar instan 24 jam</Text>
                 </View>
               </View>
 
-              {/* Input Nomor HP / ID Pelanggan */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>
                   {activeService.id.includes('pln') ? 'Nomor Meter / ID Pelanggan PLN' : 'Nomor HP / ID Pelanggan:'}
                 </Text>
                 <View style={styles.inputBox}>
-                  <Ionicons name="card-outline" size={20} color="#94A3B8" style={{ marginRight: 8 }} />
+                  <Ionicons name="phone-portrait-outline" size={20} color="#94A3B8" style={{ marginRight: 8 }} />
                   <TextInput
                     style={styles.textInput}
                     placeholder="Contoh: 081234567890 / 1402839281"
@@ -315,7 +268,6 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
                 </View>
               </View>
 
-              {/* Form Content Depending on Prabayar / Pascabayar */}
               {activeService.type === 'prabayar' ? (
                 <View style={styles.nominalSection}>
                   <Text style={styles.inputLabel}>Pilih Nominal / Paket:</Text>
@@ -368,7 +320,6 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
                   </TouchableOpacity>
                 </View>
               ) : (
-                /* Pascabayar Cek Tagihan */
                 <View style={styles.pascabayarSection}>
                   {!billResult ? (
                     <TouchableOpacity
@@ -384,7 +335,7 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
                     </TouchableOpacity>
                   ) : (
                     <View style={styles.billResultBox}>
-                      <Text style={styles.billResultTitle}>Rincian Tagihan ditemukan!</Text>
+                      <Text style={styles.billResultTitle}>Rincian Tagihan Ditemukan!</Text>
                       <View style={styles.summaryRow}>
                         <Text style={styles.summaryLabel}>Nama Pelanggan:</Text>
                         <Text style={styles.summaryValue}>{billResult.namaPelanggan}</Text>
@@ -419,65 +370,117 @@ export default function PpobModal({ visible, onClose, onAddToCart, user }) {
                 </View>
               )}
             </ScrollView>
+          ) : showSemuaMenuSheet ? (
+            /* ======================================= */
+            /* VIEW 2: BOTTOM SHEET "SEMUA MENU"       */
+            /* ======================================= */
+            <ScrollView style={styles.bodyScrollView} contentContainerStyle={{ padding: 16 }}>
+              <TouchableOpacity
+                onPress={() => setShowSemuaMenuSheet(false)}
+                style={styles.backLinkRow}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="arrow-back" size={16} color="#0284C7" />
+                <Text style={styles.backLinkText}>Kembali</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.sheetTitle}>Semua Menu</Text>
+
+              {PPOB_CATEGORIES.map((catGroup) => (
+                <View key={catGroup.category} style={styles.categoryGroupBlock}>
+                  <Text style={styles.categoryGroupTitle}>{catGroup.category}</Text>
+                  <View style={styles.fourColumnGrid}>
+                    {catGroup.services.map((item) => (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={styles.gridCardItem}
+                        onPress={() => handleSelectService(item)}
+                        activeOpacity={0.75}
+                      >
+                        <View style={styles.iconWrapperBox}>
+                          <View style={[styles.serviceIconSquare, { backgroundColor: item.bgColor }]}>
+                            <Ionicons name={item.icon} size={22} color={item.iconColor} />
+                          </View>
+                          {item.badge && (
+                            <View style={styles.purpleBadgePill}>
+                              <Text style={styles.purpleBadgeText}>{item.badge}</Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={styles.gridCardTitle}>{item.title}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
           ) : (
-            /* Service List Grid View */
-            <View style={styles.mainGridContent}>
-              {/* Category Filter Tabs */}
-              <View style={styles.filterRow}>
-                <TouchableOpacity
-                  style={[styles.filterChip, selectedFilter === 'semua' && styles.filterChipActive]}
-                  onPress={() => setSelectedFilter('semua')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.filterText, selectedFilter === 'semua' && styles.filterTextActive]}>
-                    Semua Layanan (12)
+            /* ======================================= */
+            /* VIEW 3: UTAMA (ALFAGIFT STYLE GRID)     */
+            /* ======================================= */
+            <ScrollView style={styles.bodyScrollView} contentContainerStyle={{ paddingBottom: 24 }}>
+              {/* Promo Slogan Banner */}
+              <View style={styles.promoHeaderCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.promoHeaderTitle}>Semua Bisa di Official Store</Text>
+                  <Text style={styles.promoHeaderSub}>
+                    Beli pulsa, paket data, token listrik, hingga bayar tagihan cepat & murah
                   </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.filterChip, selectedFilter === 'prabayar' && styles.filterChipActive]}
-                  onPress={() => setSelectedFilter('prabayar')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.filterText, selectedFilter === 'prabayar' && styles.filterTextActive]}>
-                    Prabayar & Isi Ulang
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.filterChip, selectedFilter === 'pascabayar' && styles.filterChipActive]}
-                  onPress={() => setSelectedFilter('pascabayar')}
-                  activeOpacity={0.7}
-                >
-                  <Text style={[styles.filterText, selectedFilter === 'pascabayar' && styles.filterTextActive]}>
-                    Tagihan Pascabayar
-                  </Text>
-                </TouchableOpacity>
+                </View>
+                <Ionicons name="flash-sharp" size={32} color="#EF4444" />
               </View>
 
-              {/* Grid 12 Services */}
-              <ScrollView contentContainerStyle={styles.servicesGridContainer}>
-                <View style={styles.servicesRow}>
-                  {filteredServices.map((service) => (
-                    <TouchableOpacity
-                      key={service.id}
-                      style={[styles.serviceCard, { width: `${100 / numColumns - 2}%` }]}
-                      onPress={() => handleSelectService(service)}
-                      activeOpacity={0.8}
-                    >
-                      <View style={[styles.serviceIconWrap, { backgroundColor: service.bgColor }]}>
-                        <Ionicons name={service.icon} size={24} color={service.color} />
-                      </View>
-                      <Text style={styles.serviceTitle}>{service.title}</Text>
-                      <Text style={styles.serviceDesc} numberOfLines={2}>
-                        {service.desc}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+              {/* Promo Carousel Card Item */}
+              <View style={styles.promoCardItem}>
+                <View style={styles.promoTagHeader}>
+                  <Text style={styles.promoTagTitle}>FREEDOM INTERNET PROMO</Text>
                 </View>
-              </ScrollView>
-            </View>
+                <View style={styles.promoPriceGrid}>
+                  <View style={styles.promoPriceItem}>
+                    <Text style={styles.promoGbText}>7 GB</Text>
+                    <Text style={styles.promoDiscPrice}>Rp 33.900</Text>
+                  </View>
+                  <View style={styles.promoPriceItem}>
+                    <Text style={styles.promoGbText}>18 GB</Text>
+                    <Text style={styles.promoDiscPrice}>Rp 55.000</Text>
+                  </View>
+                  <View style={styles.promoPriceItem}>
+                    <Text style={styles.promoGbText}>35 GB</Text>
+                    <Text style={styles.promoDiscPrice}>Rp 77.600</Text>
+                  </View>
+                  <View style={styles.promoPriceItem}>
+                    <Text style={styles.promoGbText}>55 GB</Text>
+                    <Text style={styles.promoDiscPrice}>Rp 97.300</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 4-Column Grid Services */}
+              <View style={styles.fourColumnGridMain}>
+                {filteredMainServices.map((item) => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={styles.gridCardItemMain}
+                    onPress={() => handleSelectService(item)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={styles.iconWrapperBox}>
+                      <View style={[styles.serviceIconSquare, { backgroundColor: item.bgColor }]}>
+                        <Ionicons name={item.icon} size={24} color={item.iconColor} />
+                      </View>
+                      {item.badge && (
+                        <View style={styles.purpleBadgePill}>
+                          <Text style={styles.purpleBadgeText}>{item.badge}</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.gridCardTitle}>{item.title}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
           )}
+
         </View>
       </View>
     </Modal>
@@ -490,13 +493,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15, 23, 42, 0.65)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 12,
+    padding: 10,
   },
   modalContainer: {
     width: '100%',
-    maxHeight: '90%',
+    maxHeight: '92%',
+    height: 720,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
@@ -505,136 +509,202 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   desktopModalContainer: {
-    maxWidth: 820,
+    maxWidth: 520,
   },
-  headerRow: {
+  headerBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#F1F5F9',
-    backgroundColor: '#FAFAFA',
-  },
-  titleWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
     gap: 12,
   },
-  iconCircleHeader: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#FEE2E2',
-    justifyContent: 'center',
-    alignItems: 'center',
+  headerBackBtn: {
+    padding: 4,
   },
-  modalTitle: {
-    fontSize: 18,
+  searchBarBox: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 14,
+    height: 40,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0F172A',
+  },
+  bodyScrollView: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  promoHeaderCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFF5F5',
+    marginHorizontal: 16,
+    marginTop: 14,
+    borderRadius: 16,
+  },
+  promoHeaderTitle: {
+    fontSize: 15,
     fontWeight: '800',
     color: '#0F172A',
   },
-  modalSubtitle: {
-    fontSize: 12,
+  promoHeaderSub: {
+    fontSize: 11,
     color: '#64748B',
     marginTop: 2,
   },
-  closeBtn: {
-    padding: 6,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-  },
-  mainGridContent: {
-    padding: 16,
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-    flexWrap: 'wrap',
-  },
-  filterChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F1F5F9',
-  },
-  filterChipActive: {
-    backgroundColor: '#D91E28',
-  },
-  filterText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  filterTextActive: {
-    color: '#FFFFFF',
-  },
-  servicesGridContainer: {
-    paddingBottom: 20,
-  },
-  servicesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  serviceCard: {
-    padding: 14,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
+  promoCardItem: {
+    backgroundColor: '#FEF08A',
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 16,
+    borderRadius: 16,
+    padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    textAlign: 'center',
+    borderColor: '#FDE047',
   },
-  serviceIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
+  promoTagHeader: {
+    marginBottom: 8,
   },
-  serviceTitle: {
-    fontSize: 14,
+  promoTagTitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    color: '#92400E',
+  },
+  promoPriceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  promoPriceItem: {
+    width: '48%',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    padding: 8,
+    alignItems: 'center',
+  },
+  promoGbText: {
+    fontSize: 12,
     fontWeight: '800',
     color: '#0F172A',
-    textAlign: 'center',
   },
-  serviceDesc: {
+  promoDiscPrice: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#D91E28',
+    marginTop: 2,
+  },
+  fourColumnGridMain: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 12,
+  },
+  gridCardItemMain: {
+    width: '25%',
+    alignItems: 'center',
+    marginBottom: 18,
+    paddingHorizontal: 4,
+  },
+  gridCardItem: {
+    width: '25%',
+    alignItems: 'center',
+    marginBottom: 18,
+    paddingHorizontal: 4,
+  },
+  iconWrapperBox: {
+    position: 'relative',
+    marginBottom: 6,
+  },
+  serviceIconSquare: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  purpleBadgePill: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: '#8B5CF6',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  purpleBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '800',
+  },
+  gridCardTitle: {
     fontSize: 11,
-    color: '#64748B',
+    fontWeight: '700',
+    color: '#334155',
     textAlign: 'center',
+    lineHeight: 14,
+  },
+  sheetTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 16,
     marginTop: 4,
   },
-  formScrollView: {
-    flex: 1,
+  categoryGroupBlock: {
+    marginBottom: 20,
   },
-  backBtnRow: {
+  categoryGroupTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 12,
+  },
+  fourColumnGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  backLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
     gap: 6,
   },
-  backBtnText: {
+  backLinkText: {
     color: '#0284C7',
     fontWeight: '700',
     fontSize: 13,
   },
-  selectedServiceCard: {
+  activeServiceCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    borderRadius: 14,
+    borderRadius: 16,
     marginBottom: 16,
   },
-  selectedServiceTitle: {
+  activeIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  activeServiceTitle: {
     fontSize: 16,
     fontWeight: '800',
     color: '#0F172A',
   },
-  selectedServiceDesc: {
+  activeServiceSub: {
     fontSize: 12,
     color: '#475569',
     marginTop: 2,
@@ -664,7 +734,7 @@ const styles = StyleSheet.create({
     color: '#0F172A',
   },
   nominalSection: {
-    marginTop: 8,
+    marginTop: 4,
   },
   nominalGrid: {
     flexDirection: 'row',
@@ -756,7 +826,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   pascabayarSection: {
-    marginTop: 8,
+    marginTop: 4,
   },
   billResultBox: {
     padding: 16,
