@@ -1,87 +1,185 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  useWindowDimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { PROMO_BANNERS } from '../../data/mockProducts';
 import { COLORS } from '../../constants/theme';
 
-export default function PromoBanner() {
+export default function PromoBanner({ onSeeAllPromo, onSelectPromo }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const cardWidth = Math.max(300, (width || 360) - 20);
-  const bannerHeight = width >= 1024 ? 320 : isDesktop ? 270 : 210;
+  const [containerWidth, setContainerWidth] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollViewRef = useRef(null);
 
-  // Auto-slide every 15 seconds (15000 ms)
+  // Width calculation: 100% of body container
+  const layoutWidth = containerWidth || Math.max(300, width - 20);
+  const bannerHeight = width >= 1024 ? 340 : isDesktop ? 290 : 230;
+
+  // Auto-slide every 7 seconds
   useEffect(() => {
+    if (layoutWidth <= 0) return;
     const timer = setInterval(() => {
       setActiveIndex((prevIndex) => {
         const nextIndex = (prevIndex + 1) % PROMO_BANNERS.length;
         if (scrollViewRef.current) {
           scrollViewRef.current.scrollTo({
-            x: nextIndex * cardWidth,
+            x: nextIndex * layoutWidth,
             animated: true,
           });
         }
         return nextIndex;
       });
-    }, 15000);
+    }, 7000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [layoutWidth]);
 
   const handleScroll = (event) => {
+    if (layoutWidth <= 0) return;
     const contentOffset = event.nativeEvent.contentOffset.x;
-    const currentIndex = Math.round(contentOffset / cardWidth);
-    setActiveIndex(currentIndex);
+    const currentIndex = Math.round(contentOffset / layoutWidth);
+    if (currentIndex >= 0 && currentIndex < PROMO_BANNERS.length) {
+      setActiveIndex(currentIndex);
+    }
+  };
+
+  const scrollToSlide = (index) => {
+    if (index >= 0 && index < PROMO_BANNERS.length) {
+      setActiveIndex(index);
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({
+          x: index * layoutWidth,
+          animated: true,
+        });
+      }
+    }
+  };
+
+  const handlePrev = () => {
+    const prev = activeIndex === 0 ? PROMO_BANNERS.length - 1 : activeIndex - 1;
+    scrollToSlide(prev);
+  };
+
+  const handleNext = () => {
+    const next = (activeIndex + 1) % PROMO_BANNERS.length;
+    scrollToSlide(next);
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0 && Math.abs(w - containerWidth) > 2) {
+          setContainerWidth(w);
+        }
+      }}
+    >
       {/* Horizontal Carousel Slider */}
-      <ScrollView
-        ref={scrollViewRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
-        snapToInterval={cardWidth}
-        decelerationRate="fast"
-        contentContainerStyle={styles.scrollContent}
-      >
-        {PROMO_BANNERS.map((promo) => (
-          <View
-            key={promo.id}
-            style={[styles.bannerCard, { width: cardWidth - 8, height: bannerHeight }]}
-          >
-            <Image source={{ uri: promo.image }} style={styles.bannerImage} resizeMode="cover" />
-            
-            {/* Overlay Banner Text */}
-            <View style={styles.bannerContent}>
-              <Text style={[styles.promoTag, isDesktop && { fontSize: 16 }]}>{promo.title}</Text>
-              <Text style={[styles.promoHighlight, isDesktop && { fontSize: 30, marginVertical: 6 }]}>
-                {promo.highlight}
-              </Text>
-              <Text style={[styles.promoSub, isDesktop && { fontSize: 15 }]}>{promo.subtitle}</Text>
-              <View style={[styles.periodBadge, isDesktop && { paddingHorizontal: 12, paddingVertical: 5 }]}>
-                <Text style={[styles.periodText, isDesktop && { fontSize: 12 }]}>{promo.period}</Text>
-              </View>
-            </View>
+      <View style={styles.sliderWrapper}>
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          snapToInterval={layoutWidth}
+          decelerationRate="fast"
+          contentContainerStyle={styles.scrollContent}
+        >
+          {PROMO_BANNERS.map((promo) => (
+            <TouchableOpacity
+              key={promo.id}
+              style={[
+                styles.bannerCard,
+                { width: layoutWidth, height: bannerHeight, backgroundColor: promo.themeColor || '#D91E28' },
+              ]}
+              onPress={() => onSelectPromo && onSelectPromo(promo)}
+              activeOpacity={0.92}
+            >
+              {/* Background Cover Image */}
+              <Image source={{ uri: promo.image }} style={styles.bannerImage} resizeMode="cover" />
 
-            {/* Red Bottom Strip */}
-            <View style={[styles.redStrip, isDesktop && { paddingVertical: 10 }]}>
-              <Text style={[styles.redStripText, isDesktop && { fontSize: 13 }]}>{promo.footerText}</Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
+              {/* Dark Gradient Overlay for Maximum Legibility & Wow Factor */}
+              <View style={[styles.gradientOverlay, { backgroundColor: promo.themeColor ? `${promo.themeColor}CC` : 'rgba(217, 30, 40, 0.85)' }]}>
+                {/* Top Badge Tag */}
+                <View style={[styles.topBadge, { backgroundColor: promo.badgeBg || COLORS.primaryRed }]}>
+                  <Text style={styles.topBadgeText}>{promo.badge}</Text>
+                </View>
+
+                {/* Banner Main Text */}
+                <View style={styles.mainContent}>
+                  <Text style={[styles.promoTitle, isDesktop && styles.desktopTitle]}>
+                    {promo.title}
+                  </Text>
+                  <Text style={[styles.promoHighlight, isDesktop && styles.desktopHighlight]}>
+                    {promo.highlight}
+                  </Text>
+                  <Text style={[styles.promoSubtitle, isDesktop && styles.desktopSubtitle]}>
+                    {promo.subtitle}
+                  </Text>
+
+                  {/* Period Badge & CTA Button Row */}
+                  <View style={styles.actionRow}>
+                    <View style={styles.periodBadge}>
+                      <Text style={styles.periodText}>{promo.period}</Text>
+                    </View>
+
+                    <View style={styles.ctaButton}>
+                      <Text style={styles.ctaText}>{promo.ctaText || 'Belanja Sekarang'}</Text>
+                      <Ionicons name="arrow-forward" size={16} color="#D91E28" />
+                    </View>
+                  </View>
+                </View>
+
+                {/* Red/Dark Footer Strip */}
+                <View style={styles.footerStrip}>
+                  <Text style={styles.footerText}>{promo.footerText}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Desktop Navigation Side Arrows */}
+        {isDesktop && (
+          <>
+            <TouchableOpacity
+              style={[styles.arrowBtn, styles.arrowLeft]}
+              onPress={handlePrev}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="chevron-back" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.arrowBtn, styles.arrowRight]}
+              onPress={handleNext}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
 
       {/* Indicator Dots & "Lihat Semua Promo" Row */}
       <View style={styles.indicatorRow}>
         <View style={styles.dotsContainer}>
           {PROMO_BANNERS.map((_, idx) => (
-            <View
+            <TouchableOpacity
               key={idx}
+              onPress={() => scrollToSlide(idx)}
+              activeOpacity={0.7}
               style={[
                 styles.dot,
                 idx === activeIndex && styles.activeDot,
@@ -90,8 +188,8 @@ export default function PromoBanner() {
           ))}
         </View>
 
-        <TouchableOpacity activeOpacity={0.7}>
-          <Text style={styles.seeAllText}>Lihat Semua Promo</Text>
+        <TouchableOpacity onPress={onSeeAllPromo} activeOpacity={0.7}>
+          <Text style={styles.seeAllText}>Lihat Semua Promo ✨</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -100,95 +198,195 @@ export default function PromoBanner() {
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
+    marginBottom: 20,
+    width: '100%',
+  },
+  sliderWrapper: {
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 10,
+    elevation: 4,
   },
   scrollContent: {
-    paddingHorizontal: 10,
-    gap: 8,
+    flexGrow: 1,
   },
   bannerCard: {
     borderRadius: 16,
     overflow: 'hidden',
-    height: 160,
     position: 'relative',
-    backgroundColor: '#0284C7',
-    elevation: 3,
   },
   bannerImage: {
     width: '100%',
     height: '100%',
     position: 'absolute',
   },
-  bannerContent: {
-    padding: 14,
-    backgroundColor: 'rgba(2, 132, 199, 0.45)',
-    flex: 1,
-    justifyContent: 'center',
+  gradientOverlay: {
+    width: '100%',
+    height: '100%',
+    padding: 16,
+    justify: 'space-between',
+    backgroundColor: 'rgba(217, 30, 40, 0.85)',
   },
-  promoTag: {
-    color: '#FEF08A',
-    fontSize: 14,
+  topBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  topBadgeText: {
+    color: COLORS.white,
+    fontSize: 11,
     fontWeight: '900',
     letterSpacing: 0.5,
   },
+  mainContent: {
+    marginVertical: 'auto',
+  },
+  promoTitle: {
+    color: '#FEF08A',
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  desktopTitle: {
+    fontSize: 16,
+    marginBottom: 6,
+  },
   promoHighlight: {
     color: COLORS.white,
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: '900',
-    marginVertical: 2,
+    letterSpacing: -0.5,
+    lineHeight: 30,
+    marginBottom: 6,
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
   },
-  promoSub: {
+  desktopHighlight: {
+    fontSize: 36,
+    lineHeight: 44,
+    marginBottom: 10,
+  },
+  promoSubtitle: {
     color: COLORS.white,
     fontSize: 13,
     fontWeight: '600',
+    opacity: 0.95,
+    marginBottom: 14,
+  },
+  desktopSubtitle: {
+    fontSize: 16,
+    marginBottom: 18,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flexWrap: 'wrap',
   },
   periodBadge: {
-    backgroundColor: COLORS.primaryRed,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 6,
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   periodText: {
     color: COLORS.white,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
-  redStrip: {
-    backgroundColor: COLORS.primaryRed,
-    paddingVertical: 6,
-    paddingHorizontal: 8,
+  ctaButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 5,
+    elevation: 3,
   },
-  redStripText: {
+  ctaText: {
+    color: '#D91E28',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  footerStrip: {
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
+    marginHorizontal: -16,
+    marginBottom: -16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  footerText: {
     color: COLORS.white,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.3,
   },
+  /* Navigation Side Arrows */
+  arrowBtn: {
+    position: 'absolute',
+    top: '42%',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(15, 23, 42, 0.55)',
+    justify: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  arrowLeft: {
+    left: 12,
+  },
+  arrowRight: {
+    right: 12,
+  },
+  /* Indicators */
   indicatorRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    marginTop: 10,
+    paddingHorizontal: 6,
+    marginTop: 12,
   },
   dotsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: '#CBD5E1',
   },
   activeDot: {
-    width: 20,
-    backgroundColor: '#0284C7',
-    borderRadius: 4,
+    width: 26,
+    backgroundColor: '#D91E28',
+    borderRadius: 5,
   },
   seeAllText: {
     color: '#0284C7',
