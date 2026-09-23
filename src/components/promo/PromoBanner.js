@@ -5,7 +5,9 @@ import { COLORS } from '../../constants/theme';
 
 export default function PromoBanner() {
   const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const cardWidth = Math.max(300, (width || 360) - 20);
+  const bannerHeight = width >= 1024 ? 320 : isDesktop ? 270 : 210;
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollViewRef = useRef(null);
 
@@ -48,22 +50,27 @@ export default function PromoBanner() {
         contentContainerStyle={styles.scrollContent}
       >
         {PROMO_BANNERS.map((promo) => (
-          <View key={promo.id} style={[styles.bannerCard, { width: cardWidth - 8 }]}>
+          <View
+            key={promo.id}
+            style={[styles.bannerCard, { width: cardWidth - 8, height: bannerHeight }]}
+          >
             <Image source={{ uri: promo.image }} style={styles.bannerImage} resizeMode="cover" />
             
             {/* Overlay Banner Text */}
             <View style={styles.bannerContent}>
-              <Text style={styles.promoTag}>{promo.title}</Text>
-              <Text style={styles.promoHighlight}>{promo.highlight}</Text>
-              <Text style={styles.promoSub}>{promo.subtitle}</Text>
-              <View style={styles.periodBadge}>
-                <Text style={styles.periodText}>{promo.period}</Text>
+              <Text style={[styles.promoTag, isDesktop && { fontSize: 16 }]}>{promo.title}</Text>
+              <Text style={[styles.promoHighlight, isDesktop && { fontSize: 30, marginVertical: 6 }]}>
+                {promo.highlight}
+              </Text>
+              <Text style={[styles.promoSub, isDesktop && { fontSize: 15 }]}>{promo.subtitle}</Text>
+              <View style={[styles.periodBadge, isDesktop && { paddingHorizontal: 12, paddingVertical: 5 }]}>
+                <Text style={[styles.periodText, isDesktop && { fontSize: 12 }]}>{promo.period}</Text>
               </View>
             </View>
 
             {/* Red Bottom Strip */}
-            <View style={styles.redStrip}>
-              <Text style={styles.redStripText}>{promo.footerText}</Text>
+            <View style={[styles.redStrip, isDesktop && { paddingVertical: 10 }]}>
+              <Text style={[styles.redStripText, isDesktop && { fontSize: 13 }]}>{promo.footerText}</Text>
             </View>
           </View>
         ))}

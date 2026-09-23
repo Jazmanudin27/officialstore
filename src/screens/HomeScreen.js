@@ -23,6 +23,7 @@ export default function HomeScreen({
   onGoToShop,
 }) {
   const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
   const numColumns = width >= 1024 ? 5 : width >= 768 ? 3 : 2;
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
@@ -67,8 +68,8 @@ export default function HomeScreen({
       }
       ListHeaderComponent={
         <>
-          {/* Member Floating Points Card */}
-          <MemberCard user={user} />
+          {/* Member Floating Points Card (Mobile Only) */}
+          {!isDesktop && <MemberCard user={user} />}
 
           {/* Main Promo Carousel Banner */}
           <PromoBanner />
