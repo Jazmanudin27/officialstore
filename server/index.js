@@ -692,29 +692,55 @@ app.put('/api/admin/products/:id', async (req, res) => {
     let productId = null;
     let targetVariantId = null;
 
-    // 1. Lookup in product_variants by variant_id or sku
-    const [varRows] = await connection.query(
-      'SELECT variant_id, product_id FROM product_variants WHERE variant_id = ? OR sku = ? LIMIT 1',
-      [rawId, sku || rawId]
-    );
-
-    if (varRows.length > 0) {
-      targetVariantId = varRows[0].variant_id;
-      productId = varRows[0].product_id;
-    } else {
-      // 2. Lookup in products table directly
-      const [prodRows] = await connection.query(
-        'SELECT product_id FROM products WHERE product_id = ? OR slug LIKE ? LIMIT 1',
-        [rawId, `%${rawId}%`]
+    // 1. Lookup by numeric ID (variant_id or product_id)
+    if (!isNaN(Number(rawId))) {
+      const numId = Number(rawId);
+      const [varRows] = await connection.query(
+        'SELECT variant_id, product_id FROM product_variants WHERE variant_id = ? LIMIT 1',
+        [numId]
       );
-      if (prodRows.length > 0) {
-        productId = prodRows[0].product_id;
+      if (varRows.length > 0) {
+        targetVariantId = varRows[0].variant_id;
+        productId = varRows[0].product_id;
+      } else {
+        const [prodRows] = await connection.query(
+          'SELECT product_id FROM products WHERE product_id = ? LIMIT 1',
+          [numId]
+        );
+        if (prodRows.length > 0) {
+          productId = prodRows[0].product_id;
+          const [vRows] = await connection.query('SELECT variant_id FROM product_variants WHERE product_id = ? LIMIT 1', [productId]);
+          if (vRows.length > 0) targetVariantId = vRows[0].variant_id;
+        }
+      }
+    }
+
+    // 2. Lookup by SKU if not found yet
+    if (!productId && sku) {
+      const [skuRows] = await connection.query(
+        'SELECT variant_id, product_id FROM product_variants WHERE sku = ? LIMIT 1',
+        [sku]
+      );
+      if (skuRows.length > 0) {
+        targetVariantId = skuRows[0].variant_id;
+        productId = skuRows[0].product_id;
+      }
+    }
+
+    // 3. Lookup by Product Name if not found yet
+    if (!productId && name) {
+      const [nameRows] = await connection.query(
+        'SELECT product_id FROM products WHERE LOWER(nama_produk) = LOWER(?) LIMIT 1',
+        [name.trim()]
+      );
+      if (nameRows.length > 0) {
+        productId = nameRows[0].product_id;
         const [vRows] = await connection.query('SELECT variant_id FROM product_variants WHERE product_id = ? LIMIT 1', [productId]);
         if (vRows.length > 0) targetVariantId = vRows[0].variant_id;
       }
     }
 
-    // 3. If item is not in MySQL DB yet (e.g. legacy item), insert it into MySQL database now!
+    // 4. If item is not in MySQL DB yet (e.g. legacy item), insert it into MySQL database now!
     if (!productId) {
       let categoryId = 1;
       if (category) {
@@ -748,18 +774,62 @@ app.put('/api/admin/products/:id', async (req, res) => {
       }
 
       // Update variant
-      if (name || price !== undefined || stock !== undefined) {
-        await connection.query(
-          'UPDATE product_variants SET nama_varian = COALESCE(?, nama_varian), harga = COALESCE(?, harga), harga_coret = ?, stok = COALESCE(?, stok) WHERE variant_id = ? OR product_id = ?',
-          [name || null, price !== undefined ? price : null, originalPrice !== undefined ? originalPrice : null, stock !== undefined ? stock : null, targetVariantId, productId]
-        );
+      const updateVarFields = [];
+      const updateVarParams = [];
+      if (name) {
+        updateVarFields.push('nama_varian = ?');
+        updateVarParams.push(name);
+      }
+      if (price !== undefined && price !== null) {
+        updateVarFields.push('harga = ?');
+        updateVarParams.push(price);
+      }
+      if (originalPrice !== undefined) {
+        updateVarFields.push('harga_coret = ?');
+        updateVarParams.push(originalPrice || null);
+      }
+      if (stock !== undefined && stock !== null) {
+        updateVarFields.push('stok = ?');
+        updateVarParams.push(stock);
+      }
+
+      if (updateVarFields.length > 0) {
+        if (targetVariantId) {
+          updateVarParams.push(targetVariantId);
+          await connection.query(
+            `UPDATE product_variants SET ${updateVarFields.join(', ')} WHERE variant_id = ?`,
+            updateVarParams
+          );
+        } else {
+          updateVarParams.push(productId);
+          await connection.query(
+            `UPDATE product_variants SET ${updateVarFields.join(', ')} WHERE product_id = ?`,
+            updateVarParams
+          );
+        }
       }
 
       // Update parent product image, name, deskripsi
-      if (name || image || description) {
+      const updateProdFields = [];
+      const updateProdParams = [];
+      if (name) {
+        updateProdFields.push('nama_produk = ?');
+        updateProdParams.push(name);
+      }
+      if (image) {
+        updateProdFields.push('gambar_utama = ?');
+        updateProdParams.push(image);
+      }
+      if (description !== undefined && description !== null) {
+        updateProdFields.push('deskripsi = ?');
+        updateProdParams.push(description);
+      }
+
+      if (updateProdFields.length > 0) {
+        updateProdParams.push(productId);
         await connection.query(
-          'UPDATE products SET nama_produk = COALESCE(?, nama_produk), gambar_utama = COALESCE(?, gambar_utama), deskripsi = COALESCE(?, deskripsi) WHERE product_id = ?',
-          [name || null, image || null, description || null, productId]
+          `UPDATE products SET ${updateProdFields.join(', ')} WHERE product_id = ?`,
+          updateProdParams
         );
       }
     }
@@ -956,6 +1026,19 @@ async function ensureProductImagesSync() {
   }
 }
 ensureProductImagesSync();
+
+// Auto-migrate column data types to LONGTEXT for Base64 uploaded images
+async function autoMigrateDatabaseColumns() {
+  try {
+    await pool.query('ALTER TABLE products MODIFY gambar_utama LONGTEXT');
+    await pool.query('ALTER TABLE store_settings MODIFY logo_url LONGTEXT');
+    await pool.query('ALTER TABLE product_images MODIFY url_gambar LONGTEXT');
+    console.log('✅ Kolom MySQL gambar_utama, logo_url, dan url_gambar terverifikasi LONGTEXT.');
+  } catch (err) {
+    console.warn('autoMigrateDatabaseColumns warning:', err.message);
+  }
+}
+autoMigrateDatabaseColumns();
 
 // 16. Admin: Get & Update Store Settings
 app.get('/api/admin/settings', async (req, res) => {
