@@ -110,7 +110,13 @@ export default function PromoBanner({ onSeeAllPromo, onSelectPromo }) {
               <Image source={{ uri: promo.image }} style={styles.bannerImage} resizeMode="cover" />
 
               {/* Dark Gradient Overlay for Maximum Legibility & Wow Factor */}
-              <View style={[styles.gradientOverlay, { backgroundColor: promo.themeColor ? `${promo.themeColor}CC` : 'rgba(217, 30, 40, 0.85)' }]}>
+              <View
+                style={[
+                  styles.gradientOverlay,
+                  { backgroundColor: promo.themeColor ? `${promo.themeColor}CC` : 'rgba(217, 30, 40, 0.85)' },
+                  (isDesktop || width >= 600) && styles.desktopGradientOverlay,
+                ]}
+              >
                 {/* Top Badge Tag */}
                 <View style={[styles.topBadge, { backgroundColor: promo.badgeBg || COLORS.primaryRed }]}>
                   <Text style={styles.topBadgeText}>{promo.badge}</Text>
@@ -225,6 +231,10 @@ const styles = StyleSheet.create({
     padding: 16,
     justify: 'space-between',
     backgroundColor: 'rgba(217, 30, 40, 0.85)',
+  },
+  desktopGradientOverlay: {
+    paddingHorizontal: 76,
+    paddingVertical: 20,
   },
   topBadge: {
     alignSelf: 'flex-start',
