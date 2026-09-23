@@ -24,7 +24,8 @@
     "web": "expo start --web",
     "server": "node server/index.js",
     "init-db": "node server/init-db.js",
-    "seed-admin": "node server/seed-admin.js"
+    "seed-admin": "node server/seed-admin.js",
+    "build": "npx expo export -p web"
   },
   "private": true,
   "devDependencies": {
