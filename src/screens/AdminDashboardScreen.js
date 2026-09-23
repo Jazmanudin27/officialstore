@@ -378,17 +378,23 @@ export default function AdminDashboardScreen({
     setLoading(true);
     try {
       if (editingProduct) {
-        await apiService.updateProduct(editingProduct.id, payload);
-        Alert.alert('Sukses', `Produk "${formProdName}" berhasil diperbarui!`);
+        const res = await apiService.updateProduct(editingProduct.id, payload);
+        if (res && res.status === 'error') {
+          throw new Error(res.message || 'Gagal menyimpan ke database server MySQL');
+        }
+        Alert.alert('Sukses', `Produk "${formProdName}" berhasil diperbarui di database!`);
       } else {
-        await apiService.createProduct(payload);
-        Alert.alert('Sukses', `Produk baru "${formProdName}" berhasil ditambahkan!`);
+        const res = await apiService.createProduct(payload);
+        if (res && res.status === 'error') {
+          throw new Error(res.message || 'Gagal menambahkan ke database server MySQL');
+        }
+        Alert.alert('Sukses', `Produk baru "${formProdName}" berhasil disimpan ke database!`);
       }
       setIsProductModalOpen(false);
-      loadData();
+      await loadData();
       if (onRefreshProducts) onRefreshProducts();
     } catch (err) {
-      Alert.alert('Gagal', err.message || 'Gagal menyimpan produk');
+      Alert.alert('Gagal Simpan', err.message || 'Gagal menyimpan produk ke database MySQL.');
     } finally {
       setLoading(false);
     }

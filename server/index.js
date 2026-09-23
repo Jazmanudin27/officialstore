@@ -575,7 +575,7 @@ app.get('/api/admin/stats', async (req, res) => {
   }
 });
 
-// 8. Admin: Create New Product & Variant
+// 8. Admin: Create New Product & Variant in MySQL Database
 app.post('/api/admin/products', async (req, res) => {
   const connection = await pool.getConnection();
   try {
@@ -593,70 +593,92 @@ app.post('/api/admin/products', async (req, res) => {
       isPopuler = false,
     } = req.body;
 
-    if (!name || !price) {
+    if (!name || price === undefined || price === null) {
       return res.status(400).json({ status: 'error', message: 'Nama produk dan harga wajib diisi.' });
     }
 
     await connection.beginTransaction();
 
-    // Find category ID or fallback to first category
-    const [catRows] = await connection.query('SELECT category_id FROM categories WHERE nama_kategori = ?', [category]);
-    const categoryId = catRows.length > 0 ? catRows[0].category_id : 1;
+    // 1. Find or create category
+    let categoryId = 1;
+    if (category) {
+      const [catRows] = await connection.query('SELECT category_id FROM categories WHERE LOWER(nama_kategori) = LOWER(?)', [category.trim()]);
+      if (catRows.length > 0) {
+        categoryId = catRows[0].category_id;
+      } else {
+        const catSlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        const [newCat] = await connection.query('INSERT INTO categories (nama_kategori, slug) VALUES (?, ?)', [category.trim(), catSlug]);
+        categoryId = newCat.insertId;
+      }
+    }
 
     const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString().slice(-4)}`;
 
-    // Insert Product Induk
+    // 2. Insert Product Induk
     const [productResult] = await connection.query(
       'INSERT INTO products (category_id, nama_produk, slug, deskripsi, gambar_utama, is_populer, status_aktif) VALUES (?, ?, ?, ?, ?, ?, TRUE)',
       [categoryId, name, slug, description, image, isPopuler ? 1 : 0]
     );
 
     const productId = productResult.insertId;
-    const finalSku = sku || `SKU-${Date.now().toString().slice(-6)}`;
+    const finalSku = (sku && sku.trim().length > 0) ? sku.trim() : `SKU-${Date.now().toString().slice(-6)}`;
 
-    // Insert Product Variant
-    const [variantResult] = await connection.query(
-      'INSERT INTO product_variants (product_id, sku, nama_varian, ukuran_atau_isi, satuan, berat_gram, harga_coret, harga, stok, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)',
-      [productId, finalSku, name, '1 PCS', satuan, weight, originalPrice || null, price, stock]
-    );
+    // 3. Insert Product Variant (Handle duplicate SKU gracefully)
+    let variantId = null;
+    try {
+      const [variantResult] = await connection.query(
+        'INSERT INTO product_variants (product_id, sku, nama_varian, ukuran_atau_isi, satuan, berat_gram, harga_coret, harga, stok, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)',
+        [productId, finalSku, name, '1 PCS', satuan, weight, originalPrice || null, price, stock]
+      );
+      variantId = variantResult.insertId;
+    } catch (varErr) {
+      const altSku = `${finalSku}-${Date.now().toString().slice(-4)}`;
+      const [variantResult] = await connection.query(
+        'INSERT INTO product_variants (product_id, sku, nama_varian, ukuran_atau_isi, satuan, berat_gram, harga_coret, harga, stok, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)',
+        [productId, altSku, name, '1 PCS', satuan, weight, originalPrice || null, price, stock]
+      );
+      variantId = variantResult.insertId;
+    }
 
     await connection.commit();
 
+    console.log(`✅ [MYSQL DB INSERT PRODUCT] Product ID: ${productId}, Variant ID: ${variantId}, Name: ${name}`);
+
     res.json({
       status: 'ok',
-      message: 'Produk baru berhasil ditambahkan!',
+      message: 'Produk baru berhasil disimpan ke database MySQL server!',
       data: {
-        id: variantResult.insertId,
+        id: variantId,
         productId,
         name,
         category,
         sku: finalSku,
-        price,
-        originalPrice,
-        stock,
+        price: Number(price),
+        originalPrice: originalPrice ? Number(originalPrice) : null,
+        stock: Number(stock),
         image,
       },
     });
   } catch (error) {
     await connection.rollback();
-    console.error('Error creating product:', error);
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('❌ Error creating product in MySQL:', error);
+    res.status(500).json({ status: 'error', message: `Gagal menyimpan ke database: ${error.message}` });
   } finally {
     connection.release();
   }
 });
 
-// 9. Admin: Update Product & Variant
+// 9. Admin: Update Product & Variant in MySQL Database
 app.put('/api/admin/products/:id', async (req, res) => {
   const connection = await pool.getConnection();
   try {
     const rawId = req.params.id;
-    const { name, category, price, originalPrice, stock, image, description, sku } = req.body;
+    const { name, category, price, originalPrice, stock, image, description, sku, satuan = 'PCS' } = req.body;
 
     await connection.beginTransaction();
 
     let productId = null;
-    let targetVariantId = rawId;
+    let targetVariantId = null;
 
     // 1. Lookup in product_variants by variant_id or sku
     const [varRows] = await connection.query(
@@ -675,32 +697,74 @@ app.put('/api/admin/products/:id', async (req, res) => {
       );
       if (prodRows.length > 0) {
         productId = prodRows[0].product_id;
+        const [vRows] = await connection.query('SELECT variant_id FROM product_variants WHERE product_id = ? LIMIT 1', [productId]);
+        if (vRows.length > 0) targetVariantId = vRows[0].variant_id;
       }
     }
 
+    // 3. If item is not in MySQL DB yet (e.g. legacy item), insert it into MySQL database now!
     if (!productId) {
-      await connection.rollback();
-      return res.status(404).json({ status: 'error', message: 'Produk tidak ditemukan di database.' });
-    }
-
-    // Update variant
-    if (name || price !== undefined || stock !== undefined) {
-      await connection.query(
-        'UPDATE product_variants SET nama_varian = COALESCE(?, nama_varian), harga = COALESCE(?, harga), harga_coret = ?, stok = COALESCE(?, stok) WHERE variant_id = ? OR product_id = ?',
-        [name || null, price || null, originalPrice || null, stock !== undefined ? stock : null, targetVariantId, productId]
+      let categoryId = 1;
+      if (category) {
+        const [catRows] = await connection.query('SELECT category_id FROM categories WHERE LOWER(nama_kategori) = LOWER(?)', [category.trim()]);
+        if (catRows.length > 0) categoryId = catRows[0].category_id;
+      }
+      const slug = `${(name || 'produk').toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now().toString().slice(-4)}`;
+      const [newProd] = await connection.query(
+        'INSERT INTO products (category_id, nama_produk, slug, deskripsi, gambar_utama, is_populer, status_aktif) VALUES (?, ?, ?, ?, ?, FALSE, TRUE)',
+        [categoryId, name || 'Produk Store', slug, description || '', image || 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&q=80']
       );
-    }
+      productId = newProd.insertId;
 
-    // Update parent product image and name
-    if (name || image || description) {
-      await connection.query(
-        'UPDATE products SET nama_produk = COALESCE(?, nama_produk), gambar_utama = COALESCE(?, gambar_utama), deskripsi = COALESCE(?, deskripsi) WHERE product_id = ?',
-        [name || null, image || null, description || null, productId]
+      const finalSku = (sku && sku.trim().length > 0) ? sku.trim() : `SKU-${Date.now().toString().slice(-6)}`;
+      const [newVar] = await connection.query(
+        'INSERT INTO product_variants (product_id, sku, nama_varian, ukuran_atau_isi, satuan, berat_gram, harga_coret, harga, stok, status_aktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)',
+        [productId, finalSku, name || 'Produk Store', '1 PCS', satuan, 100, originalPrice || null, price || 0, stock || 100]
       );
+      targetVariantId = newVar.insertId;
+    } else {
+      // Update existing category if category is specified
+      if (category) {
+        const [catRows] = await connection.query('SELECT category_id FROM categories WHERE LOWER(nama_kategori) = LOWER(?)', [category.trim()]);
+        let catId = catRows.length > 0 ? catRows[0].category_id : null;
+        if (!catId) {
+          const catSlug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+          const [newCat] = await connection.query('INSERT INTO categories (nama_kategori, slug) VALUES (?, ?)', [category.trim(), catSlug]);
+          catId = newCat.insertId;
+        }
+        await connection.query('UPDATE products SET category_id = ? WHERE product_id = ?', [catId, productId]);
+      }
+
+      // Update variant
+      if (name || price !== undefined || stock !== undefined) {
+        await connection.query(
+          'UPDATE product_variants SET nama_varian = COALESCE(?, nama_varian), harga = COALESCE(?, harga), harga_coret = ?, stok = COALESCE(?, stok) WHERE variant_id = ? OR product_id = ?',
+          [name || null, price !== undefined ? price : null, originalPrice !== undefined ? originalPrice : null, stock !== undefined ? stock : null, targetVariantId, productId]
+        );
+      }
+
+      // Update parent product image, name, deskripsi
+      if (name || image || description) {
+        await connection.query(
+          'UPDATE products SET nama_produk = COALESCE(?, nama_produk), gambar_utama = COALESCE(?, gambar_utama), deskripsi = COALESCE(?, deskripsi) WHERE product_id = ?',
+          [name || null, image || null, description || null, productId]
+        );
+      }
     }
 
     await connection.commit();
-    res.json({ status: 'ok', message: 'Produk berhasil diperbarui!' });
+
+    console.log(`✅ [MYSQL DB UPDATE PRODUCT] Product ID: ${productId}, Variant ID: ${targetVariantId}, Name: ${name}`);
+
+    res.json({ status: 'ok', message: 'Produk berhasil diperbarui di database MySQL server!' });
+  } catch (error) {
+    await connection.rollback();
+    console.error('❌ Error updating product in MySQL:', error);
+    res.status(500).json({ status: 'error', message: `Gagal meng-update database: ${error.message}` });
+  } finally {
+    connection.release();
+  }
+});
   } catch (error) {
     await connection.rollback();
     console.error('Error updating product:', error);
