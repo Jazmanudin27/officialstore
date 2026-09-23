@@ -172,6 +172,8 @@ export default function App() {
     setIsVoucherOpen(true);
   };
 
+  const handleOpenVoucherFromCheckout = handleOpenVoucher;
+
   const handleCloseVoucher = () => {
     setIsVoucherOpen(false);
     if (voucherReturnTarget === 'checkout') {

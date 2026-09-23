@@ -1172,12 +1172,35 @@ app.post('/api/orders', async (req, res) => {
 // =====================================================
 // Jika di server production, backend ini juga otomatis menyajikan file dist/ website!
 const distPath = path.join(__dirname, '../dist');
-app.use(express.static(distPath));
+
+app.use(
+  express.static(distPath, {
+    maxAge: '1d',
+    setHeaders: (res, filepath) => {
+      if (filepath.endsWith('index.html')) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    },
+  })
+);
 
 // Catch-all SPA handler: Kompatibel dengan semua versi Express (Express 4 & Express 5)
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/api/')) {
+    // Jangan kirim index.html untuk aset statis yang hilang (mencegah JS SyntaxError <)
+    if (
+      req.path.includes('/_expo/') ||
+      req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|ttf|woff|woff2|svg|json|map)$/i)
+    ) {
+      return res.status(404).send('Asset not found');
+    }
+
     const indexPath = path.join(distPath, 'index.html');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     return res.sendFile(indexPath, (err) => {
       if (err) next();
     });
