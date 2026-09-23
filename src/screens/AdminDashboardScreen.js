@@ -279,6 +279,36 @@ export default function AdminDashboardScreen({
     setIsProductModalOpen(true);
   };
 
+  // Helper to compress uploaded image files to fast, lightweight Data URLs (~100KB)
+  const compressImageFile = (file, maxDim = 1000, quality = 0.8, onComplete) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new window.Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        onComplete(dataUrl);
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Pick & Upload Product Photo from Laptop / Mobile Device
   const handlePickProductImage = () => {
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -288,17 +318,13 @@ export default function AdminDashboardScreen({
       input.onchange = (e) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
-          if (file.size > 5 * 1024 * 1024) {
-            Alert.alert('Ukuran File Terlalu Besar', 'Maksimal ukuran foto adalah 5 MB.');
+          if (file.size > 10 * 1024 * 1024) {
+            Alert.alert('Ukuran File Terlalu Besar', 'Maksimal ukuran foto adalah 10 MB.');
             return;
           }
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            if (event.target && event.target.result) {
-              setFormProdImage(event.target.result);
-            }
-          };
-          reader.readAsDataURL(file);
+          compressImageFile(file, 1000, 0.82, (compressedDataUrl) => {
+            setFormProdImage(compressedDataUrl);
+          });
         }
       };
       input.click();
@@ -316,17 +342,13 @@ export default function AdminDashboardScreen({
       input.onchange = (e) => {
         const file = e.target.files && e.target.files[0];
         if (file) {
-          if (file.size > 5 * 1024 * 1024) {
-            Alert.alert('Ukuran File Terlalu Besar', 'Maksimal ukuran foto logo adalah 5 MB.');
+          if (file.size > 10 * 1024 * 1024) {
+            Alert.alert('Ukuran File Terlalu Besar', 'Maksimal ukuran foto logo adalah 10 MB.');
             return;
           }
-          const reader = new FileReader();
-          reader.onload = (event) => {
-            if (event.target && event.target.result) {
-              setFormSettingLogo(event.target.result);
-            }
-          };
-          reader.readAsDataURL(file);
+          compressImageFile(file, 800, 0.85, (compressedDataUrl) => {
+            setFormSettingLogo(compressedDataUrl);
+          });
         }
       };
       input.click();
@@ -980,13 +1002,54 @@ export default function AdminDashboardScreen({
                 </View>
 
                 <View>
-                  <Text style={styles.formLabel}>URL Logo Store (Link Gambar HTTPS)</Text>
+                  <Text style={styles.formLabel}>Logo Toko</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                    <Image
+                      source={{
+                        uri: formSettingLogo && formSettingLogo.trim().length > 5
+                          ? formSettingLogo
+                          : 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
+                      }}
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 32,
+                        backgroundColor: '#F1F5F9',
+                        borderWidth: 1.5,
+                        borderColor: '#CBD5E1',
+                      }}
+                      resizeMode="cover"
+                    />
+
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: '#005691',
+                        paddingHorizontal: 16,
+                        paddingVertical: 10,
+                        borderRadius: 10,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}
+                      onPress={handlePickLogoImage}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="cloud-upload" size={18} color="#FFFFFF" />
+                      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                        Pilih Logo dari Laptop / HP
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569', marginBottom: 4 }}>
+                    Atau Tempel Link URL Logo (Opsional):
+                  </Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F8FAFC', borderWidth: 1.5, borderColor: '#CBD5E1', borderRadius: 10, paddingHorizontal: 12 }}>
                     <Ionicons name="image-outline" size={18} color="#64748B" style={{ marginRight: 8 }} />
                     <TextInput
                       style={{ flex: 1, height: 44, fontSize: 14, color: '#0F172A' }}
-                      placeholder="https://images.unsplash.com/photo-1596040033229..."
-                      value={formSettingLogo}
+                      placeholder="https://..."
+                      value={formSettingLogo.startsWith('data:') ? '[Logo Diupload dari Laptop/HP]' : formSettingLogo}
                       onChangeText={setFormSettingLogo}
                       autoCapitalize="none"
                     />

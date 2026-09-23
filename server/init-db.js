@@ -24,6 +24,16 @@ async function initDatabase() {
     await connection.query(schemaSql);
     console.log('✅ Skema tabel berhasil dibuat/diverifikasi.');
 
+    // Auto-migrate column data types to LONGTEXT for Base64 uploaded images
+    try {
+      await connection.query('ALTER TABLE officialstore.products MODIFY gambar_utama LONGTEXT');
+      await connection.query('ALTER TABLE officialstore.store_settings MODIFY logo_url LONGTEXT');
+      await connection.query('ALTER TABLE officialstore.product_images MODIFY url_gambar LONGTEXT');
+      console.log('✅ Kolom gambar_utama, logo_url, dan url_gambar berhasil di-migrate ke LONGTEXT.');
+    } catch (errCol) {
+      console.warn('ℹ️ Skip column alter:', errCol.message);
+    }
+
     // 3. Cek apakah tabel products sudah memiliki 16 produk lengkap
     const [rows] = await connection.query('SELECT COUNT(*) as count FROM officialstore.products');
     if (rows[0].count < 16) {

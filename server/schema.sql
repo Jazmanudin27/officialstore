@@ -81,7 +81,7 @@ CREATE TABLE IF NOT EXISTS products (
     nama_produk VARCHAR(150) NOT NULL,
     slug VARCHAR(150) UNIQUE NOT NULL,
     deskripsi TEXT,
-    gambar_utama VARCHAR(255),
+    gambar_utama LONGTEXT,
     is_populer BOOLEAN DEFAULT FALSE,
     status_aktif BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS product_images (
     image_id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT NOT NULL,
-    url_gambar VARCHAR(255) NOT NULL,
+    url_gambar LONGTEXT NOT NULL,
     urutan INT DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
