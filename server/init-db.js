@@ -42,6 +42,9 @@ async function initDatabase() {
       await connection.query(seedSql);
       console.log('✅ 16 Produk Induk & 32 Varian Satuan (PCS / DUS) berhasil dimasukkan ke database!');
     } else {
+      console.log(`ℹ️ Data 16 produk sudah lengkap (${rows[0].count} produk).`);
+    }
+
     // 4. Seed Akun Admin Resmi ke MySQL Database
     try {
       const seedAdminUser = require('./seed-admin');
