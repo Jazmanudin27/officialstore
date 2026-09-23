@@ -6,6 +6,8 @@ import PromoBanner from '../components/promo/PromoBanner';
 import CategoryGrid from '../components/category/CategoryGrid';
 import ProductCard from '../components/product/ProductCard';
 import ScrollReveal from '../components/common/ScrollReveal';
+import SkeletonGrid, { ProductSkeletonCard } from '../components/common/SkeletonLoader';
+import LazyPageTransition from '../components/common/LazyPageTransition';
 import { COLORS } from '../constants/theme';
 
 export default function HomeScreen({
@@ -29,6 +31,15 @@ export default function HomeScreen({
   const isDesktop = width >= 768;
   const numColumns = width >= 1024 ? 5 : width >= 768 ? 3 : 2;
   const [internalRefreshing, setInternalRefreshing] = useState(false);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+
+  const handleCategorySelect = (cat) => {
+    setIsCategoryLoading(true);
+    if (onSelectCategory) onSelectCategory(cat);
+    setTimeout(() => {
+      setIsCategoryLoading(false);
+    }, 280);
+  };
 
   // Limit Penawaran Terbaik di Beranda maksimal 10 produk
   const displayedProducts = (products || []).slice(0, 10);
@@ -105,7 +116,7 @@ export default function HomeScreen({
           {/* Horizontal Icon Category Bar */}
           <CategoryGrid
             selectedCategory={selectedCategory}
-            onSelectCategory={onSelectCategory}
+            onSelectCategory={handleCategorySelect}
           />
 
           {/* Section Header */}
@@ -119,17 +130,19 @@ export default function HomeScreen({
       }
       renderItem={({ item, index }) => (
         <View style={{ width: `${100 / numColumns}%`, maxWidth: `${100 / numColumns}%` }}>
-          <ScrollReveal index={index}>
-            <ProductCard
-              product={item}
-              onAddToCart={onAddToCart}
-              onUpdateQuantity={onUpdateQuantity}
-              cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
-              isFavorite={isFavorite(item.id)}
-              onToggleFavorite={onToggleFavorite}
-              onSelectProduct={onSelectProduct}
-            />
-          </ScrollReveal>
+          <LazyPageTransition isLoading={isCategoryLoading || isPullRefreshing} skeleton={<ProductSkeletonCard />}>
+            <ScrollReveal index={index}>
+              <ProductCard
+                product={item}
+                onAddToCart={onAddToCart}
+                onUpdateQuantity={onUpdateQuantity}
+                cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
+                isFavorite={isFavorite(item.id)}
+                onToggleFavorite={onToggleFavorite}
+                onSelectProduct={onSelectProduct}
+              />
+            </ScrollReveal>
+          </LazyPageTransition>
         </View>
       )}
       contentContainerStyle={styles.productListContent}
