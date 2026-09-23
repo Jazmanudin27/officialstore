@@ -1005,6 +1005,169 @@ app.delete('/api/admin/stores/:id', async (req, res) => {
 });
 
 // =====================================================
+// 18. ADMIN ORDERS & STATS DATABASE API
+// =====================================================
+
+// A. Real-time Overview Statistics from Database
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const [salesRows] = await pool.query(
+      `SELECT COALESCE(SUM(total_pembayaran), 0) AS totalSales, COUNT(*) AS totalOrders FROM orders WHERE status_pesanan != 'cancelled'`
+    );
+    const [prodRows] = await pool.query(
+      `SELECT COUNT(*) AS totalProducts FROM products WHERE status_aktif = TRUE`
+    );
+    const [userRows] = await pool.query(
+      `SELECT COUNT(*) AS totalUsers FROM users`
+    );
+
+    res.json({
+      status: 'ok',
+      data: {
+        totalSales: Number(salesRows[0]?.totalSales || 0),
+        totalOrders: Number(salesRows[0]?.totalOrders || 0),
+        totalProducts: Number(prodRows[0]?.totalProducts || 0),
+        totalUsers: Number(userRows[0]?.totalUsers || 0),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.json({
+      status: 'ok',
+      data: { totalSales: 0, totalOrders: 0, totalProducts: 16, totalUsers: 0 },
+    });
+  }
+});
+
+// B. Get All Orders from MySQL Database
+app.get('/api/admin/orders', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        o.order_id AS id,
+        o.nomor_pesanan AS orderNumber,
+        COALESCE(u.nama_lengkap, a.nama_penerima, 'Pelanggan Official Store') AS customerName,
+        COALESCE(u.nomor_telepon, a.nomor_telepon, '-') AS customerPhone,
+        o.tipe_pesanan AS deliveryType,
+        COALESCE(o.snapshot_alamat_kirim, a.alamat_lengkap, 'Ambil di Toko') AS address,
+        o.total_pembayaran AS totalAmount,
+        o.status_pesanan AS status,
+        COALESCE(o.kurir_pengiriman, 'Pengiriman Instan Toko') AS courier,
+        COALESCE(o.resi_pengiriman, '-') AS trackingNumber,
+        DATE_FORMAT(o.created_at, '%d %b %Y %H:%i') AS date
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.user_id
+      LEFT JOIN user_addresses a ON o.address_id = a.address_id
+      ORDER BY o.order_id DESC
+    `);
+
+    res.json({ status: 'ok', data: rows || [] });
+  } catch (error) {
+    console.error('Error fetching admin orders from database:', error.message);
+    res.json({ status: 'ok', data: [] });
+  }
+});
+
+// C. Update Order Status in Database
+app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { status, trackingNumber } = req.body;
+    await pool.query(
+      `UPDATE orders SET 
+        status_pesanan = COALESCE(?, status_pesanan),
+        resi_pengiriman = COALESCE(?, resi_pengiriman)
+      WHERE order_id = ?`,
+      [status || null, trackingNumber || null, orderId]
+    );
+
+    res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui ke database' });
+  } catch (error) {
+    console.error('Error updating order status in DB:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// D. Create New Order (Checkout Endpoint)
+app.post('/api/orders', async (req, res) => {
+  try {
+    const {
+      userId,
+      deliveryType = 'delivery',
+      addressId,
+      snapshotAddress,
+      storeId,
+      totalProductPrice,
+      deliveryFee = 0,
+      voucherDiscount = 0,
+      voucherId,
+      serviceFee = 1000,
+      totalPayment,
+      courier,
+      notes,
+      items = [],
+    } = req.body;
+
+    const orderNum = `INV-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const [result] = await pool.query(
+      `INSERT INTO orders 
+        (nomor_pesanan, user_id, tipe_pesanan, address_id, snapshot_alamat_kirim, store_id, total_harga_produk, ongkos_kirim, diskon_voucher, voucher_id, biaya_layanan, total_pembayaran, status_pesanan, kurir_pengiriman, catatan_pesanan)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+      [
+        orderNum,
+        userId || null,
+        deliveryType,
+        addressId || null,
+        snapshotAddress || null,
+        storeId || null,
+        totalProductPrice || totalPayment,
+        deliveryFee,
+        voucherDiscount,
+        voucherId || null,
+        serviceFee,
+        totalPayment || totalProductPrice || 0,
+        courier || 'Pengiriman Instan Toko',
+        notes || '',
+      ]
+    );
+
+    const insertedOrderId = result.insertId;
+
+    if (items && items.length > 0) {
+      for (const item of items) {
+        await pool.query(
+          `INSERT INTO order_items 
+            (order_id, variant_id, sku_saat_beli, nama_produk_saat_beli, nama_varian_saat_beli, harga_satuan_saat_beli, jumlah, subtotal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            insertedOrderId,
+            item.variantId || null,
+            item.sku || 'SKU-GENERAL',
+            item.name || 'Produk',
+            item.variantName || 'PCS',
+            item.price || 0,
+            item.qty || 1,
+            (item.price || 0) * (item.qty || 1),
+          ]
+        );
+      }
+    }
+
+    console.log(`🛒 [NEW ORDER SAVED TO DB] #${orderNum} | Total: Rp ${totalPayment}`);
+
+    res.json({
+      status: 'ok',
+      message: 'Pesanan berhasil disimpan ke database!',
+      data: { orderId: insertedOrderId, orderNumber: orderNum },
+    });
+  } catch (error) {
+    console.error('Error creating order in DB:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// =====================================================
 // SERVE PRODUCTION BUILD (dist/)
 // =====================================================
 // Jika di server production, backend ini juga otomatis menyajikan file dist/ website!

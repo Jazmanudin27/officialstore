@@ -282,10 +282,10 @@ export const apiService = {
       console.warn('ℹ️ Admin stats fallback:', e.message);
     }
     return {
-      totalSales: 4850000,
-      totalOrders: 28,
-      totalProducts: _cachedProductsList.length,
-      totalUsers: 14,
+      totalSales: 0,
+      totalOrders: 0,
+      totalProducts: _cachedProductsList.length || 16,
+      totalUsers: 0,
     };
   },
 
@@ -386,45 +386,17 @@ export const apiService = {
     }
   },
 
-  // 14. Admin: Get Orders
   async getAdminOrders() {
     try {
       const response = await fetch(`${BASE_URL}/api/admin/orders`);
       if (response.ok) {
         const json = await response.json();
-        if (json.status === 'ok') return json.data;
+        if (json.status === 'ok' && Array.isArray(json.data)) return json.data;
       }
     } catch (e) {
       console.warn('ℹ️ Admin orders fallback:', e.message);
     }
-    return [
-      {
-        id: 101,
-        orderNumber: 'INV-20260923-01',
-        customerName: 'Ade Fitri Nuraeni',
-        customerPhone: '0895238888200',
-        deliveryType: 'delivery',
-        address: 'Jl. Pasir Bokor Kp. Gunung Jambe Tasikmalaya',
-        totalAmount: 68500,
-        status: 'pending',
-        courier: 'Pengiriman Instan',
-        trackingNumber: '-',
-        date: '23 Sep 2026 05:15',
-      },
-      {
-        id: 100,
-        orderNumber: 'INV-20260922-04',
-        customerName: 'Budi Santoso',
-        customerPhone: '081234567890',
-        deliveryType: 'delivery',
-        address: 'Jl. HZ Mustofa No. 45 Tasikmalaya',
-        totalAmount: 142000,
-        status: 'shipped',
-        courier: 'JNE Express',
-        trackingNumber: 'JNE-99884210',
-        date: '22 Sep 2026 14:30',
-      },
-    ];
+    return [];
   },
 
   // 15. Admin: Update Order Status

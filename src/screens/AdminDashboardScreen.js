@@ -707,64 +707,78 @@ export default function AdminDashboardScreen({
                 ))}
               </ScrollView>
 
-              {filteredOrders.map((ord) => (
-                <View key={ord.id} style={styles.orderCard}>
-                  <View style={styles.orderHeaderRow}>
-                    <View>
-                      <Text style={styles.orderNumberText}>{ord.orderNumber}</Text>
-                      <Text style={styles.orderDateText}>{ord.date}</Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        ord.status === 'completed'
-                          ? { backgroundColor: '#DCFCE7' }
-                          : ord.status === 'shipped'
-                          ? { backgroundColor: '#E0F2FE' }
-                          : { backgroundColor: '#FEF3C7' },
-                      ]}
-                    >
-                      <Text style={styles.statusBadgeText}>{ord.status.toUpperCase()}</Text>
-                    </View>
+              {filteredOrders.length === 0 ? (
+                <View style={{ backgroundColor: '#FFFFFF', padding: 36, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
+                  <View style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', marginBottom: 12 }}>
+                    <Ionicons name="receipt-outline" size={32} color="#D91E28" />
                   </View>
-
-                  <View style={styles.orderDivider} />
-
-                  <View style={styles.orderCustomerInfo}>
-                    <Text style={styles.customerName}>👤 {ord.customerName} ({ord.customerPhone})</Text>
-                    <Text style={styles.customerAddr} numberOfLines={2}>📍 {ord.address || 'Alamat Utama Terdaftar'}</Text>
-                    <Text style={styles.orderPriceTotal}>Total Pembayaran: <Text style={{ color: '#D91E28', fontWeight: '800' }}>{formatRupiah(ord.totalAmount)}</Text></Text>
-                  </View>
-
-                  {/* Order Status Controller Action */}
-                  <View style={styles.orderActionRow}>
-                    <Text style={styles.updateLabel}>Ubah Status:</Text>
-                    <TouchableOpacity
-                      style={styles.statusActionBtn}
-                      onPress={() => handleUpdateOrderStatus(ord.id, 'processing')}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.statusActionText}>Proses</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.statusActionBtn, { backgroundColor: '#0284C7' }]}
-                      onPress={() => handleUpdateOrderStatus(ord.id, 'shipped')}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.statusActionText}>Kirim Resi</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={[styles.statusActionBtn, { backgroundColor: '#16A34A' }]}
-                      onPress={() => handleUpdateOrderStatus(ord.id, 'completed')}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.statusActionText}>Selesai</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: COLORS.textDark, marginBottom: 4 }}>
+                    Belum Ada Pesanan Masuk
+                  </Text>
+                  <Text style={{ fontSize: 13, color: '#64748B', textAlign: 'center', maxWidth: 360 }}>
+                    Semua transaksi pesanan yang dibuat oleh pelanggan di database akan otomatis muncul di sini.
+                  </Text>
                 </View>
-              ))}
+              ) : (
+                filteredOrders.map((ord) => (
+                  <View key={ord.id} style={styles.orderCard}>
+                    <View style={styles.orderHeaderRow}>
+                      <View>
+                        <Text style={styles.orderNumberText}>{ord.orderNumber}</Text>
+                        <Text style={styles.orderDateText}>{ord.date}</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.statusBadge,
+                          ord.status === 'completed'
+                            ? { backgroundColor: '#DCFCE7' }
+                            : ord.status === 'shipped'
+                            ? { backgroundColor: '#E0F2FE' }
+                            : { backgroundColor: '#FEF3C7' },
+                        ]}
+                      >
+                        <Text style={styles.statusBadgeText}>{ord.status.toUpperCase()}</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.orderDivider} />
+
+                    <View style={styles.orderCustomerInfo}>
+                      <Text style={styles.customerName}>👤 {ord.customerName} ({ord.customerPhone})</Text>
+                      <Text style={styles.customerAddr} numberOfLines={2}>📍 {ord.address || 'Alamat Utama Terdaftar'}</Text>
+                      <Text style={styles.orderPriceTotal}>Total Pembayaran: <Text style={{ color: '#D91E28', fontWeight: '800' }}>{formatRupiah(ord.totalAmount)}</Text></Text>
+                    </View>
+
+                    {/* Order Status Controller Action */}
+                    <View style={styles.orderActionRow}>
+                      <Text style={styles.updateLabel}>Ubah Status:</Text>
+                      <TouchableOpacity
+                        style={styles.statusActionBtn}
+                        onPress={() => handleUpdateOrderStatus(ord.id, 'processing')}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.statusActionText}>Proses</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.statusActionBtn, { backgroundColor: '#0284C7' }]}
+                        onPress={() => handleUpdateOrderStatus(ord.id, 'shipped')}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.statusActionText}>Kirim Resi</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={[styles.statusActionBtn, { backgroundColor: '#16A34A' }]}
+                        onPress={() => handleUpdateOrderStatus(ord.id, 'completed')}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.statusActionText}>Selesai</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))
+              )}
             </View>
           )}
 
