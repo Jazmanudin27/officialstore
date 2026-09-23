@@ -89,6 +89,7 @@ export const apiService = {
       const json = await safeFetchJson(url);
       if (json.status === 'ok' && Array.isArray(json.data) && json.data.length > 0) {
         _cachedProductsList = json.data;
+        syncStorageCache();
         return _cachedProductsList;
       }
     } catch (error) {
@@ -158,19 +159,22 @@ export const apiService = {
       const json = await response.json();
       if (json.status === 'ok') return json;
       throw new Error(json.message || 'Gagal mengirim OTP');
-    } catch (error) {
-      console.warn('ℹ️ Auth API offline, menggunakan simulasi OTP:', error.message);
-      const cleanDigits = phone.replace(/[^0-9]/g, '');
-      const isRegistered = (cleanDigits === '62895238888200' || cleanDigits === '0895238888200');
+    } catch (err) {
+      console.warn('ℹ️ Auth API offline, menggunakan simulasi OTP:', err.message);
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
       return {
         status: 'ok',
         message: 'Kode OTP Demo: 123456 (Simulasi Offline)',
-        data: { phone, otp: '123456', isRegistered },
+        data: {
+          phone,
+          otp: '123456',
+          isRegistered: cleanPhone === '62895238888200' || cleanPhone === '0895238888200',
+        },
       };
     }
   },
 
-  // 5. Verifikasi OTP (Login)
+  // 5. Verifikasi OTP (Login User)
   async verifyOtp({ phone, otp }) {
     try {
       const response = await fetch(`${BASE_URL}/api/auth/verify-otp`, {
@@ -179,16 +183,17 @@ export const apiService = {
         body: JSON.stringify({ phone, otp }),
       });
       const json = await response.json();
-      if (json.status === 'ok' && json.data && json.data.user) return json;
-      throw new Error(json.message || 'Anda belum terdaftar, silahkan daftar terlebih dahulu.');
-    } catch (error) {
-      console.warn('ℹ️ Auth API response / status:', error.message);
-      if (error.message && error.message.includes('terdaftar')) {
-        throw error;
+      if (json.status === 'ok' && json.data && json.data.user) {
+        return json;
       }
-      const cleanDigits = phone.replace(/[^0-9]/g, '');
+      throw new Error(json.message || 'Anda belum terdaftar, silahkan daftar terlebih dahulu.');
+    } catch (err) {
+      console.warn('ℹ️ Auth API response / status:', err.message);
+      if (err.message && err.message.includes('terdaftar')) throw err;
+
+      const cleanPhone = phone.replace(/[^0-9]/g, '');
       if (otp === '123456') {
-        if (cleanDigits !== '62895238888200' && cleanDigits !== '0895238888200') {
+        if (cleanPhone !== '62895238888200' && cleanPhone !== '0895238888200') {
           throw new Error('Anda belum terdaftar, silahkan daftar terlebih dahulu.');
         }
         return {
@@ -221,8 +226,8 @@ export const apiService = {
       const json = await response.json();
       if (json.status === 'ok') return json;
       throw new Error(json.message || 'Registrasi gagal');
-    } catch (error) {
-      console.warn('ℹ️ Auth API offline, registrasi lokal:', error.message);
+    } catch (err) {
+      console.warn('ℹ️ Auth API offline, registrasi lokal:', err.message);
       return {
         status: 'ok',
         message: 'Registrasi Berhasil (Offline Mode)',
@@ -240,7 +245,7 @@ export const apiService = {
     }
   },
 
-  // 6.5. Admin Login Method
+  // Admin Login (Sederhana / Auto Fallback)
   async adminLogin(credentials) {
     try {
       const response = await fetch(`${BASE_URL}/api/admin/login`, {
@@ -300,6 +305,7 @@ export const apiService = {
   async createProduct(productData) {
     const newProd = { id: `p_${Date.now()}`, ...productData };
     _cachedProductsList = [newProd, ..._cachedProductsList];
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products`, {
         method: 'POST',
@@ -307,6 +313,10 @@ export const apiService = {
         body: JSON.stringify(productData),
       });
       const json = await response.json();
+      if (json.status === 'ok' && json.data) {
+        if (json.data.id) newProd.id = json.data.id;
+        syncStorageCache();
+      }
       return json;
     } catch (e) {
       console.warn('ℹ️ Product creation offline fallback:', e.message);
@@ -321,8 +331,11 @@ export const apiService = {
   // 9. Admin: Update Product
   async updateProduct(id, productData) {
     _cachedProductsList = _cachedProductsList.map((p) =>
-      String(p.id) === String(id) ? { ...p, ...productData } : p
+      String(p.id) === String(id) || (p.sku && productData.sku && p.sku === productData.sku)
+        ? { ...p, ...productData }
+        : p
     );
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
         method: 'PUT',
@@ -340,6 +353,7 @@ export const apiService = {
   // 10. Admin: Delete Product
   async deleteProduct(id) {
     _cachedProductsList = _cachedProductsList.filter((p) => String(p.id) !== String(id));
+    syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, { method: 'DELETE' });
       const json = await response.json();

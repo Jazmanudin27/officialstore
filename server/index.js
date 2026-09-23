@@ -650,28 +650,48 @@ app.post('/api/admin/products', async (req, res) => {
 app.put('/api/admin/products/:id', async (req, res) => {
   const connection = await pool.getConnection();
   try {
-    const variantId = req.params.id;
-    const { name, category, price, originalPrice, stock, image, description } = req.body;
+    const rawId = req.params.id;
+    const { name, category, price, originalPrice, stock, image, description, sku } = req.body;
 
     await connection.beginTransaction();
 
-    // Get product_id from variant
-    const [varRows] = await connection.query('SELECT product_id FROM product_variants WHERE variant_id = ?', [variantId]);
-    if (varRows.length === 0) {
-      await connection.rollback();
-      return res.status(404).json({ status: 'error', message: 'Produk tidak ditemukan.' });
+    let productId = null;
+    let targetVariantId = rawId;
+
+    // 1. Lookup in product_variants by variant_id or sku
+    const [varRows] = await connection.query(
+      'SELECT variant_id, product_id FROM product_variants WHERE variant_id = ? OR sku = ? LIMIT 1',
+      [rawId, sku || rawId]
+    );
+
+    if (varRows.length > 0) {
+      targetVariantId = varRows[0].variant_id;
+      productId = varRows[0].product_id;
+    } else {
+      // 2. Lookup in products table directly
+      const [prodRows] = await connection.query(
+        'SELECT product_id FROM products WHERE product_id = ? OR slug LIKE ? LIMIT 1',
+        [rawId, `%${rawId}%`]
+      );
+      if (prodRows.length > 0) {
+        productId = prodRows[0].product_id;
+      }
     }
-    const productId = varRows[0].product_id;
+
+    if (!productId) {
+      await connection.rollback();
+      return res.status(404).json({ status: 'error', message: 'Produk tidak ditemukan di database.' });
+    }
 
     // Update variant
     if (name || price !== undefined || stock !== undefined) {
       await connection.query(
-        'UPDATE product_variants SET nama_varian = COALESCE(?, nama_varian), harga = COALESCE(?, harga), harga_coret = ?, stok = COALESCE(?, stok) WHERE variant_id = ?',
-        [name || null, price || null, originalPrice || null, stock !== undefined ? stock : null, variantId]
+        'UPDATE product_variants SET nama_varian = COALESCE(?, nama_varian), harga = COALESCE(?, harga), harga_coret = ?, stok = COALESCE(?, stok) WHERE variant_id = ? OR product_id = ?',
+        [name || null, price || null, originalPrice || null, stock !== undefined ? stock : null, targetVariantId, productId]
       );
     }
 
-    // Update parent product
+    // Update parent product image and name
     if (name || image || description) {
       await connection.query(
         'UPDATE products SET nama_produk = COALESCE(?, nama_produk), gambar_utama = COALESCE(?, gambar_utama), deskripsi = COALESCE(?, deskripsi) WHERE product_id = ?',
