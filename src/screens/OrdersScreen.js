@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,11 +8,13 @@ import {
   StyleSheet,
   SafeAreaView,
   RefreshControl,
+  ActivityIndicator,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
+import { apiService } from '../services/api';
 
 export default function OrdersScreen({
   openSearch,
@@ -25,125 +27,30 @@ export default function OrdersScreen({
 }) {
   const [activeTab, setActiveTab] = useState('semua');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [orders, setOrders] = useState([]);
   const isLoggedIn = !!user;
 
-  // Sample real-life order history data
-  const [orders, setOrders] = useState([
-    {
-      id: 'ORD-20260922-8921',
-      date: '22 Sep 2026, 14:30 WIB',
-      status: 'dikirim',
-      statusLabel: 'Sedang Dikirim',
-      statusColor: '#0284C7',
-      statusBg: '#E0F2FE',
-      type: 'delivery',
-      typeLabel: 'Pengiriman Reguler',
-      address: 'Jl. Pasir Bokor, Kp. Gunung Jambe, Cipawitra, Tasikmalaya',
-      courier: 'Kurir Official Store (Resi: OFC-JKT-88201)',
-      items: [
-        {
-          id: 'p1',
-          name: 'ABC Kecap Manis Botol 620 g',
-          variant: '620 g',
-          price: 24500,
-          quantity: 2,
-          image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80',
-        },
-        {
-          id: 'p2',
-          name: 'Sania Minyak Goreng Pouch 2 L',
-          variant: '2 Liter',
-          price: 41900,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=80',
-        },
-      ],
-      totalAmount: 90900,
-      discount: 10000,
-      shippingFee: 10000,
-    },
-    {
-      id: 'ORD-20260920-4102',
-      date: '20 Sep 2026, 10:15 WIB',
-      status: 'selesai',
-      statusLabel: 'Selesai',
-      statusColor: '#16A34A',
-      statusBg: '#DCFCE7',
-      type: 'pickup',
-      typeLabel: 'Ambil di Toko (Pickup)',
-      storeName: 'Official Store Cabang Tasikmalaya Pusat',
-      items: [
-        {
-          id: 'p3',
-          name: 'Good Day Kopi Instan Cappuccino 10 x 25 g',
-          variant: '10 x 25 g',
-          price: 21900,
-          quantity: 3,
-          image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=300&q=80',
-        },
-      ],
-      totalAmount: 65700,
-      discount: 0,
-      shippingFee: 0,
-    },
-    {
-      id: 'ORD-20260918-1934',
-      date: '18 Sep 2026, 19:40 WIB',
-      status: 'selesai',
-      statusLabel: 'Selesai',
-      statusColor: '#16A34A',
-      statusBg: '#DCFCE7',
-      type: 'delivery',
-      typeLabel: 'Pengiriman Instan',
-      address: 'Jl. Pasir Bokor, Kp. Gunung Jambe, Cipawitra, Tasikmalaya',
-      courier: 'Gojek Instant (Resi: GK-991204)',
-      items: [
-        {
-          id: 'p4',
-          name: 'Kara Sun Santan Kelapa Cair Siap Pakai 65 ml',
-          variant: '65 ml',
-          price: 4700,
-          quantity: 5,
-          image: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=300&q=80',
-        },
-        {
-          id: 'p5',
-          name: 'Tropical Minyak Goreng Botol 2 L',
-          variant: '2 Liter',
-          price: 43500,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=300&q=80',
-        },
-      ],
-      totalAmount: 67000,
-      discount: 5000,
-      shippingFee: 8000,
-    },
-    {
-      id: 'ORD-20260915-0812',
-      date: '15 Sep 2026, 08:30 WIB',
-      status: 'diproses',
-      statusLabel: 'Sedang Diproses',
-      statusColor: '#D97706',
-      statusBg: '#FEF3C7',
-      type: 'pickup',
-      typeLabel: 'Ambil di Toko (Pickup)',
-      storeName: 'Official Store Cabang Singaparna',
-      items: [
-        {
-          id: 'p6',
-          name: 'Paket Sambal Spesial ABC + Terasi Udang',
-          variant: 'Bundle Pack',
-          price: 38500,
-          quantity: 1,
-          image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=300&q=80',
-        },
-      ],
-      totalAmount: 38500,
-      discount: 0,
-      shippingFee: 0,
-    },
-  ]);
+  const fetchOrders = useCallback(async (showLoading = true) => {
+    if (!user || !user.id) {
+      setOrders([]);
+      return;
+    }
+    if (showLoading) setLoading(true);
+    try {
+      const data = await apiService.getUserOrders(user.id);
+      setOrders(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.warn('Gagal memuat pesanan:', e.message);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    fetchOrders(true);
+  }, [fetchOrders]);
 
   const tabs = [
     { id: 'semua', label: 'Semua' },
@@ -156,9 +63,7 @@ export default function OrdersScreen({
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 600);
+    fetchOrders(false);
   };
 
   const filteredOrders = orders.filter((order) => {
@@ -270,7 +175,14 @@ export default function OrdersScreen({
               <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#D91E28']} />
             }
           >
-            {filteredOrders.length === 0 ? (
+            {loading && !refreshing ? (
+              <View style={{ paddingVertical: 40, alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#D91E28" />
+                <Text style={{ marginTop: 12, color: '#64748B', fontSize: 13, fontWeight: '600' }}>
+                  Memuat pesanan dari database...
+                </Text>
+              </View>
+            ) : filteredOrders.length === 0 ? (
               <View style={styles.emptyState}>
                 <View style={styles.emptyIconCircle}>
                   <Ionicons name="receipt-outline" size={48} color="#94A3B8" />

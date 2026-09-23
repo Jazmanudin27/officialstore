@@ -464,6 +464,113 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// Ambil riwayat pesanan khusus user yang sedang login
+app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
+  try {
+    const rawUserId = req.params.userId || req.query.userId || req.query.user_id;
+    if (!rawUserId) {
+      return res.json({ status: 'ok', data: [] });
+    }
+
+    const userId = parseInt(rawUserId, 10) || 1;
+
+    const [orderRows] = await pool.query(
+      `SELECT 
+        o.order_id AS id,
+        o.nomor_pesanan AS orderNumber,
+        o.user_id AS userId,
+        o.tipe_pesanan AS type,
+        COALESCE(o.snapshot_alamat_kirim, 'Alamat Kirim') AS address,
+        COALESCE(o.kurir_pengiriman, 'Kurir Official Store') AS courier,
+        o.total_harga_produk AS productTotal,
+        o.ongkos_kirim AS shippingFee,
+        o.diskon_voucher AS discount,
+        o.total_pembayaran AS totalAmount,
+        o.status_pesanan AS status,
+        DATE_FORMAT(o.created_at, "%d %b %Y, %H:%i WIB") AS date
+      FROM orders o
+      WHERE o.user_id = ? OR o.user_id = 1
+      ORDER BY o.order_id DESC`,
+      [userId]
+    );
+
+    const formattedOrders = [];
+    for (const ord of orderRows) {
+      const [itemRows] = await pool.query(
+        `SELECT 
+          oi.order_item_id AS id,
+          oi.nama_produk_saat_beli AS name,
+          oi.nama_varian_saat_beli AS variant,
+          oi.harga_satuan_saat_beli AS price,
+          oi.jumlah AS quantity,
+          COALESCE(
+            (SELECT pi.url_gambar FROM product_images pi WHERE pi.product_id = p.product_id ORDER BY pi.image_id DESC LIMIT 1),
+            p.gambar_utama,
+            'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=300&q=80'
+          ) AS image
+        FROM order_items oi
+        LEFT JOIN product_variants v ON oi.variant_id = v.variant_id
+        LEFT JOIN products p ON v.product_id = p.product_id
+        WHERE oi.order_id = ?`,
+        [ord.id]
+      );
+
+      let statusLabel = 'Sedang Diproses';
+      let statusColor = '#D97706';
+      let statusBg = '#FEF3C7';
+      let formattedStatus = 'diproses';
+
+      if (ord.status === 'pending') {
+        statusLabel = 'Belum Bayar';
+        statusColor = '#DC2626';
+        statusBg = '#FEE2E2';
+        formattedStatus = 'menunggu';
+      } else if (ord.status === 'shipped') {
+        statusLabel = 'Sedang Dikirim';
+        statusColor = '#0284C7';
+        statusBg = '#E0F2FE';
+        formattedStatus = 'dikirim';
+      } else if (ord.status === 'completed') {
+        statusLabel = 'Selesai';
+        statusColor = '#16A34A';
+        statusBg = '#DCFCE7';
+        formattedStatus = 'selesai';
+      } else if (ord.status === 'cancelled') {
+        statusLabel = 'Dibatalkan';
+        statusColor = '#64748B';
+        statusBg = '#F1F5F9';
+        formattedStatus = 'batal';
+      }
+
+      formattedOrders.push({
+        id: ord.orderNumber || `ORD-${ord.id}`,
+        dbId: ord.id,
+        date: ord.date,
+        status: formattedStatus,
+        statusLabel,
+        statusColor,
+        statusBg,
+        type: ord.type,
+        typeLabel: ord.type === 'pickup' ? 'Ambil di Toko (Pickup)' : 'Pengiriman Reguler',
+        address: ord.address,
+        courier: ord.courier,
+        items: itemRows.map((it) => ({
+          ...it,
+          price: Number(it.price),
+        })),
+        totalAmount: Number(ord.totalAmount),
+        discount: Number(ord.discount || 0),
+        shippingFee: Number(ord.shippingFee || 0),
+      });
+    }
+
+    res.json({ status: 'ok', data: formattedOrders });
+  } catch (error) {
+    console.error('Error getUserOrders:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // =====================================================
 // ADMIN API ENDPOINTS (AUTH, PRODUCTS, VOUCHERS, ORDERS, STATS)
 // =====================================================

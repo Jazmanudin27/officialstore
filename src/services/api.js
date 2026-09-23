@@ -148,6 +148,20 @@ export const apiService = {
     }
   },
 
+  // 3.5 Ambil Riwayat Pesanan User Langsung dari Database MySQL
+  async getUserOrders(userId) {
+    if (!userId) return [];
+    try {
+      const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${userId}&t=${Date.now()}`);
+      if (json.status === 'ok' && Array.isArray(json.data)) {
+        return json.data;
+      }
+    } catch (error) {
+      console.warn('ℹ️ Gagal mengambil pesanan user dari database:', error.message);
+    }
+    return [];
+  },
+
   // 4. Kirim OTP ke Nomor HP
   async sendOtp(phone) {
     try {
