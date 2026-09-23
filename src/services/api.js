@@ -338,7 +338,7 @@ export const apiService = {
     syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData),
       });
@@ -358,7 +358,10 @@ export const apiService = {
     _cachedProductsList = _cachedProductsList.filter((p) => String(p.id) !== String(id));
     syncStorageCache();
     try {
-      const response = await fetch(`${BASE_URL}/api/admin/products/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${BASE_URL}/api/admin/products/${id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
       const json = await response.json();
       return json;
     } catch (e) {
@@ -403,7 +406,10 @@ export const apiService = {
   async deleteVoucher(id) {
     _cachedVouchersList = _cachedVouchersList.filter((v) => String(v.id) !== String(id));
     try {
-      const response = await fetch(`${BASE_URL}/api/admin/vouchers/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${BASE_URL}/api/admin/vouchers/${id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
       return await response.json();
     } catch (e) {
       return { status: 'ok', message: 'Voucher dihapus' };
@@ -427,7 +433,7 @@ export const apiService = {
   async updateOrderStatus(id, statusData) {
     try {
       const response = await fetch(`${BASE_URL}/api/admin/orders/${id}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(statusData),
       });
@@ -457,7 +463,7 @@ export const apiService = {
     syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/settings`, {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsData),
       });
@@ -524,7 +530,7 @@ export const apiService = {
     syncStorageCache();
     try {
       const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, {
-        method: 'PUT',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(storeData),
       });
@@ -539,7 +545,10 @@ export const apiService = {
     _cachedStores = _cachedStores.filter((st) => String(st.id) !== String(id));
     syncStorageCache();
     try {
-      const response = await fetch(`${BASE_URL}/api/admin/stores/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${BASE_URL}/api/admin/stores/${id}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
       return await response.json();
     } catch (e) {
       syncStorageCache();

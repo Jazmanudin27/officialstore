@@ -683,8 +683,8 @@ app.post('/api/admin/products', async (req, res) => {
   }
 });
 
-// 9. Admin: Update Product & Variant in MySQL Database
-app.put('/api/admin/products/:id', async (req, res) => {
+// 9. Admin: Update Product & Variant in MySQL Database (Supports POST and PUT for Nginx compatibility)
+app.all(['/api/admin/products/:id', '/api/admin/products/:id/update'], async (req, res) => {
   const connection = await pool.getConnection();
   try {
     const rawId = req.params.id;
@@ -884,8 +884,8 @@ app.put('/api/admin/products/:id', async (req, res) => {
   }
 });
 
-// 10. Admin: Delete / Nonaktifkan Produk
-app.delete('/api/admin/products/:id', async (req, res) => {
+// 10. Admin: Delete / Nonaktifkan Produk (Supports POST and DELETE)
+app.all(['/api/admin/products/:id/delete', '/api/admin/products/:id'], async (req, res) => {
   try {
     const variantId = req.params.id;
     await pool.query('UPDATE product_variants SET status_aktif = FALSE WHERE variant_id = ?', [variantId]);
@@ -933,8 +933,8 @@ app.post('/api/admin/vouchers', async (req, res) => {
   }
 });
 
-// 13. Admin: Delete Voucher
-app.delete('/api/admin/vouchers/:id', async (req, res) => {
+// 13. Admin: Delete Voucher (Supports POST and DELETE)
+app.all(['/api/admin/vouchers/:id/delete', '/api/admin/vouchers/:id'], async (req, res) => {
   try {
     await pool.query('DELETE FROM vouchers WHERE voucher_id = ?', [req.params.id]);
     res.json({ status: 'ok', message: 'Voucher berhasil dihapus.' });
@@ -976,8 +976,8 @@ app.get('/api/admin/orders', async (req, res) => {
   }
 });
 
-// 15. Admin: Update Order Status & Resi
-app.put('/api/admin/orders/:id', async (req, res) => {
+// 15. Admin: Update Order Status & Resi (Supports POST and PUT)
+app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, res) => {
   try {
     const orderId = req.params.id;
     const { status, trackingNumber, courier } = req.body;
@@ -1084,7 +1084,7 @@ app.get('/api/admin/settings', async (req, res) => {
   }
 });
 
-app.put('/api/admin/settings', async (req, res) => {
+app.all('/api/admin/settings', async (req, res) => {
   try {
     await ensureStoreSettingsTable();
     const {
@@ -1189,7 +1189,7 @@ app.post('/api/admin/stores', async (req, res) => {
   }
 });
 
-app.put('/api/admin/stores/:id', async (req, res) => {
+app.all(['/api/admin/stores/:id', '/api/admin/stores/:id/update'], async (req, res) => {
   try {
     const storeId = req.params.id;
     const { code, name, address, phone, hours, lat, lng, active } = req.body;
@@ -1217,7 +1217,7 @@ app.put('/api/admin/stores/:id', async (req, res) => {
   }
 });
 
-app.delete('/api/admin/stores/:id', async (req, res) => {
+app.all(['/api/admin/stores/:id/delete', '/api/admin/stores/:id'], async (req, res) => {
   try {
     const storeId = req.params.id;
     await pool.query('UPDATE stores SET status_aktif = FALSE WHERE store_id = ?', [storeId]);
