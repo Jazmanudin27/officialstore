@@ -56,5 +56,6 @@ export function useCart() {
     getItemQuantity,
     totalCartCount,
     subtotal,
+    cartTotal: subtotal,
   };
 }

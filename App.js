@@ -175,10 +175,18 @@ function AppContent() {
 
   const handleOpenVoucherFromCheckout = handleOpenVoucher;
 
+  const handleOpenVoucherFromCart = () => {
+    setIsCartOpen(false);
+    setVoucherReturnTarget('cart');
+    setIsVoucherOpen(true);
+  };
+
   const handleCloseVoucher = () => {
     setIsVoucherOpen(false);
     if (voucherReturnTarget === 'checkout') {
       setIsCheckoutOpen(true);
+    } else if (voucherReturnTarget === 'cart') {
+      setIsCartOpen(true);
     }
     setVoucherReturnTarget(null);
   };
@@ -220,6 +228,7 @@ function AppContent() {
     clearCart,
     getItemQuantity,
     totalCartCount,
+    cartTotal,
   } = useCart();
 
   const { favorites, toggleFavorite, isFavorite, favoriteCount } = useFavorites();
