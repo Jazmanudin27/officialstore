@@ -72,24 +72,16 @@ export default function Header({
                 onPress={() => setActiveTab('home')}
                 activeOpacity={0.8}
               >
-                <View style={styles.brandIconCircle}>
+                <View style={[styles.brandIconCircle, { width: 44, height: 44, borderRadius: 22 }]}>
                   <Image
                     source={
                       storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
                         ? { uri: storeSettings.logo_url }
                         : require('../../../assets/Offical Store.png')
                     }
-                    style={{ width: 32, height: 32, borderRadius: 16 }}
+                    style={{ width: 40, height: 40, borderRadius: 20 }}
                     resizeMode="contain"
                   />
-                </View>
-                <View>
-                  <Text style={styles.brandTitle}>
-                    {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
-                  </Text>
-                  <Text style={styles.brandSubtitle} numberOfLines={1}>
-                    {storeSettings?.slogan || 'Supermarket Belanja Online'}
-                  </Text>
                 </View>
               </TouchableOpacity>
 
