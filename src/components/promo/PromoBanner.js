@@ -150,23 +150,23 @@ export default function PromoBanner({ onSeeAllPromo, onSelectPromo }) {
           ))}
         </ScrollView>
 
-        {/* Desktop Navigation Side Arrows */}
-        {isDesktop && (
+        {/* Navigation Side Arrows */}
+        {(isDesktop || width >= 600) && (
           <>
             <TouchableOpacity
               style={[styles.arrowBtn, styles.arrowLeft]}
               onPress={handlePrev}
-              activeOpacity={0.8}
+              activeOpacity={0.75}
             >
-              <Ionicons name="chevron-back" size={24} color={COLORS.white} />
+              <Ionicons name="chevron-back" size={26} color="#D91E28" />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.arrowBtn, styles.arrowRight]}
               onPress={handleNext}
-              activeOpacity={0.8}
+              activeOpacity={0.75}
             >
-              <Ionicons name="chevron-forward" size={24} color={COLORS.white} />
+              <Ionicons name="chevron-forward" size={26} color="#D91E28" />
             </TouchableOpacity>
           </>
         )}
@@ -347,22 +347,28 @@ const styles = StyleSheet.create({
   /* Navigation Side Arrows */
   arrowBtn: {
     position: 'absolute',
-    top: '42%',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(15, 23, 42, 0.55)',
-    justify: 'center',
+    top: '50%',
+    marginTop: -23,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 10,
+    zIndex: 30,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: '#F1F5F9',
   },
   arrowLeft: {
-    left: 12,
+    left: 16,
   },
   arrowRight: {
-    right: 12,
+    right: 16,
   },
   /* Indicators */
   indicatorRow: {
