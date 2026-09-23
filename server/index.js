@@ -1549,10 +1549,11 @@ app.post('/api/ppob/check-bill', async (req, res) => {
 // =====================================================
 // Jika di server production, backend ini juga otomatis menyajikan file dist/ website!
 const distPath = path.join(__dirname, '../dist');
+const fs = require('fs');
 
 app.use(
   express.static(distPath, {
-    maxAge: '1d',
+    maxAge: '1h',
     setHeaders: (res, filepath) => {
       if (filepath.endsWith('index.html')) {
         res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
@@ -1566,21 +1567,28 @@ app.use(
 // Catch-all SPA handler: Kompatibel dengan semua versi Express (Express 4 & Express 5)
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/api/')) {
-    // Jangan kirim index.html untuk aset statis yang hilang (mencegah JS SyntaxError <)
-    if (
-      req.path.includes('/_expo/') ||
-      req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|ttf|woff|woff2|svg|json|map)$/i)
-    ) {
+    const requestedFile = path.join(distPath, req.path);
+
+    // 1. Jika file statis benar-benar ada di dalam folder dist/, langsung kirimkan file tersebut
+    if (fs.existsSync(requestedFile) && fs.statSync(requestedFile).isFile()) {
+      return res.sendFile(requestedFile);
+    }
+
+    // 2. Jangan kirim index.html untuk aset statis yang hilang (mencegah JS SyntaxError <)
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|ttf|woff|woff2|svg|json|map)$/i)) {
       return res.status(404).send('Asset not found');
     }
 
+    // 3. Kirim index.html untuk routing SPA (Single Page Application)
     const indexPath = path.join(distPath, 'index.html');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    return res.sendFile(indexPath, (err) => {
-      if (err) next();
-    });
+    if (fs.existsSync(indexPath)) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      return res.sendFile(indexPath, (err) => {
+        if (err && !res.headersSent) next();
+      });
+    }
   }
   next();
 });
