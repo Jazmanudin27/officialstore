@@ -395,7 +395,7 @@ function AppContent() {
       <ExpoStatusBar style="light" backgroundColor={COLORS.primaryRed} />
 
       {/* Animated E-Commerce Splash Screen */}
-      {showSplash && <SplashScreen onFinish={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen storeSettings={storeSettings} onFinish={() => setShowSplash(false)} />}
 
       {/* Header (Continuous on Desktop, Home-only on Mobile) */}
       {(isDesktop || activeTab === 'home') && (

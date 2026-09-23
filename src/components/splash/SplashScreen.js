@@ -13,7 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
-export default function SplashScreen({ onFinish }) {
+export default function SplashScreen({ onFinish, storeSettings = null }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.75)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -23,7 +23,7 @@ export default function SplashScreen({ onFinish }) {
   const [progressPercent, setProgressPercent] = useState(0);
 
   useEffect(() => {
-    // Entrance Animation (Fade-in + Scale)
+    // 1. Entrance animation
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -38,8 +38,8 @@ export default function SplashScreen({ onFinish }) {
       }),
     ]).start();
 
-    // Continuous Pulse Effect for Logo Ring
-    Animated.loop(
+    // 2. Pulse animation loop
+    const pulseLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
           toValue: 1.15,
@@ -52,40 +52,34 @@ export default function SplashScreen({ onFinish }) {
           useNativeDriver: true,
         }),
       ])
-    ).start();
+    );
+    pulseLoop.start();
 
-    // Progress Bar Animation (0% to 100% in 2.2 seconds)
+    // 3. Simulated progress bar loading (0 to 100%)
+    const progressListener = progressAnim.addListener(({ value }) => {
+      setProgressPercent(Math.min(100, Math.round(value * 100)));
+    });
+
     Animated.timing(progressAnim, {
       toValue: 1,
-      duration: 2200,
+      duration: 1800,
       useNativeDriver: false,
-    }).start();
-
-    // Listener for progress percent text
-    const listenerId = progressAnim.addListener(({ value }) => {
-      setProgressPercent(Math.floor(value * 100));
+    }).start(() => {
+      // 4. Fade out screen transition
+      Animated.timing(screenFadeAnim, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }).start(() => {
+        if (onFinish) onFinish();
+      });
     });
-
-    // Auto finish timer (Exit Fade out after 2.6s)
-    const timer = setTimeout(() => {
-      handleExit();
-    }, 2500);
 
     return () => {
-      progressAnim.removeListener(listenerId);
-      clearTimeout(timer);
+      pulseLoop.stop();
+      progressAnim.removeListener(progressListener);
     };
   }, []);
-
-  const handleExit = () => {
-    Animated.timing(screenFadeAnim, {
-      toValue: 0,
-      duration: 400,
-      useNativeDriver: true,
-    }).start(() => {
-      if (onFinish) onFinish();
-    });
-  };
 
   const progressWidth = progressAnim.interpolate({
     inputRange: [0, 1],
@@ -93,10 +87,10 @@ export default function SplashScreen({ onFinish }) {
   });
 
   return (
-    <Animated.View style={[styles.fullScreen, { opacity: screenFadeAnim }]}>
+    <Animated.View style={[styles.screenOverlay, { opacity: screenFadeAnim }]}>
       <LinearGradient
-        colors={['#800A0F', '#B91C1C', '#D91E28', '#EF4444', '#991B1B']}
-        locations={[0, 0.25, 0.55, 0.8, 1]}
+        colors={['#B91C1C', '#D91E28', '#EF4444', '#991B1B']}
+        locations={[0, 0.4, 0.75, 1]}
         style={styles.gradientBg}
       >
         {/* Decorative Background Circles */}
@@ -127,7 +121,11 @@ export default function SplashScreen({ onFinish }) {
             {/* 3D App Logo Image Container */}
             <View style={styles.logoCard}>
               <Image
-                source={require('../../../assets/Offical Store.png')}
+                source={
+                  storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
+                    ? { uri: storeSettings.logo_url }
+                    : require('../../../assets/Offical Store.png')
+                }
                 style={styles.logoImg}
                 resizeMode="contain"
               />
@@ -135,7 +133,9 @@ export default function SplashScreen({ onFinish }) {
 
             {/* Title Row with Gold Badge */}
             <View style={styles.titleRow}>
-              <Text style={styles.titleMain}>OFFICIAL STORE</Text>
+              <Text style={styles.titleMain}>
+                {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
+              </Text>
               <View style={styles.goldBadge}>
                 <Ionicons name="sparkles" size={10} color="#78350F" />
                 <Text style={styles.goldBadgeText}>PROMO</Text>
