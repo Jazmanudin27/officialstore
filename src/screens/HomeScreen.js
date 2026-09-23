@@ -83,15 +83,17 @@ export default function HomeScreen({
         </>
       }
       renderItem={({ item }) => (
-        <ProductCard
-          product={item}
-          onAddToCart={onAddToCart}
-          onUpdateQuantity={onUpdateQuantity}
-          cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
-          isFavorite={isFavorite(item.id)}
-          onToggleFavorite={onToggleFavorite}
-          onSelectProduct={onSelectProduct}
-        />
+        <View style={{ width: `${100 / numColumns}%`, maxWidth: `${100 / numColumns}%` }}>
+          <ProductCard
+            product={item}
+            onAddToCart={onAddToCart}
+            onUpdateQuantity={onUpdateQuantity}
+            cartQuantity={getItemQuantity ? getItemQuantity(item.id) : 0}
+            isFavorite={isFavorite(item.id)}
+            onToggleFavorite={onToggleFavorite}
+            onSelectProduct={onSelectProduct}
+          />
+        </View>
       )}
       contentContainerStyle={styles.productListContent}
     />

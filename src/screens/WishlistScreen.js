@@ -26,13 +26,15 @@ export default function WishlistScreen({ favorites, onAddToCart, isFavorite, onT
           keyExtractor={(item) => item.id}
           numColumns={numColumns}
           renderItem={({ item }) => (
-            <ProductCard
-              product={item}
-              onAddToCart={onAddToCart}
-              isFavorite={isFavorite(item.id)}
-              onToggleFavorite={onToggleFavorite}
-              onSelectProduct={onSelectProduct}
-            />
+            <View style={{ width: `${100 / numColumns}%`, maxWidth: `${100 / numColumns}%` }}>
+              <ProductCard
+                product={item}
+                onAddToCart={onAddToCart}
+                isFavorite={isFavorite(item.id)}
+                onToggleFavorite={onToggleFavorite}
+                onSelectProduct={onSelectProduct}
+              />
+            </View>
           )}
           contentContainerStyle={styles.productListContent}
         />
