@@ -575,18 +575,16 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    height: Platform.OS === 'web' ? '100vh' : '100%',
-    maxHeight: Platform.OS === 'web' ? '100vh' : undefined,
+    height: '100%',
     width: '100%',
     backgroundColor: COLORS.primaryRed,
     paddingTop: StatusBar.currentHeight || 0,
-    overflow: 'hidden',
   },
   mainContent: {
     flex: 1,
     minHeight: 0,
-    overflow: 'hidden',
     backgroundColor: '#F8FAFC',
+    paddingBottom: Platform.OS === 'web' ? 64 : 0,
   },
   desktopMainWrapper: {
     maxWidth: 1240,

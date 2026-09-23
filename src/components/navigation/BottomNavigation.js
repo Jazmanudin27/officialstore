@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useWindowDimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/theme';
 
@@ -45,18 +45,27 @@ export default function BottomNavigation({ activeTab, setActiveTab }) {
 
 const styles = StyleSheet.create({
   navBar: {
+    position: Platform.OS === 'web' ? 'fixed' : 'relative',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',
     paddingVertical: 6,
-    paddingBottom: 10,
+    paddingBottom: 8,
+    height: 60,
     justifyContent: 'space-around',
     alignItems: 'center',
-    elevation: 8,
+    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     flexShrink: 0,
     width: '100%',
-    zIndex: 100,
+    zIndex: 9999,
   },
   tabItem: {
     alignItems: 'center',
