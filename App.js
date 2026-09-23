@@ -499,6 +499,8 @@ function AppContent() {
           handleCloseAddress();
         }}
         selectedAddress={selectedAddress}
+        user={currentUser}
+        onOpenAuth={() => setIsAuthOpen(true)}
       />
 
       {/* Detail Produk Modal Overlay */}
@@ -519,6 +521,16 @@ function AppContent() {
         onBuyNow={(prod) => {
           setSelectedProduct(null);
           setIsCheckoutOpen(true);
+        }}
+      />
+
+      {/* User Auth Modal (Login / Register) */}
+      <AuthModal
+        visible={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLoginSuccess={(userData) => {
+          handleSaveUserSession(userData);
+          setIsAuthOpen(false);
         }}
       />
 
