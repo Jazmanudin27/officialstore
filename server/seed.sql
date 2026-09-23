@@ -113,3 +113,8 @@ INSERT INTO product_variants (product_id, sku, nama_varian, ukuran_atau_isi, sat
 -- 16. SAOSME 500 GR
 (16, 'SS500-PCS', 'SAOSME 500 GR [PCS]', '500 GR', 'PCS', 500, 17000.00, 15000.00, 200),
 (16, 'SS500-DUS', 'SAOSME 500 GR [DUS / 24 PCS]', '24 PCS', 'DUS', 12000, 385000.00, 340000.00, 40);
+
+-- 5. SEED FOTO PRODUK (TABEL product_images)
+INSERT INTO product_images (product_id, url_gambar, urutan)
+SELECT product_id, gambar_utama, 1 FROM products;
+

@@ -640,6 +640,18 @@ app.post('/api/admin/products', async (req, res) => {
       variantId = variantResult.insertId;
     }
 
+    // 4. Insert into product_images table for Navicat / database completeness
+    if (image) {
+      try {
+        await connection.query(
+          'INSERT INTO product_images (product_id, url_gambar, urutan) VALUES (?, ?, 1)',
+          [productId, image]
+        );
+      } catch (imgErr) {
+        console.warn('product_images insert warning:', imgErr.message);
+      }
+    }
+
     await connection.commit();
 
     console.log(`✅ [MYSQL DB INSERT PRODUCT] Product ID: ${productId}, Variant ID: ${variantId}, Name: ${name}`);
@@ -752,6 +764,20 @@ app.put('/api/admin/products/:id', async (req, res) => {
       }
     }
 
+    // 4. Update or Insert into product_images table
+    if (image && productId) {
+      try {
+        const [imgCheck] = await connection.query('SELECT image_id FROM product_images WHERE product_id = ? LIMIT 1', [productId]);
+        if (imgCheck.length > 0) {
+          await connection.query('UPDATE product_images SET url_gambar = ? WHERE product_id = ?', [image, productId]);
+        } else {
+          await connection.query('INSERT INTO product_images (product_id, url_gambar, urutan) VALUES (?, ?, 1)', [productId, image]);
+        }
+      } catch (imgErr) {
+        console.warn('product_images update warning:', imgErr.message);
+      }
+    }
+
     await connection.commit();
 
     console.log(`✅ [MYSQL DB UPDATE PRODUCT] Product ID: ${productId}, Variant ID: ${targetVariantId}, Name: ${name}`);
@@ -761,14 +787,6 @@ app.put('/api/admin/products/:id', async (req, res) => {
     await connection.rollback();
     console.error('❌ Error updating product in MySQL:', error);
     res.status(500).json({ status: 'error', message: `Gagal meng-update database: ${error.message}` });
-  } finally {
-    connection.release();
-  }
-});
-  } catch (error) {
-    await connection.rollback();
-    console.error('Error updating product:', error);
-    res.status(500).json({ status: 'error', message: error.message });
   } finally {
     connection.release();
   }
@@ -922,6 +940,22 @@ async function ensureStoreSettingsTable() {
   }
 }
 ensureStoreSettingsTable();
+
+// Auto-sync product_images table with products.gambar_utama
+async function ensureProductImagesSync() {
+  try {
+    await pool.query(`
+      INSERT INTO product_images (product_id, url_gambar, urutan)
+      SELECT p.product_id, p.gambar_utama, 1
+      FROM products p
+      LEFT JOIN product_images pi ON p.product_id = pi.product_id
+      WHERE pi.product_id IS NULL AND p.gambar_utama IS NOT NULL AND p.gambar_utama != ''
+    `);
+  } catch (err) {
+    console.warn('ensureProductImagesSync warning:', err.message);
+  }
+}
+ensureProductImagesSync();
 
 // 16. Admin: Get & Update Store Settings
 app.get('/api/admin/settings', async (req, res) => {
