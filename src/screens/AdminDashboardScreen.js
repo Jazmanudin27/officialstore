@@ -12,6 +12,7 @@ import {
   Alert,
   ActivityIndicator,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
@@ -276,6 +277,62 @@ export default function AdminDashboardScreen({
       setFormProdDesc('Produk Resmi Official Store - Terjamin 100% Asli');
     }
     setIsProductModalOpen(true);
+  };
+
+  // Pick & Upload Product Photo from Laptop / Mobile Device
+  const handlePickProductImage = () => {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            Alert.alert('Ukuran File Terlalu Besar', 'Maksimal ukuran foto adalah 5 MB.');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target && event.target.result) {
+              setFormProdImage(event.target.result);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    } else {
+      Alert.alert('Upload Foto', 'Silahkan gunakan web browser di laptop/HP untuk memilih file foto langsung dari galeri.');
+    }
+  };
+
+  // Pick & Upload Store Logo from Laptop / Mobile Device
+  const handlePickLogoImage = () => {
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/*';
+      input.onchange = (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          if (file.size > 5 * 1024 * 1024) {
+            Alert.alert('Ukuran File Terlalu Besar', 'Maksimal ukuran foto logo adalah 5 MB.');
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target && event.target.result) {
+              setFormSettingLogo(event.target.result);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      input.click();
+    } else {
+      Alert.alert('Upload Logo', 'Silahkan gunakan web browser di laptop/HP untuk memilih file logo dari galeri.');
+    }
   };
 
   // Save Product (Insert or Update)
@@ -1225,23 +1282,63 @@ export default function AdminDashboardScreen({
               </View>
 
               <ScrollView contentContainerStyle={{ padding: 20, gap: 14 }}>
-                {/* Image Preview & URL Row */}
-                <View style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start', backgroundColor: '#F8FAFC', padding: 12, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0' }}>
-                  <Image
-                    source={{ uri: formProdImage || 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=400&q=80' }}
-                    style={{ width: 72, height: 72, borderRadius: 10, backgroundColor: '#E2E8F0' }}
-                  />
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Text style={styles.formLabel}>URL Foto Produk</Text>
+                {/* Image Upload & Preview Section */}
+                <View style={{ backgroundColor: '#F8FAFC', padding: 14, borderRadius: 14, borderWidth: 1, borderColor: '#CBD5E1', gap: 12 }}>
+                  <Text style={styles.formLabel}>Foto Produk</Text>
+                  
+                  <View style={{ flexDirection: 'row', gap: 14, alignItems: 'center' }}>
+                    <View style={{ width: 84, height: 84, borderRadius: 12, overflow: 'hidden', backgroundColor: '#FFFFFF', borderWidth: 1.5, borderColor: '#CBD5E1', justifyContent: 'center', alignItems: 'center' }}>
+                      {formProdImage ? (
+                        <Image
+                          source={{ uri: formProdImage }}
+                          style={{ width: '100%', height: '100%', resizeMode: 'cover' }}
+                        />
+                      ) : (
+                        <Ionicons name="image-outline" size={36} color="#94A3B8" />
+                      )}
+                    </View>
+
+                    <View style={{ flex: 1, gap: 8 }}>
+                      <TouchableOpacity
+                        style={{
+                          backgroundColor: '#005691',
+                          paddingHorizontal: 16,
+                          paddingVertical: 10,
+                          borderRadius: 10,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 8,
+                          shadowColor: '#005691',
+                          shadowOffset: { width: 0, height: 2 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 4,
+                          elevation: 3,
+                        }}
+                        onPress={handlePickProductImage}
+                        activeOpacity={0.8}
+                      >
+                        <Ionicons name="cloud-upload" size={18} color="#FFFFFF" />
+                        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 13 }}>
+                          Pilih Foto dari Laptop / HP
+                        </Text>
+                      </TouchableOpacity>
+
+                      <Text style={{ fontSize: 11, color: '#64748B', lineHeight: 15 }}>
+                        Format: JPG, PNG, WEBP (Maksimal 5 MB). Gambar akan langsung ditampilkan di aplikasi toko.
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Manual URL Fallback Input */}
+                  <View style={{ marginTop: 4, gap: 4 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>Atau Tempel Link URL Foto (Opsional):</Text>
                     <TextInput
-                      style={[styles.formInput, { backgroundColor: '#FFFFFF' }]}
+                      style={[styles.formInput, { backgroundColor: '#FFFFFF', fontSize: 13, height: 40 }]}
                       placeholder="https://..."
-                      value={formProdImage}
+                      value={formProdImage.startsWith('data:') ? '[Foto Diupload dari Laptop]' : formProdImage}
                       onChangeText={setFormProdImage}
                     />
-                    <Text style={{ fontSize: 11, color: '#64748B' }}>
-                      Tempel URL gambar (JPG/PNG). Gambar akan ditampilkan langsung pada pratinjau di samping.
-                    </Text>
                   </View>
                 </View>
 
