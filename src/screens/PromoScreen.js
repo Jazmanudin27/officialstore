@@ -14,11 +14,24 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import PromoBanner from '../components/promo/PromoBanner';
+import ProductCard from '../components/product/ProductCard';
 
-export default function PromoScreen({ products = [], onAddToCart, openSearch, openCart, cartCount = 0, onSelectProduct }) {
+export default function PromoScreen({
+  products = [],
+  onAddToCart,
+  onUpdateQuantity,
+  getItemQuantity,
+  isFavorite = () => false,
+  onToggleFavorite = () => {},
+  openSearch,
+  openCart,
+  cartCount = 0,
+  onSelectProduct,
+}) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const numColumns = width >= 1200 ? 5 : width >= 992 ? 4 : width >= 768 ? 3 : 2;
+  const itemWidthPercent = `${100 / numColumns}%`;
 
   const [activePromoTab, setActivePromoTab] = useState('harga_spesial');
 
@@ -312,71 +325,19 @@ export default function PromoScreen({ products = [], onAddToCart, openSearch, op
         </View>
 
         {/* Product Cards Responsive Grid */}
-        <View style={styles.gridRow}>
+        <View style={styles.productGridRow}>
           {getActiveProducts().map((product) => (
-            <TouchableOpacity
-              key={product.id}
-              style={[
-                styles.productCard,
-                isDesktop ? { width: `calc(${100 / numColumns}% - 14px)` } : styles.mobileProductCard,
-              ]}
-              onPress={() => onSelectProduct && onSelectProduct(product)}
-              activeOpacity={0.85}
-            >
-              {/* Image & Category Overlay Strip */}
-              <View style={styles.imageBox}>
-                <Image source={{ uri: product.image }} style={styles.productImg} />
-                <View style={styles.categoryStrip}>
-                  <Text style={styles.categoryStripText}>{product.categoryTag}</Text>
-                </View>
-                {product.weightTag && (
-                  <View style={styles.weightTagPill}>
-                    <Text style={styles.weightTagText}>{product.weightTag}</Text>
-                  </View>
-                )}
-                {product.gratisBadge && (
-                  <View style={styles.gratisRibbon}>
-                    <Ionicons name="gift" size={11} color={COLORS.white} />
-                    <Text style={styles.gratisRibbonText}>Gratis</Text>
-                  </View>
-                )}
-              </View>
-
-              {/* Title & Prices */}
-              <View style={styles.cardInfo}>
-                <Text style={styles.productTitle} numberOfLines={2}>
-                  {product.name}
-                </Text>
-                <Text style={styles.productPrice}>{formatRupiah(product.price)}</Text>
-
-                <View style={styles.discountRow}>
-                  <View style={styles.discountBadge}>
-                    <Text style={styles.discountBadgeText}>{product.discount}</Text>
-                  </View>
-                  <Text style={styles.originalPrice}>{formatRupiah(product.originalPrice)}</Text>
-                </View>
-
-                {/* Delivery Indicator */}
-                <View style={styles.deliveryRow}>
-                  <Ionicons
-                    name={product.delivery.includes('Instan') ? 'flash' : 'storefront'}
-                    size={12}
-                    color="#D91E28"
-                  />
-                  <Text style={styles.deliveryText}>{product.delivery}</Text>
-                </View>
-
-                {/* Full-width Add to Cart Button */}
-                <TouchableOpacity
-                  style={styles.addToCartBtn}
-                  onPress={() => onAddToCart && onAddToCart(product)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="cart-outline" size={16} color={COLORS.white} style={{ marginRight: 6 }} />
-                  <Text style={styles.addToCartBtnText}>+ Keranjang</Text>
-                </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
+            <View key={product.id} style={[styles.gridItemWrapper, { width: itemWidthPercent }]}>
+              <ProductCard
+                product={product}
+                onAddToCart={onAddToCart}
+                onUpdateQuantity={onUpdateQuantity}
+                cartQuantity={getItemQuantity ? getItemQuantity(product.id) : 0}
+                isFavorite={isFavorite ? isFavorite(product.id) : false}
+                onToggleFavorite={onToggleFavorite}
+                onSelectProduct={onSelectProduct}
+              />
+            </View>
           ))}
         </View>
       </ScrollView>
@@ -526,27 +487,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   /* Product Grid */
-  gridRow: {
+  productGridRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    gap: 14,
+    paddingHorizontal: 8,
   },
-  mobileProductCard: {
-    width: '48%',
-  },
-  productCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 14,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
+  gridItemWrapper: {
+    padding: 4,
   },
   imageBox: {
     width: '100%',

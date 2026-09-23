@@ -322,6 +322,10 @@ function AppContent() {
           <PromoScreen
             products={productList}
             onAddToCart={addToCart}
+            onUpdateQuantity={updateQuantity}
+            getItemQuantity={getItemQuantity}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
             openSearch={() => setIsSearchOpen(true)}
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
