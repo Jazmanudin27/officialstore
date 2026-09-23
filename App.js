@@ -197,7 +197,7 @@ function AppContent() {
     handleCloseVoucher();
   };
 
-  // Inject Base64 Ionicons font on Web to guarantee 100% icon rendering offline/online
+  // Inject Base64 Ionicons font & Global Scrollbar Hiding CSS on Web
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const styleId = 'expo-vector-icons-ionicons-embedded';
@@ -212,6 +212,18 @@ function AppContent() {
               src: url('${IONICONS_BASE64}') format('truetype');
               font-weight: normal;
               font-style: normal;
+            }
+
+            /* Sembunyikan Scrollbar secara global di seluruh browser (Chrome, Edge, Safari, Firefox) */
+            ::-webkit-scrollbar {
+              display: none !important;
+              width: 0px !important;
+              height: 0px !important;
+              background: transparent !important;
+            }
+            * {
+              -ms-overflow-style: none !important;  /* IE and Edge */
+              scrollbar-width: none !important;  /* Firefox */
             }
           `)
         );

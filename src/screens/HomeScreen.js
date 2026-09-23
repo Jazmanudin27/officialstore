@@ -53,6 +53,8 @@ export default function HomeScreen({
       data={displayedProducts}
       keyExtractor={(item) => item.id}
       numColumns={numColumns}
+      showsVerticalScrollIndicator={false}
+      showsHorizontalScrollIndicator={false}
       style={styles.container}
       onScroll={handleScroll}
       scrollEventThrottle={16}
