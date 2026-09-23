@@ -140,11 +140,6 @@ export default function PromoBanner({ onSeeAllPromo, onSelectPromo }) {
                     </View>
                   </View>
                 </View>
-
-                {/* Red/Dark Footer Strip */}
-                <View style={styles.footerStrip}>
-                  <Text style={styles.footerText}>{promo.footerText}</Text>
-                </View>
               </View>
             </TouchableOpacity>
           ))}
