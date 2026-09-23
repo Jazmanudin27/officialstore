@@ -279,6 +279,28 @@ export default function Header({
       ) : (
         /* FULL / EXPANDED HEADER STATE (At Top) */
         <View>
+          {/* MOBILE BRAND LOGO ROW */}
+          <TouchableOpacity
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, paddingHorizontal: 4 }}
+            onPress={() => setActiveTab('home')}
+            activeOpacity={0.8}
+          >
+            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+              <Image
+                source={
+                  storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
+                    ? { uri: storeSettings.logo_url }
+                    : require('../../../assets/Offical Store.png')
+                }
+                style={{ width: 28, height: 28, borderRadius: 14 }}
+                resizeMode="contain"
+              />
+            </View>
+            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 15, letterSpacing: 0.5 }}>
+              {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
+            </Text>
+          </TouchableOpacity>
+
           <View style={styles.topRow}>
             <TouchableOpacity
               style={styles.addressContainer}
