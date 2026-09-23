@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Image,
   StyleSheet,
   LayoutAnimation,
   Platform,
@@ -72,7 +73,15 @@ export default function Header({
                 activeOpacity={0.8}
               >
                 <View style={styles.brandIconCircle}>
-                  <Ionicons name="bag-handle" size={20} color="#D91E28" />
+                  <Image
+                    source={
+                      storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
+                        ? { uri: storeSettings.logo_url }
+                        : require('../../../assets/Offical Store.png')
+                    }
+                    style={{ width: 32, height: 32, borderRadius: 16 }}
+                    resizeMode="contain"
+                  />
                 </View>
                 <View>
                   <Text style={styles.brandTitle}>

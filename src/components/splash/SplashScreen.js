@@ -127,9 +127,9 @@ export default function SplashScreen({ onFinish }) {
             {/* 3D App Logo Image Container */}
             <View style={styles.logoCard}>
               <Image
-                source={require('../../../assets/splash-logo.jpg')}
+                source={require('../../../assets/Offical Store.png')}
                 style={styles.logoImg}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             </View>
 

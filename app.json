@@ -4,10 +4,10 @@
     "slug": "official-store",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/Offical Store.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/Offical Store.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F172A"
     },
@@ -18,11 +18,11 @@
       "package": "com.officialstore.app",
       "adaptiveIcon": {
         "backgroundColor": "#0F172A",
-        "foregroundImage": "./assets/android-icon-foreground.png"
+        "foregroundImage": "./assets/Offical Store.png"
       }
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/Offical Store.png"
     }
   }
 }
