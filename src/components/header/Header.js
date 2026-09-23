@@ -172,6 +172,12 @@ export default function Header({
                 </TouchableOpacity>
               )}
 
+              {/* DigiFlazz PPOB Quick Button */}
+              <TouchableOpacity style={styles.desktopPpobHeaderBtn} onPress={openPpob} activeOpacity={0.85}>
+                <Ionicons name="flash" size={18} color="#F59E0B" />
+                <Text style={styles.desktopPpobHeaderBtnText}>Pulsa & PPOB</Text>
+              </TouchableOpacity>
+
               {/* Cart Button */}
               <TouchableOpacity style={styles.desktopCartBtn} onPress={openCart} activeOpacity={0.85}>
                 <Ionicons name="bag-handle" size={20} color="#D91E28" />
@@ -761,6 +767,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  desktopPpobHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    marginRight: 6,
+    gap: 6,
+  },
+  desktopPpobHeaderBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
   },
 });
 
