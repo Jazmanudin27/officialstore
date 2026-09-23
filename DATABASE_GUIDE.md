@@ -31,6 +31,13 @@ Perintah ini akan otomatis:
 1. Menghubungkan ke MySQL dengan user `officialstore`.
 2. Mengeksekusi [`server/schema.sql`](file:///server/schema.sql) (12 tabel lengkap).
 3. Memasukkan data awal (seed) dari [`server/seed.sql`](file:///server/seed.sql) mencakup kategori (*AIDA, SAUS SWAN, BUMBU TABUR, dll.*), varian produk (*AB, AR, AS, BB, BP500, dll.*), dan cabang toko pickup (*PERINTIS 158, PESANTREN AMANAH, dll.*).
+4. Menjalankan seeding akun Admin resmi secara otomatis.
+
+### B. Seeding Khusus Akun Admin:
+Jika Anda hanya ingin menambahkan / memperbarui akun Admin tanpa reset database:
+```bash
+npm run seed-admin
+```
 
 ---
 
