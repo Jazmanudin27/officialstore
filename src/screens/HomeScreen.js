@@ -20,14 +20,18 @@ export default function HomeScreen({
   refreshing = false,
   onSelectProduct,
   user,
+  onGoToShop,
 }) {
   const { width } = useWindowDimensions();
   const numColumns = width >= 1024 ? 5 : width >= 768 ? 3 : 2;
   const [internalRefreshing, setInternalRefreshing] = useState(false);
 
+  // Limit Penawaran Terbaik di Beranda maksimal 10 produk
+  const displayedProducts = (products || []).slice(0, 10);
+
   const handleScroll = (event) => {
     const offsetY = event.nativeEvent.contentOffset.y;
-    onScrollStateChange(offsetY > 35);
+    if (onScrollStateChange) onScrollStateChange(offsetY > 35);
   };
 
   const handlePullDownRefresh = async () => {
@@ -45,7 +49,7 @@ export default function HomeScreen({
   return (
     <FlatList
       key={`home-grid-${numColumns}`}
-      data={products}
+      data={displayedProducts}
       keyExtractor={(item) => item.id}
       numColumns={numColumns}
       style={styles.container}
@@ -78,7 +82,9 @@ export default function HomeScreen({
           {/* Section Header */}
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>🔥 Penawaran Terbaik</Text>
-            <Text style={styles.productCount}>Lihat Semua</Text>
+            <TouchableOpacity onPress={onGoToShop} activeOpacity={0.7}>
+              <Text style={styles.productCount}>Lihat Semua ({products ? products.length : 0})</Text>
+            </TouchableOpacity>
           </View>
         </>
       }

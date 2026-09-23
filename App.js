@@ -365,6 +365,7 @@ function AppContent() {
             refreshing={refreshing}
             onSelectProduct={(product) => setSelectedProduct(product)}
             user={currentUser}
+            onGoToShop={() => setActiveTab('belanja')}
           />
         );
     }
