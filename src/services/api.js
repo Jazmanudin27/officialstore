@@ -240,30 +240,13 @@ export const apiService = {
         body: JSON.stringify({ namaLengkap, phone, alamat, otp }),
       });
       const json = await response.json();
-      if (json.status === 'ok') {
+      if (response.ok && json.status === 'ok') {
         return json;
       }
-      throw new Error(json.message || 'Registrasi gagal');
+      throw new Error(json.message || 'Registrasi gagal disimpan ke database');
     } catch (err) {
-      console.warn('ℹ️ Auth API register error:', err.message);
-      // Jika server mengembalikan pesan error (OTP salah, nomor terdaftar, dll), langsung lempar error agar UI menampilkan Alert!
-      if (err.message && (err.message.includes('OTP') || err.message.includes('wajib') || err.message.includes('terdaftar') || err.message.includes('gagal') || err.message.includes('salah') || err.message.includes('tidak valid'))) {
-        throw err;
-      }
-      return {
-        status: 'ok',
-        message: 'Registrasi Berhasil (Offline Mode)',
-        data: {
-          user: {
-            id: Date.now(),
-            namaLengkap,
-            phone,
-            alamat,
-            poin: 500,
-            role: 'buyer',
-          },
-        },
-      };
+      console.error('❌ Auth API register error:', err.message);
+      throw err;
     }
   },
 

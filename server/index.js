@@ -181,11 +181,11 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   }
 });
 
-// C. Registrasi Akun Baru (Nama, No HP, Alamat)
-app.post('/api/auth/register', async (req, res) => {
+// C. Registrasi Akun Baru (Nama, No HP, Alamat) -> Disimpan ke MySQL Database
+app.all(['/api/auth/register', '/api/register'], async (req, res) => {
   const connection = await pool.getConnection();
   try {
-    const { namaLengkap, phone, alamat, otp } = req.body;
+    const { namaLengkap, phone, alamat, otp } = req.body || {};
 
     if (!namaLengkap || !phone || !alamat) {
       return res.status(400).json({
@@ -195,13 +195,14 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const cleanPhone = sanitizePhone(phone);
+    const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
 
     // Verifikasi Wajib OTP
     if (!otp) {
       return res.status(400).json({ status: 'error', message: 'Kode OTP wajib diisi.' });
     }
 
-    const stored = otpStore.get(cleanPhone);
+    const stored = otpStore.get(cleanPhone) || otpStore.get(zeroPhone);
     const isValidOtp = otp === '123456' || (stored && stored.otp === otp && Date.now() <= stored.expiresAt);
     if (!isValidOtp) {
       return res.status(400).json({ status: 'error', message: 'Kode OTP salah atau tidak cocok.' });
@@ -209,10 +210,10 @@ app.post('/api/auth/register', async (req, res) => {
 
     await connection.beginTransaction();
 
-    // 1. Cek apakah nomor sudah ada
+    // 1. Cek apakah nomor sudah ada (pencarian 628xxx atau 08xxx)
     const [existing] = await connection.query(
-      'SELECT user_id FROM users WHERE nomor_telepon = ?',
-      [cleanPhone]
+      'SELECT user_id FROM users WHERE nomor_telepon = ? OR nomor_telepon = ?',
+      [cleanPhone, zeroPhone]
     );
 
     let userId;
