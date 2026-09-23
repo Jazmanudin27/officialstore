@@ -15,7 +15,7 @@ import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import PromoBanner from '../components/promo/PromoBanner';
 
-export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCount = 0, onSelectProduct }) {
+export default function PromoScreen({ products = [], onAddToCart, openSearch, openCart, cartCount = 0, onSelectProduct }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const numColumns = width >= 1200 ? 5 : width >= 992 ? 4 : width >= 768 ? 3 : 2;
@@ -191,6 +191,15 @@ export default function PromoScreen({ onAddToCart, openSearch, openCart, cartCou
   ];
 
   const getActiveProducts = () => {
+    if (Array.isArray(products) && products.length > 0) {
+      return products.map((p) => ({
+        ...p,
+        categoryTag: p.category || 'Promo Toko',
+        weightTag: p.satuan || (p.weight ? `${p.weight} g` : 'PCS'),
+        delivery: 'Pengiriman Instan',
+        image: p.image,
+      }));
+    }
     switch (activePromoTab) {
       case 'gratis_produk':
         return gratisProducts;

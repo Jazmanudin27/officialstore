@@ -72,16 +72,24 @@ export default function Header({
                 onPress={() => setActiveTab('home')}
                 activeOpacity={0.8}
               >
-                <View style={[styles.brandIconCircle, { width: 44, height: 44, borderRadius: 22 }]}>
+                <View style={styles.brandIconCircle}>
                   <Image
                     source={
                       storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
                         ? { uri: storeSettings.logo_url }
                         : require('../../../assets/Offical Store.png')
                     }
-                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                    style={{ width: 32, height: 32, borderRadius: 16 }}
                     resizeMode="contain"
                   />
+                </View>
+                <View>
+                  <Text style={styles.brandTitle}>
+                    {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
+                  </Text>
+                  <Text style={styles.brandSubtitle} numberOfLines={1}>
+                    {storeSettings?.slogan || 'Supermarket Belanja Online'}
+                  </Text>
                 </View>
               </TouchableOpacity>
 
@@ -271,27 +279,40 @@ export default function Header({
       ) : (
         /* FULL / EXPANDED HEADER STATE (At Top) */
         <View>
-          {/* MOBILE BRAND LOGO ROW */}
-          <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8, paddingHorizontal: 4 }}
-            onPress={() => setActiveTab('home')}
-            activeOpacity={0.8}
-          >
-            <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-              <Image
-                source={
-                  storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
-                    ? { uri: storeSettings.logo_url }
-                    : require('../../../assets/Offical Store.png')
-                }
-                style={{ width: 28, height: 28, borderRadius: 14 }}
-                resizeMode="contain"
-              />
-            </View>
-            <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 15, letterSpacing: 0.5 }}>
-              {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
-            </Text>
-          </TouchableOpacity>
+          {/* Mobile Brand Logo Bar */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+            <TouchableOpacity
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
+              onPress={() => setActiveTab && setActiveTab('home')}
+              activeOpacity={0.8}
+            >
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
+                <Image
+                  source={
+                    storeSettings?.logo_url && (storeSettings.logo_url.startsWith('http') || storeSettings.logo_url.startsWith('data:'))
+                      ? { uri: storeSettings.logo_url }
+                      : require('../../../assets/Offical Store.png')
+                  }
+                  style={{ width: 26, height: 26, borderRadius: 13 }}
+                  resizeMode="contain"
+                />
+              </View>
+              <Text style={{ color: '#FFFFFF', fontWeight: '900', fontSize: 15, letterSpacing: 0.5 }}>
+                {(storeSettings?.nama_toko || 'OFFICIAL STORE').toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+
+            {user?.role === 'admin' && (
+              <TouchableOpacity
+                onPress={onOpenAdmin}
+                style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255, 255, 255, 0.22)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, gap: 4 }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="settings-outline" size={14} color="#FFFFFF" />
+                <Text style={{ color: '#FFFFFF', fontSize: 11, fontWeight: '800' }}>Admin</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
           <View style={styles.topRow}>
             <TouchableOpacity

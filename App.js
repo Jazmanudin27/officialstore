@@ -303,6 +303,7 @@ function AppContent() {
       case 'promo':
         return (
           <PromoScreen
+            products={productList}
             onAddToCart={addToCart}
             openSearch={() => setIsSearchOpen(true)}
             openCart={() => setIsCartOpen(true)}

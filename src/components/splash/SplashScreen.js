@@ -198,16 +198,13 @@ export default function SplashScreen({ onFinish, storeSettings = null }) {
 }
 
 const styles = StyleSheet.create({
-  screenOverlay: {
-    position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+  fullScreen: {
+    position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    width: '100%',
-    height: '100%',
-    zIndex: 999999,
-    elevation: 999999,
+    zIndex: 9999,
   },
   gradientBg: {
     flex: 1,
