@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import MemberCard from '../components/member/MemberCard';
 import PromoBanner from '../components/promo/PromoBanner';
 import CategoryGrid from '../components/category/CategoryGrid';
