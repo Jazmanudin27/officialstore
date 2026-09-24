@@ -1497,13 +1497,31 @@ app.post('/api/orders', async (req, res) => {
 });
 
 // =====================================================
+// DIGIFLAZZ PPOB API ENDPOINTS (DOKUMENTASI RESMI DIGIFLAZZ)
+// URL Resmi: https://api.digiflazz.com/v1
 // =====================================================
-// DIGIFLAZZ PPOB API ENDPOINTS (12 PRODUK DIGITAL)
-// =====================================================
+const crypto = require('crypto');
+
+const DIGIFLAZZ_CONFIG = {
+  baseUrl: process.env.DIGIFLAZZ_BASE_URL || 'https://api.digiflazz.com/v1',
+  username: process.env.DIGIFLAZZ_USERNAME || 'DemoDigiFlazzUser',
+  apiKey: process.env.DIGIFLAZZ_API_KEY || 'dev-demo-api-key',
+  webhookSecret: process.env.DIGIFLAZZ_WEBHOOK_SECRET || 'demo-webhook-secret',
+  isTesting: process.env.DIGIFLAZZ_TESTING !== 'false', // Default testing/sandbox
+};
+
+// Helper kalkulasi MD5 Signature resmi Digiflazz
+function generateDigiflazzSign(refIdOrCommand) {
+  const str = DIGIFLAZZ_CONFIG.username + DIGIFLAZZ_CONFIG.apiKey + refIdOrCommand;
+  return crypto.createHash('md5').update(str).digest('hex');
+}
+
+// 1. Get Layanan & Status DigiFlazz Config
 app.get('/api/ppob/services', (req, res) => {
   res.json({
     status: 'success',
-    digiflazzUsername: process.env.DIGIFLAZZ_USERNAME || 'DemoDigiFlazzUser',
+    digiflazzUsername: DIGIFLAZZ_CONFIG.username,
+    isTesting: DIGIFLAZZ_CONFIG.isTesting,
     services: [
       { id: 'pulsa', title: 'Pulsa Reguler', icon: 'phone-portrait', type: 'prabayar' },
       { id: 'paket_data', title: 'Paket Data', icon: 'wifi', type: 'prabayar' },
@@ -1517,33 +1535,274 @@ app.get('/api/ppob/services', (req, res) => {
       { id: 'voucher_game', title: 'Voucher Game', icon: 'game-controller', type: 'prabayar' },
       { id: 'voucher_digital', title: 'Voucher Digital', icon: 'card', type: 'prabayar' },
       { id: 'topup_ewallet', title: 'Top Up E-Wallet', icon: 'wallet', type: 'prabayar' },
-    ]
+    ],
   });
 });
 
-app.post('/api/ppob/check-bill', async (req, res) => {
+// 2. Cek Saldo Deposit DigiFlazz (POST /v1/cek-saldo)
+app.get('/api/ppob/balance', async (req, res) => {
   try {
-    const { serviceId, customerNumber } = req.body;
-    if (!customerNumber) {
-      return res.status(400).json({ status: 'error', message: 'Nomor pelanggan wajib diisi.' });
+    if (!process.env.DIGIFLAZZ_API_KEY) {
+      return res.json({ status: 'success', balance: 1000000, isDemo: true });
     }
-
-    // Demo / DigiFlazz Pascabayar Bill Check
-    res.json({
-      status: 'success',
-      data: {
-        customerNumber,
-        namaPelanggan: 'Pelanggan Resmi Official Store',
-        periode: 'September 2026',
-        tagihan: 148500,
-        biayaAdmin: 2500,
-        totalBayar: 151000,
-      }
+    const sign = generateDigiflazzSign('depo');
+    const response = await fetch(`${DIGIFLAZZ_CONFIG.baseUrl}/cek-saldo`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cmd: 'deposit',
+        username: DIGIFLAZZ_CONFIG.username,
+        sign: sign,
+      }),
     });
+    const result = await response.json();
+    res.json(result);
   } catch (error) {
     res.status(500).json({ status: 'error', message: error.message });
   }
 });
+
+// 3. Daftar Harga Produk (POST /v1/price-list) - Prabayar & Pascabayar
+app.post('/api/ppob/price-list', async (req, res) => {
+  try {
+    const { type = 'prepaid' } = req.body; // 'prepaid' atau 'pasca'
+    if (!process.env.DIGIFLAZZ_API_KEY) {
+      // Demo Fallback Data jika belum ada API key asli
+      return res.json({
+        status: 'success',
+        isDemo: true,
+        data: [
+          { buyer_sku_code: 'p5', product_name: 'Pulsa 5.000', price: 6250, brand: 'INDOSAT', category: 'Pulsa', buyer_product_status: true, seller_product_status: true },
+          { buyer_sku_code: 'p10', product_name: 'Pulsa 10.000', price: 11250, brand: 'INDOSAT', category: 'Pulsa', buyer_product_status: true, seller_product_status: true },
+          { buyer_sku_code: 'p25', product_name: 'Pulsa 25.000', price: 25800, brand: 'INDOSAT', category: 'Pulsa', buyer_product_status: true, seller_product_status: true },
+          { buyer_sku_code: 'pln20', product_name: 'Token PLN 20.000', price: 21500, brand: 'PLN', category: 'PLN', buyer_product_status: true, seller_product_status: true },
+          { buyer_sku_code: 'ew20', product_name: 'Saldo DANA 20.000', price: 21000, brand: 'DANA', category: 'E-Money', buyer_product_status: true, seller_product_status: true },
+        ],
+      });
+    }
+
+    const sign = generateDigiflazzSign('pricelist');
+    const response = await fetch(`${DIGIFLAZZ_CONFIG.baseUrl}/price-list`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        cmd: type === 'pasca' ? 'pasca' : 'prepaid',
+        username: DIGIFLAZZ_CONFIG.username,
+        sign: sign,
+      }),
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 4. Transaksi Prabayar (POST /v1/transaction - Topup / Pulsa / Data / Game / E-Wallet)
+app.post('/api/ppob/topup', async (req, res) => {
+  try {
+    const { buyerSkuCode, customerNo, refId } = req.body;
+    if (!buyerSkuCode || !customerNo) {
+      return res.status(400).json({ status: 'error', message: 'buyerSkuCode dan customerNo wajib diisi.' });
+    }
+
+    const transactionRefId = refId || `OFFSTORE-${Date.now()}`;
+    const sign = generateDigiflazzSign(transactionRefId);
+
+    if (!process.env.DIGIFLAZZ_API_KEY) {
+      // Simulation mode
+      return res.json({
+        status: 'success',
+        isDemo: true,
+        data: {
+          ref_id: transactionRefId,
+          customer_no: customerNo,
+          buyer_sku_code: buyerSkuCode,
+          status: 'Sukses',
+          rc: '00',
+          sn: '202609240829001182736',
+          price: 10000,
+          message: 'Transaksi Prabayar Berhasil (Mode Simulasi)',
+        },
+      });
+    }
+
+    const response = await fetch(`${DIGIFLAZZ_CONFIG.baseUrl}/transaction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        username: DIGIFLAZZ_CONFIG.username,
+        buyer_sku_code: buyerSkuCode,
+        customer_no: customerNo,
+        ref_id: transactionRefId,
+        sign: sign,
+        testing: DIGIFLAZZ_CONFIG.isTesting,
+      }),
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 5. Cek Tagihan Pascabayar / Inquiry (POST /v1/transaction commands: inq-pasca)
+app.post('/api/ppob/check-bill', async (req, res) => {
+  try {
+    const { buyerSkuCode = 'hpindosat', customerNumber } = req.body;
+    if (!customerNumber) {
+      return res.status(400).json({ status: 'error', message: 'Nomor pelanggan wajib diisi.' });
+    }
+
+    const refId = `INQ-${Date.now()}`;
+    const sign = generateDigiflazzSign(refId);
+
+    if (!process.env.DIGIFLAZZ_API_KEY) {
+      // Demo / Fallback Data
+      return res.json({
+        status: 'success',
+        isDemo: true,
+        data: {
+          ref_id: refId,
+          customer_no: customerNumber,
+          buyer_sku_code: buyerSkuCode,
+          namaPelanggan: 'Pelanggan Resmi Official Store',
+          customer_name: 'Pelanggan Resmi Official Store',
+          periode: 'September 2026',
+          tagihan: 148500,
+          price: 148500,
+          admin: 2500,
+          biayaAdmin: 2500,
+          totalBayar: 151000,
+          selling_price: 151000,
+          rc: '00',
+          message: 'Inquiry Berhasil',
+        },
+      });
+    }
+
+    const response = await fetch(`${DIGIFLAZZ_CONFIG.baseUrl}/transaction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commands: 'inq-pasca',
+        username: DIGIFLAZZ_CONFIG.username,
+        buyer_sku_code: buyerSkuCode,
+        customer_no: customerNumber,
+        ref_id: refId,
+        sign: sign,
+      }),
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 6. Bayar Tagihan Pascabayar (POST /v1/transaction commands: pay-pasca)
+app.post('/api/ppob/pay-bill', async (req, res) => {
+  try {
+    const { buyerSkuCode, customerNumber, refId } = req.body;
+    if (!buyerSkuCode || !customerNumber) {
+      return res.status(400).json({ status: 'error', message: 'buyerSkuCode dan customerNumber wajib diisi.' });
+    }
+
+    const payRefId = refId || `PAY-${Date.now()}`;
+    const sign = generateDigiflazzSign(payRefId);
+
+    if (!process.env.DIGIFLAZZ_API_KEY) {
+      return res.json({
+        status: 'success',
+        isDemo: true,
+        data: {
+          ref_id: payRefId,
+          customer_no: customerNumber,
+          buyer_sku_code: buyerSkuCode,
+          status: 'Sukses',
+          rc: '00',
+          sn: '20260924PAY00918',
+          message: 'Pembayaran Tagihan Pascabayar Berhasil (Simulasi)',
+        },
+      });
+    }
+
+    const response = await fetch(`${DIGIFLAZZ_CONFIG.baseUrl}/transaction`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        commands: 'pay-pasca',
+        username: DIGIFLAZZ_CONFIG.username,
+        buyer_sku_code: buyerSkuCode,
+        customer_no: customerNumber,
+        ref_id: payRefId,
+        sign: sign,
+      }),
+    });
+    const result = await response.json();
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 7. RECEIVER WEBHOOK DIGIFLAZZ (POST /api/digiflazz/webhook & POST /api/ppob/webhook)
+const handleDigiflazzWebhook = async (req, res) => {
+  try {
+    console.log('📬 Webhook Digiflazz Diterima Header:', req.headers);
+    console.log('📦 Webhook Digiflazz Body:', JSON.stringify(req.body));
+
+    // Validasi Signature HMAC SHA1 dari Header Digiflazz (X-Hub-Signature)
+    const signature = req.headers['x-hub-signature'];
+    const eventType = req.headers['x-digiflazz-event'];
+
+    if (signature && process.env.DIGIFLAZZ_WEBHOOK_SECRET) {
+      const expectedSign = 'sha1=' + crypto
+        .createHmac('sha1', DIGIFLAZZ_CONFIG.webhookSecret)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+
+      if (signature !== expectedSign) {
+        console.warn('⚠️ Webhook Digiflazz: Signature tidak valid!');
+        return res.status(401).json({ status: 'error', message: 'Signature tidak valid' });
+      }
+    }
+
+    // Ekstrak Payload Data Callback (Standar Digiflazz & Event Khusus seperti Hotel/Resend)
+    const payload = req.body.data || req.body;
+    const refId = payload.ref_id || payload.booking_ref;
+    const status = payload.status || (payload.rc === '00' ? 'Sukses' : 'Gagal');
+    const sn = payload.sn || payload.booking_number || '-';
+
+    console.log(`✅ Webhook Digiflazz Diproses: RefID=${refId}, Status=${status}, SN=${sn}`);
+
+    // Update status pesanan di database MySQL jika refId cocok
+    if (refId) {
+      try {
+        await pool.query(
+          'UPDATE orders SET status = ?, notes = CONCAT(COALESCE(notes,""), " | Digiflazz SN: ", ?) WHERE order_number = ? OR notes LIKE ?',
+          [status === 'Sukses' ? 'completed' : 'failed', sn, refId, `%${refId}%`]
+        );
+      } catch (dbError) {
+        console.error('Gagal update status pesanan dari webhook:', dbError);
+      }
+    }
+
+    // Respon HTTP 200 OK ke Digiflazz
+    res.status(200).json({
+      status: 'ok',
+      message: 'Webhook berhasil diproses',
+      event: eventType || 'transaction_update',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error saat memproses webhook Digiflazz:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+};
+
+app.post('/api/digiflazz/webhook', handleDigiflazzWebhook);
+app.post('/api/ppob/webhook', handleDigiflazzWebhook);
 
 // SERVE PRODUCTION BUILD (dist/)
 // =====================================================
