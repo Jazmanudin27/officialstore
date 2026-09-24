@@ -9,6 +9,8 @@ import {
   Modal,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +18,7 @@ import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import AddressModal from './AddressModal';
 import VoucherScreen from './VoucherScreen';
+import apiService from '../services/api';
 
 export default function CheckoutScreen({
   visible,
@@ -34,6 +37,7 @@ export default function CheckoutScreen({
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [internalVoucher, setInternalVoucher] = useState(selectedVoucher);
+  const [isLoadingPayment, setIsLoadingPayment] = useState(false);
 
   React.useEffect(() => {
     setInternalVoucher(selectedVoucher);
@@ -76,16 +80,12 @@ export default function CheckoutScreen({
       `Total Pembayaran: ${formatRupiah(finalTotal)}`,
       [
         {
-          text: 'BCA Virtual Account',
-          onPress: () => processPayment('BCA Virtual Account'),
+          text: '💳 Midtrans Payment (QRIS, VA Bank, GoPay, ShopeePay)',
+          onPress: () => processMidtransPayment(),
         },
         {
-          text: 'GoPay / QRIS',
-          onPress: () => processPayment('GoPay'),
-        },
-        {
-          text: 'COD (Bayar di Tempat)',
-          onPress: () => processPayment('COD'),
+          text: '💵 COD (Bayar di Tempat)',
+          onPress: () => processPayment('COD (Bayar di Tempat)'),
         },
         {
           text: 'Batal',
@@ -95,12 +95,98 @@ export default function CheckoutScreen({
     );
   };
 
-  const processPayment = (method) => {
+  const processMidtransPayment = async () => {
+    setIsLoadingPayment(true);
+    try {
+      const orderId = `INV-${Date.now().toString().slice(-8)}`;
+      const customerName = selectedAddress
+        ? (selectedAddress.recipient || selectedAddress.nama_penerima || 'Pelanggan Official Store')
+        : 'Pelanggan Official Store';
+      const customerPhone = selectedAddress
+        ? (selectedAddress.phone || selectedAddress.nomor_telepon || '089523888200')
+        : '089523888200';
+
+      const snapRes = await apiService.createMidtransSnapToken({
+        orderId,
+        grossAmount: finalTotal,
+        customerName,
+        customerPhone,
+        items: displayItems.map((it) => ({
+          id: it.id,
+          price: it.price,
+          quantity: it.quantity,
+          name: it.name,
+        })),
+      });
+
+      // Simpan pesanan ke database MySQL
+      try {
+        await apiService.createOrder({
+          userId: 1,
+          tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
+          totalHargaProduk: totalProductPrice,
+          ongkosKirim: deliveryFee,
+          diskonVoucher: discountAmount,
+          totalPembayaran: finalTotal,
+          catatanPesanan: `Midtrans Snap Order ${orderId}`,
+          items: displayItems,
+        });
+      } catch (dbErr) {
+        console.warn('Order save error:', dbErr.message);
+      }
+
+      if (snapRes && snapRes.token) {
+        // Trigger Snap Popup di browser web
+        if (Platform.OS === 'web' && typeof window !== 'undefined') {
+          const launchSnapModal = () => {
+            if (window.snap) {
+              window.snap.pay(snapRes.token, {
+                onSuccess: (result) => {
+                  finishOrder('Midtrans (Pembayaran Berhasil)');
+                },
+                onPending: (result) => {
+                  finishOrder('Midtrans (Menunggu Pembayaran)');
+                },
+                onError: (result) => {
+                  Alert.alert('Pembayaran Gagal', 'Proses pembayaran Midtrans tidak berhasil.');
+                },
+                onClose: () => {
+                  console.log('Snap popup closed by user');
+                },
+              });
+            } else if (snapRes.redirectUrl) {
+              window.open(snapRes.redirectUrl, '_blank');
+              finishOrder('Midtrans Sandbox Redirect');
+            }
+          };
+
+          if (!window.snap) {
+            const script = document.createElement('script');
+            script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+            script.setAttribute('data-client-key', snapRes.clientKey || 'SB-Mid-client-gtkZiSrCZjZHYwwZ');
+            script.onload = launchSnapModal;
+            document.head.appendChild(script);
+          } else {
+            launchSnapModal();
+          }
+        } else if (snapRes.redirectUrl) {
+          window.open(snapRes.redirectUrl, '_blank');
+          finishOrder('Midtrans Payment Redirect');
+        }
+      } else {
+        throw new Error('Gagal mendapatkan token transaksi Midtrans.');
+      }
+    } catch (err) {
+      Alert.alert('Midtrans Payment Info', err.message || 'Gagal memproses pembayaran Midtrans.');
+    } finally {
+      setIsLoadingPayment(false);
+    }
+  };
+
+  const finishOrder = (method) => {
     Alert.alert(
-      '🎉 Pesanan Berhasil!',
-      `Terima kasih! Pesanan Anda telah diproses menggunakan ${method}.\nTotal: ${formatRupiah(
-        finalTotal
-      )}`,
+      '🎉 Pesanan Berhasil Diproses!',
+      `Terima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal: ${formatRupiah(finalTotal)}`,
       [
         {
           text: 'Selesai',
@@ -111,6 +197,10 @@ export default function CheckoutScreen({
         },
       ]
     );
+  };
+
+  const processPayment = (method) => {
+    finishOrder(method);
   };
 
   return (

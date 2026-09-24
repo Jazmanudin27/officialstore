@@ -148,6 +148,67 @@ export const apiService = {
     }
   },
 
+  // 3.8 Buat Snap Token Midtrans untuk Pembayaran Sandbox / Production
+  async createMidtransSnapToken(payload) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/payment/create-snap-token`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const json = await response.json();
+      if (response.ok && json.status === 'ok') {
+        return json;
+      }
+      throw new Error(json.message || 'Gagal membuat Snap Token Midtrans.');
+    } catch (err) {
+      console.warn('ℹ️ Midtrans API direct fallback mode:', err.message);
+      // Direct client-side request fallback to Midtrans Sandbox Snap API
+      try {
+        const serverKey = 'SB-Mid-server-oRFj2p6jrFzxUVGwO6Tj6w8B';
+        const clientKey = 'SB-Mid-client-gtkZiSrCZjZHYwwZ';
+        const authHeader = 'Basic ' + (typeof btoa !== 'undefined' ? btoa(serverKey + ':') : Buffer.from(serverKey + ':').toString('base64'));
+        const snapRes = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': authHeader,
+          },
+          body: JSON.stringify({
+            transaction_details: {
+              order_id: payload.orderId || `INV-${Date.now()}`,
+              gross_amount: Math.max(1000, parseInt(payload.grossAmount, 10) || 10000),
+            },
+            customer_details: {
+              first_name: payload.customerName || 'Pelanggan Official Store',
+              phone: payload.customerPhone || '089523888200',
+            },
+            item_details: (payload.items || []).map((it, idx) => ({
+              id: String(it.id || idx + 1),
+              price: parseInt(it.price, 10) || 1000,
+              quantity: parseInt(it.quantity, 10) || 1,
+              name: String(it.name || 'Produk Official Store').slice(0, 50),
+            })),
+          }),
+        });
+        const snapJson = await snapRes.json();
+        if (snapRes.ok && snapJson.token) {
+          return {
+            status: 'ok',
+            token: snapJson.token,
+            redirectUrl: snapJson.redirect_url,
+            orderId: payload.orderId,
+            clientKey,
+          };
+        }
+      } catch (fallbackErr) {
+        console.error('Midtrans client-side fallback error:', fallbackErr);
+      }
+      throw err;
+    }
+  },
+
   // 3.5 Ambil Riwayat Pesanan User Langsung dari Database MySQL
   async getUserOrders(userId) {
     if (!userId) return [];

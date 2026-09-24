@@ -584,6 +584,121 @@ app.post('/api/orders', async (req, res) => {
   }
 });
 
+// =====================================================
+// MIDTRANS PAYMENT GATEWAY API ENDPOINTS (SANDBOX / PROD)
+// =====================================================
+
+// 6.2 Buat Snap Token Pembayaran Midtrans (Sandbox / Production)
+app.post('/api/payment/create-snap-token', async (req, res) => {
+  try {
+    const {
+      orderId,
+      grossAmount,
+      customerName = 'Pelanggan Official Store',
+      customerPhone = '089523888200',
+      customerEmail = 'pelanggan@officialstore.com',
+      items = [],
+    } = req.body || {};
+
+    const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-oRFj2p6jrFzxUVGwO6Tj6w8B';
+    const clientKey = process.env.MIDTRANS_CLIENT_KEY || 'SB-Mid-client-gtkZiSrCZjZHYwwZ';
+    const isProduction = process.env.MIDTRANS_IS_PRODUCTION === 'true';
+
+    const snapApiUrl = isProduction
+      ? 'https://app.midtrans.com/snap/v1/transactions'
+      : 'https://app.sandbox.midtrans.com/snap/v1/transactions';
+
+    const finalOrderId = orderId || `INV-${Date.now()}`;
+    const amount = Math.max(1000, parseInt(grossAmount, 10) || 10000);
+
+    const authHeader = 'Basic ' + Buffer.from(serverKey.trim() + ':').toString('base64');
+
+    const formattedItems = items.map((it, idx) => ({
+      id: String(it.id || idx + 1),
+      price: parseInt(it.price, 10) || 1000,
+      quantity: parseInt(it.quantity, 10) || 1,
+      name: String(it.name || 'Produk Official Store').slice(0, 50),
+    }));
+
+    const payload = {
+      transaction_details: {
+        order_id: finalOrderId,
+        gross_amount: amount,
+      },
+      customer_details: {
+        first_name: customerName,
+        phone: customerPhone,
+        email: customerEmail,
+      },
+      item_details: formattedItems.length > 0 ? formattedItems : undefined,
+    };
+
+    const midtransRes = await fetch(snapApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': authHeader,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const midtransData = await midtransRes.json();
+
+    if (midtransRes.ok && midtransData.token) {
+      console.log(`💳 [MIDTRANS SNAP TOKEN CREATED] Order: ${finalOrderId} | Rp ${amount}`);
+      return res.json({
+        status: 'ok',
+        token: midtransData.token,
+        redirectUrl: midtransData.redirect_url,
+        orderId: finalOrderId,
+        clientKey,
+      });
+    } else {
+      console.error('❌ Midtrans API error:', midtransData);
+      return res.status(400).json({
+        status: 'error',
+        message: midtransData.error_messages ? midtransData.error_messages.join(', ') : 'Gagal membuat token pembayaran Midtrans.',
+        data: midtransData,
+      });
+    }
+  } catch (error) {
+    console.error('Error create-snap-token:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// 6.3 Webhook Notification Midtrans Payment Status
+app.post('/api/payment/midtrans-notification', async (req, res) => {
+  try {
+    const notification = req.body || {};
+    const { order_id, transaction_status, fraud_status } = notification;
+
+    console.log(`🔔 [MIDTRANS NOTIFICATION] Order: ${order_id} | Status: ${transaction_status}`);
+
+    let newStatus = 'pending';
+    if (transaction_status === 'capture' || transaction_status === 'settlement') {
+      if (fraud_status === 'accept' || !fraud_status) {
+        newStatus = 'completed';
+      }
+    } else if (transaction_status === 'cancel' || transaction_status === 'deny' || transaction_status === 'expire') {
+      newStatus = 'cancelled';
+    }
+
+    if (order_id && newStatus !== 'pending') {
+      await pool.query(
+        'UPDATE orders SET status_pesanan = ? WHERE nomor_pesanan = ? OR order_id = ?',
+        [newStatus, order_id, order_id.replace(/^INV-/, '')]
+      );
+    }
+
+    res.json({ status: 'ok', message: 'Notification processed' });
+  } catch (err) {
+    console.error('Error midtrans-notification:', err);
+    res.status(500).json({ status: 'error', message: err.message });
+  }
+});
+
 // Ambil riwayat pesanan khusus user yang sedang login
 app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
   try {
