@@ -114,49 +114,68 @@ export default function OrdersScreen({
     );
   };
 
-  const handleCancelOrder = (order) => {
-    Alert.alert(
-      'Batalkan Pesanan',
-      `Apakah Anda yakin ingin membatalkan pesanan ${order.id || order.nomorPesanan}?`,
-      [
-        { text: 'Kembali', style: 'cancel' },
-        {
-          text: 'Ya, Batalkan',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const targetId = order.dbId || order.id;
-              await apiService.updateOrderStatus(targetId, { status: 'cancelled' });
+  const executeCancelOrder = async (order) => {
+    try {
+      const targetId = order.dbId || order.id;
+      await apiService.updateOrderStatus(targetId, { status: 'cancelled' });
 
-              try {
-                const s = storage.getItem('official_store_orders');
-                if (s) {
-                  let localOrders = JSON.parse(s);
-                  localOrders = localOrders.map((o) =>
-                    (o.id === order.id || o.dbId === targetId)
-                      ? {
-                          ...o,
-                          status: 'cancelled',
-                          statusLabel: 'Dibatalkan',
-                          statusBg: '#F1F5F9',
-                          statusColor: '#64748B',
-                        }
-                      : o
-                  );
-                  storage.setItem('official_store_orders', JSON.stringify(localOrders));
+      try {
+        const s = storage.getItem('official_store_orders');
+        if (s) {
+          let localOrders = JSON.parse(s);
+          localOrders = localOrders.map((o) =>
+            (o.id === order.id || o.dbId === targetId || String(o.id) === String(order.id))
+              ? {
+                  ...o,
+                  status: 'cancelled',
+                  statusLabel: 'Dibatalkan',
+                  statusBg: '#F1F5F9',
+                  statusColor: '#64748B',
                 }
-              } catch (e) {}
+              : o
+          );
+          storage.setItem('official_store_orders', JSON.stringify(localOrders));
+        }
+      } catch (e) {}
 
-              setSelectedOrderForDetail(null);
-              fetchOrders(false);
-              Alert.alert('Pesanan Dibatalkan', 'Pesanan Anda telah berhasil dibatalkan.');
-            } catch (err) {
-              Alert.alert('Gagal', 'Terjadi kesalahan saat membatalkan pesanan.');
-            }
+      setSelectedOrderForDetail(null);
+      fetchOrders(false);
+
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('Pesanan Anda telah berhasil dibatalkan.');
+      } else {
+        Alert.alert('Pesanan Dibatalkan', 'Pesanan Anda telah berhasil dibatalkan.');
+      }
+    } catch (err) {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        window.alert('Terjadi kesalahan saat membatalkan pesanan.');
+      } else {
+        Alert.alert('Gagal', 'Terjadi kesalahan saat membatalkan pesanan.');
+      }
+    }
+  };
+
+  const handleCancelOrder = (order) => {
+    const msg = `Apakah Anda yakin ingin membatalkan pesanan ${order.id || order.nomorPesanan}?`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const confirmed = window.confirm(msg);
+      if (confirmed) {
+        executeCancelOrder(order);
+      }
+    } else {
+      Alert.alert(
+        'Batalkan Pesanan',
+        msg,
+        [
+          { text: 'Kembali', style: 'cancel' },
+          {
+            text: 'Ya, Batalkan',
+            style: 'destructive',
+            onPress: () => executeCancelOrder(order),
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (

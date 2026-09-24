@@ -1836,8 +1836,8 @@ app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, r
       `UPDATE orders SET 
         status_pesanan = COALESCE(?, status_pesanan),
         resi_pengiriman = COALESCE(?, resi_pengiriman)
-      WHERE order_id = ?`,
-      [status || null, trackingNumber || null, orderId]
+      WHERE order_id = ? OR nomor_pesanan = ?`,
+      [status || null, trackingNumber || null, orderId, orderId]
     );
 
     res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui ke database' });
