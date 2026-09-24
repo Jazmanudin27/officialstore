@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import { apiService } from '../services/api';
+import OrderDetailModal from './OrderDetailModal';
 
 export default function AdminDashboardScreen({
   visible = true,
@@ -37,6 +38,7 @@ export default function AdminDashboardScreen({
   const [vouchers, setVouchers] = useState([]);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState(null);
 
   // Search & Filter States
   const [productSearch, setProductSearch] = useState('');
@@ -806,32 +808,44 @@ export default function AdminDashboardScreen({
                 </View>
               ) : (
                 filteredOrders.map((ord) => (
-                  <View key={ord.id} style={styles.orderCard}>
+                  <TouchableOpacity
+                    key={ord.id}
+                    style={styles.orderCard}
+                    onPress={() => setSelectedOrderForDetail(ord)}
+                    activeOpacity={0.92}
+                  >
                     <View style={styles.orderHeaderRow}>
                       <View>
-                        <Text style={styles.orderNumberText}>{ord.orderNumber}</Text>
+                        <Text style={styles.orderNumberText}>{ord.orderNumber || ord.id}</Text>
                         <Text style={styles.orderDateText}>{ord.date}</Text>
                       </View>
                       <View
                         style={[
                           styles.statusBadge,
-                          ord.status === 'completed'
+                          ord.status === 'completed' || ord.status === 'selesai'
                             ? { backgroundColor: '#DCFCE7' }
-                            : ord.status === 'shipped'
+                            : ord.status === 'shipped' || ord.status === 'dikirim'
                             ? { backgroundColor: '#E0F2FE' }
                             : { backgroundColor: '#FEF3C7' },
                         ]}
                       >
-                        <Text style={styles.statusBadgeText}>{ord.status.toUpperCase()}</Text>
+                        <Text style={styles.statusBadgeText}>{(ord.statusLabel || ord.status || 'DIPROSES').toUpperCase()}</Text>
                       </View>
                     </View>
 
                     <View style={styles.orderDivider} />
 
                     <View style={styles.orderCustomerInfo}>
-                      <Text style={styles.customerName}>👤 {ord.customerName} ({ord.customerPhone})</Text>
+                      <Text style={styles.customerName}>👤 {ord.customerName || ord.recipient} ({ord.customerPhone || ord.phone})</Text>
                       <Text style={styles.customerAddr} numberOfLines={2}>📍 {ord.address || 'Alamat Utama Terdaftar'}</Text>
-                      <Text style={styles.orderPriceTotal}>Total Pembayaran: <Text style={{ color: '#D91E28', fontWeight: '800' }}>{formatRupiah(ord.totalAmount)}</Text></Text>
+                      
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+                        <Text style={styles.orderPriceTotal}>Total Pembayaran: <Text style={{ color: '#D91E28', fontWeight: '800' }}>{formatRupiah(ord.totalAmount)}</Text></Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#E0F2FE', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 }}>
+                          <Ionicons name="eye-outline" size={14} color="#0284C7" />
+                          <Text style={{ fontSize: 12, fontWeight: '800', color: '#0284C7' }}>Detail Pesanan</Text>
+                        </View>
+                      </View>
                     </View>
 
                     {/* Order Status Controller Action */}
@@ -839,7 +853,10 @@ export default function AdminDashboardScreen({
                       <Text style={styles.updateLabel}>Ubah Status:</Text>
                       <TouchableOpacity
                         style={styles.statusActionBtn}
-                        onPress={() => handleUpdateOrderStatus(ord.id, 'processing')}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleUpdateOrderStatus(ord.dbId || ord.id, 'processing');
+                        }}
                         activeOpacity={0.7}
                       >
                         <Text style={styles.statusActionText}>Proses</Text>
@@ -847,7 +864,10 @@ export default function AdminDashboardScreen({
 
                       <TouchableOpacity
                         style={[styles.statusActionBtn, { backgroundColor: '#0284C7' }]}
-                        onPress={() => handleUpdateOrderStatus(ord.id, 'shipped')}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleUpdateOrderStatus(ord.dbId || ord.id, 'shipped');
+                        }}
                         activeOpacity={0.7}
                       >
                         <Text style={styles.statusActionText}>Kirim Resi</Text>
@@ -855,13 +875,16 @@ export default function AdminDashboardScreen({
 
                       <TouchableOpacity
                         style={[styles.statusActionBtn, { backgroundColor: '#16A34A' }]}
-                        onPress={() => handleUpdateOrderStatus(ord.id, 'completed')}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleUpdateOrderStatus(ord.dbId || ord.id, 'completed');
+                        }}
                         activeOpacity={0.7}
                       >
                         <Text style={styles.statusActionText}>Selesai</Text>
                       </TouchableOpacity>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 ))
               )}
             </View>
@@ -1618,6 +1641,13 @@ export default function AdminDashboardScreen({
             </View>
           </View>
         </Modal>
+
+        {/* Detail Pesanan Modal untuk Admin */}
+        <OrderDetailModal
+          visible={!!selectedOrderForDetail}
+          onClose={() => setSelectedOrderForDetail(null)}
+          order={selectedOrderForDetail}
+        />
       </SafeAreaView>
     </Modal>
   );

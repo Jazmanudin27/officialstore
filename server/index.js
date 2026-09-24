@@ -1388,14 +1388,100 @@ app.get('/api/admin/orders', async (req, res) => {
         o.total_pembayaran AS totalAmount,
         o.status_pesanan AS status,
         o.kurir_pengiriman AS courier,
+        o.catatan_pesanan AS note,
         o.resi_pengiriman AS trackingNumber,
-        DATE_FORMAT(o.created_at, "%d %b %Y %H:%i") AS date
+        DATE_FORMAT(o.created_at, "%d %b %Y %H:%i WIB") AS date
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.user_id
       ORDER BY o.order_id DESC`
     );
 
-    res.json({ status: 'ok', data: orders });
+    const formattedOrders = [];
+    for (const ord of orders) {
+      const [itemRows] = await pool.query(
+        `SELECT 
+          oi.order_item_id AS id,
+          oi.nama_produk_saat_beli AS name,
+          oi.nama_varian_saat_beli AS variant,
+          oi.harga_satuan_saat_beli AS price,
+          oi.jumlah AS quantity,
+          COALESCE(
+            (SELECT pi.url_gambar FROM product_images pi WHERE pi.product_id = p.product_id ORDER BY pi.image_id DESC LIMIT 1),
+            p.gambar_utama,
+            'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80'
+          ) AS image
+        FROM order_items oi
+        LEFT JOIN product_variants v ON (oi.variant_id = v.variant_id OR oi.sku_saat_beli = v.sku)
+        LEFT JOIN products p ON v.product_id = p.product_id
+        WHERE oi.order_id = ?`,
+        [ord.id]
+      );
+
+      const isCodOrder = ord.note && ord.note.toUpperCase().includes('COD');
+      let statusLabel = isCodOrder ? 'Sedang Diproses (COD)' : 'Sedang Diproses';
+      let statusColor = '#D97706';
+      let statusBg = '#FEF3C7';
+      let formattedStatus = 'diproses';
+
+      if (ord.status === 'pending') {
+        statusLabel = 'Belum Bayar';
+        statusColor = '#DC2626';
+        statusBg = '#FEE2E2';
+        formattedStatus = 'menunggu';
+      } else if (ord.status === 'shipped') {
+        statusLabel = 'Sedang Dikirim';
+        statusColor = '#0284C7';
+        statusBg = '#E0F2FE';
+        formattedStatus = 'dikirim';
+      } else if (ord.status === 'completed') {
+        statusLabel = 'Selesai';
+        statusColor = '#16A34A';
+        statusBg = '#DCFCE7';
+        formattedStatus = 'selesai';
+      } else if (ord.status === 'cancelled') {
+        statusLabel = 'Dibatalkan';
+        statusColor = '#64748B';
+        statusBg = '#F1F5F9';
+        formattedStatus = 'batal';
+      }
+
+      formattedOrders.push({
+        id: ord.orderNumber || `ORD-${ord.id}`,
+        orderNumber: ord.orderNumber || `ORD-${ord.id}`,
+        dbId: ord.id,
+        date: ord.date,
+        status: formattedStatus,
+        statusLabel,
+        statusColor,
+        statusBg,
+        type: ord.deliveryType || 'delivery',
+        typeLabel: ord.deliveryType === 'pickup' ? 'Ambil di Toko (Pickup)' : 'Pengiriman Reguler',
+        address: ord.address || 'Alamat Kirim Utama',
+        courier: ord.courier || 'Kurir Official Store',
+        customerName: ord.customerName,
+        customerPhone: ord.customerPhone,
+        productTotal: Number(ord.productTotal || ord.totalAmount),
+        recipient: ord.customerName,
+        phone: ord.customerPhone,
+        paymentMethod: isCodOrder ? 'COD (Bayar di Tempat)' : 'Midtrans / Online Payment',
+        items: itemRows.map((it) => {
+          let cleanImg = it.image;
+          if (typeof cleanImg === 'string' && cleanImg.startsWith('data:image') && cleanImg.length > 500) {
+            cleanImg = 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80';
+          }
+          return {
+            ...it,
+            price: Number(it.price),
+            image: cleanImg || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
+          };
+        }),
+        totalAmount: Number(ord.totalAmount),
+        discount: Number(ord.discount || 0),
+        shippingFee: Number(ord.shippingFee || 0),
+      });
+    }
+
+    res.json({ status: 'ok', data: formattedOrders });
   } catch (error) {
     console.error('Error fetching admin orders:', error);
     res.status(500).json({ status: 'error', message: error.message });
