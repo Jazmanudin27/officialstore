@@ -23,6 +23,7 @@ export default function CartModal({
   onRemoveItem,
   onClearCart,
   onCheckout,
+  onProceedToCheckout,
   onOpenAddress,
   selectedAddress,
   onSelectAddress,
@@ -41,6 +42,12 @@ export default function CartModal({
   const handleStartShopping = () => {
     onClose();
     if (onStartShopping) onStartShopping();
+  };
+
+  const handleProceedToCheckout = () => {
+    onClose();
+    if (onCheckout) onCheckout();
+    if (onProceedToCheckout) onProceedToCheckout();
   };
 
   return (
@@ -135,27 +142,6 @@ export default function CartModal({
                   <Text style={styles.gantiBtnText}>Ganti</Text>
                 </View>
               </TouchableOpacity>
-
-              {/* Yellow Promo Box "Tebus Murah!" */}
-              <View style={styles.promoBox}>
-                <View style={styles.promoLeft}>
-                  <Text style={styles.promoTitle}>Tebus Murah!</Text>
-                  <Text style={styles.promoSub}>
-                    Anda dapat membeli <Text style={{ fontWeight: '800' }}>2 produk</Text> dengan harga sangat murah
-                  </Text>
-                  <View style={styles.promoThumbRow}>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <View key={i} style={styles.thumbMini}>
-                        <Ionicons name="cube-outline" size={14} color="#D91E28" />
-                      </View>
-                    ))}
-                  </View>
-                </View>
-
-                <TouchableOpacity style={styles.ambilBtn} activeOpacity={0.7}>
-                  <Text style={styles.ambilBtnText}>Ambil</Text>
-                </TouchableOpacity>
-              </View>
 
               {/* Checkbox "Pilih Semua" */}
               <TouchableOpacity
@@ -253,9 +239,7 @@ export default function CartModal({
             <View style={styles.bottomBarContainer}>
               <TouchableOpacity
                 style={styles.bottomBarBtn}
-                onPress={() => {
-                  if (onCheckout) onCheckout();
-                }}
+                onPress={handleProceedToCheckout}
                 activeOpacity={0.85}
               >
                 <Text style={styles.bottomBarTotal}>{formatRupiah(totalPrice)}</Text>
