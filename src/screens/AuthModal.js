@@ -388,17 +388,11 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
               </Text>
               <Text style={styles.otpTargetPhone}>+62 {sanitizeInputPhone(phone)}</Text>
 
-              {/* OTP Banner Info */}
+              {/* WhatsApp OTP Banner Info */}
               <View style={styles.demoInfoBox}>
-                <Ionicons name="information-circle" size={18} color="#0284C7" />
+                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
                 <Text style={styles.demoInfoText}>
-                  {sentOtp ? (
-                    <>
-                      Kode OTP Verifikasi: <Text style={{ fontWeight: '800' }}>{sentOtp}</Text>
-                    </>
-                  ) : (
-                    'Kode OTP 6-digit telah dikirimkan ke nomor Anda.'
-                  )}
+                  Silahkan cek WhatsApp Anda untuk melihat 6 digit kode OTP verifikasi.
                 </Text>
               </View>
 
