@@ -502,7 +502,13 @@ function AppContent() {
       )}
 
       {/* Active Screen View (Centered Container on Desktop) */}
-      <View style={[styles.mainContent, isDesktop && styles.desktopMainWrapper]}>
+      <View
+        style={[
+          styles.mainContent,
+          isDesktop && styles.desktopMainWrapper,
+          activeTab === 'website' && { paddingBottom: 0, backgroundColor: '#1F080A' },
+        ]}
+      >
         <PageTransition activeTab={activeTab}>
           {renderTabContent()}
         </PageTransition>
