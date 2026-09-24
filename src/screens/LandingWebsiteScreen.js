@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
+import apiService from '../services/api';
 
 const BRAND_RED = 'rgb(217, 30, 40)';
 
@@ -20,6 +21,25 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [activeMenu, setActiveMenu] = useState('home');
+  const [dbProducts, setDbProducts] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchDatabaseProducts = async () => {
+      try {
+        const prods = await apiService.getProducts();
+        if (isMounted && Array.isArray(prods) && prods.length > 0) {
+          setDbProducts(prods);
+        }
+      } catch (err) {
+        console.warn('ℹ️ Landing screen database product fetch error:', err);
+      }
+    };
+    fetchDatabaseProducts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const marketingRegions = [
     'Tasikmalaya',
@@ -450,37 +470,52 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           </View>
 
           <View style={[styles.productsGrid, isDesktop ? styles.productsGridDesktop : styles.productsGridMobile]}>
-            {officialProducts.map((prod) => (
-              <View key={prod.id} style={styles.productCard}>
-                <View style={styles.productImageWrap}>
-                  <Image source={{ uri: prod.image }} style={styles.productCardImg} resizeMode="cover" />
-                  <View style={styles.productBadgeTop}>
-                    <Text style={styles.productBadgeText}>{prod.brand}</Text>
-                  </View>
-                </View>
+            {(dbProducts.length > 0 ? dbProducts : officialProducts).map((prod, idx) => {
+              const rawImg = prod.image || prod.image_url;
+              const prodImg = typeof rawImg === 'string' && rawImg.length > 10
+                ? rawImg
+                : 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80';
+              const prodBrand = prod.category || prod.parentName || prod.brand || 'CV. MAKMUR PERMATA';
+              const prodDesc = prod.desc || prod.description || `${prod.name || 'Produk'} berkualitas produksi resmi CV. Makmur Permata Tasikmalaya.`;
 
-                <View style={styles.productCardBody}>
-                  <Text style={styles.productCardTitle} numberOfLines={1}>{prod.name}</Text>
-                  <Text style={styles.productCardDesc} numberOfLines={2}>{prod.desc}</Text>
-
-                  <View style={styles.productPriceRow}>
-                    <View>
-                      <Text style={styles.priceLabel}>Harga Resmi</Text>
-                      <Text style={styles.priceAmount}>{formatRupiah(prod.price)}</Text>
+              return (
+                <View key={prod.id || idx} style={styles.productCard}>
+                  <View style={styles.productImageWrap}>
+                    <Image source={{ uri: prodImg }} style={styles.productCardImg} resizeMode="cover" />
+                    <View style={styles.productBadgeTop}>
+                      <Text style={styles.productBadgeText}>{prodBrand}</Text>
                     </View>
+                  </View>
 
-                    <TouchableOpacity
-                      style={styles.buyNowMiniBtn}
-                      onPress={onOpenStore}
-                      activeOpacity={0.85}
-                    >
-                      <Ionicons name="cart-outline" size={16} color="#FFFFFF" />
-                      <Text style={styles.buyNowMiniText}>Beli</Text>
-                    </TouchableOpacity>
+                  <View style={styles.productCardBody}>
+                    <Text style={styles.productCardTitle} numberOfLines={1}>{prod.name}</Text>
+                    <Text style={styles.productCardDesc} numberOfLines={2}>{prodDesc}</Text>
+
+                    <View style={styles.productPriceRow}>
+                      <View>
+                        <Text style={styles.priceLabel}>Harga Resmi</Text>
+                        <Text style={styles.priceAmount}>{formatRupiah(prod.price || 0)}</Text>
+                      </View>
+
+                      <TouchableOpacity
+                        style={styles.buyNowMiniBtn}
+                        onPress={() => {
+                          if (onOpenProductDetail && prod.id) {
+                            onOpenProductDetail(prod);
+                          } else if (onOpenStore) {
+                            onOpenStore();
+                          }
+                        }}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="cart-outline" size={16} color="#FFFFFF" />
+                        <Text style={styles.buyNowMiniText}>Beli</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
 
