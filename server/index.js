@@ -521,16 +521,33 @@ app.post('/api/orders', async (req, res) => {
     } = req.body;
 
     let initialStatus = 'pending';
-    if (statusPesanan) {
-      initialStatus = statusPesanan;
-    } else if (
+    const rawStatus = (statusPesanan || req.body.status || '').toLowerCase();
+    if (
+      rawStatus === 'processing' ||
+      rawStatus === 'diproses' ||
       (catatanPesanan && catatanPesanan.toUpperCase().includes('COD')) ||
       (metodePembayaran && metodePembayaran.toLowerCase() === 'cod')
     ) {
       initialStatus = 'processing';
+    } else if (rawStatus === 'paid' || rawStatus === 'selesai' || rawStatus === 'completed') {
+      initialStatus = 'completed';
+    } else if (rawStatus === 'shipped' || rawStatus === 'dikirim') {
+      initialStatus = 'shipped';
+    } else if (rawStatus === 'cancelled' || rawStatus === 'batal') {
+      initialStatus = 'cancelled';
+    } else {
+      initialStatus = 'pending';
     }
 
     const nomorPesanan = req.body.nomorPesanan || req.body.orderId || `INV-${Date.now().toString().slice(-8)}`;
+
+    const targetUserId = parseInt(userId || req.body.user_id, 10) || 1;
+    const targetAddressId = parseInt(addressId, 10) || null;
+    const targetStoreId = parseInt(storeId, 10) || null;
+    const targetVoucherId = parseInt(voucherId, 10) || null;
+    const addressSnapshotText = typeof snapshotAlamatKirim === 'object'
+      ? JSON.stringify(snapshotAlamatKirim)
+      : (snapshotAlamatKirim || req.body.address || 'Alamat Kirim Utama');
 
     const [orderResult] = await connection.query(
       `INSERT INTO orders (
@@ -540,18 +557,18 @@ app.post('/api/orders', async (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nomorPesanan,
-        userId,
-        tipePesanan,
-        addressId,
-        snapshotAlamatKirim,
-        storeId,
-        totalHargaProduk,
-        ongkosKirim,
-        diskonVoucher,
-        voucherId,
-        biayaLayanan,
+        targetUserId,
+        tipePesanan === 'pickup' ? 'pickup' : 'delivery',
+        targetAddressId,
+        addressSnapshotText,
+        targetStoreId,
+        totalHargaProduk || totalPembayaran,
+        ongkosKirim || 0,
+        diskonVoucher || 0,
+        targetVoucherId,
+        biayaLayanan || 0,
         totalPembayaran,
-        catatanPesanan,
+        catatanPesanan || '',
         initialStatus,
       ]
     );
@@ -560,6 +577,33 @@ app.post('/api/orders', async (req, res) => {
 
     // Masukkan items ke order_items
     for (const item of items) {
+      let rawVariantId = parseInt(item.variantId || item.variant_id, 10);
+      if (isNaN(rawVariantId) || rawVariantId <= 0) {
+        if (typeof item.id === 'number' || (typeof item.id === 'string' && /^\d+$/.test(item.id))) {
+          rawVariantId = parseInt(item.id, 10);
+        } else {
+          // Cari variant_id berdasarkan SKU di database MySQL
+          const targetSku = item.sku || item.id;
+          if (targetSku) {
+            try {
+              const [vRows] = await connection.query(
+                'SELECT variant_id FROM product_variants WHERE sku = ? LIMIT 1',
+                [targetSku]
+              );
+              if (vRows && vRows.length > 0) {
+                rawVariantId = vRows[0].variant_id;
+              } else {
+                rawVariantId = null;
+              }
+            } catch (vErr) {
+              rawVariantId = null;
+            }
+          } else {
+            rawVariantId = null;
+          }
+        }
+      }
+
       await connection.query(
         `INSERT INTO order_items (
           order_id, variant_id, sku_saat_beli, nama_produk_saat_beli, 
@@ -567,13 +611,13 @@ app.post('/api/orders', async (req, res) => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           orderId,
-          item.variantId || item.id,
-          item.sku || 'SKU',
-          item.parentName || item.name,
-          item.name,
-          item.price,
-          item.quantity,
-          item.price * item.quantity,
+          rawVariantId,
+          String(item.sku || item.id || 'SKU-STORE').slice(0, 50),
+          String(item.parentName || item.name || 'Produk Store').slice(0, 150),
+          String(item.variant || item.name || 'Varian Standard').slice(0, 150),
+          parseFloat(item.price) || 0,
+          parseInt(item.quantity, 10) || 1,
+          (parseFloat(item.price) || 0) * (parseInt(item.quantity, 10) || 1),
         ]
       );
     }
