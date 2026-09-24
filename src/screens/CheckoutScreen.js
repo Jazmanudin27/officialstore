@@ -69,7 +69,7 @@ export default function CheckoutScreen({
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [internalVoucher, setInternalVoucher] = useState(selectedVoucher);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
-  const [selectedCourier, setSelectedCourier] = useState('instan');
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   React.useEffect(() => {
     setInternalVoucher(selectedVoucher);
@@ -108,24 +108,7 @@ export default function CheckoutScreen({
   const voucherDiscount = discountAmount;
 
   const handlePilihPembayaran = () => {
-    Alert.alert(
-      'Pilih Metode Pembayaran',
-      `Total Pembayaran: ${formatRupiah(finalTotal)}`,
-      [
-        {
-          text: '💳 Midtrans Payment (QRIS, VA Bank, GoPay, ShopeePay)',
-          onPress: () => processMidtransPayment(),
-        },
-        {
-          text: '💵 COD (Bayar di Tempat)',
-          onPress: () => processPayment('COD (Bayar di Tempat)'),
-        },
-        {
-          text: 'Batal',
-          style: 'cancel',
-        },
-      ]
-    );
+    setIsPaymentModalOpen(true);
   };
 
   const processMidtransPayment = async () => {
@@ -217,19 +200,25 @@ export default function CheckoutScreen({
   };
 
   const finishOrder = (method) => {
-    Alert.alert(
-      '🎉 Pesanan Berhasil Diproses!',
-      `Terima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal: ${formatRupiah(finalTotal)}`,
-      [
-        {
-          text: 'Selesai',
-          onPress: () => {
-            if (onCompleteCheckout) onCompleteCheckout();
-            onClose();
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.alert(`🎉 Pesanan Berhasil Diproses!\n\nTerima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal Pembayaran: ${formatRupiah(finalTotal)}`);
+      if (onCompleteCheckout) onCompleteCheckout();
+      onClose();
+    } else {
+      Alert.alert(
+        '🎉 Pesanan Berhasil Diproses!',
+        `Terima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal: ${formatRupiah(finalTotal)}`,
+        [
+          {
+            text: 'Selesai',
+            onPress: () => {
+              if (onCompleteCheckout) onCompleteCheckout();
+              onClose();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const processPayment = (method) => {
@@ -547,6 +536,88 @@ export default function CheckoutScreen({
             if (onSelectVoucher) onSelectVoucher(v);
           }}
         />
+
+        {/* Interactive Payment Method Selection Modal */}
+        <Modal
+          visible={isPaymentModalOpen}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setIsPaymentModalOpen(false)}
+        >
+          <View style={styles.paymentModalOverlay}>
+            <View style={styles.paymentModalCard}>
+              <View style={styles.paymentModalHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.paymentModalTitle}>Pilih Metode Pembayaran</Text>
+                  <Text style={styles.paymentModalTotal}>
+                    Total Tagihan:{' '}
+                    <Text style={{ color: '#D91E28', fontWeight: '900' }}>{formatRupiah(finalTotal)}</Text>
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setIsPaymentModalOpen(false)} style={styles.closePaymentBtn}>
+                  <Ionicons name="close" size={24} color="#64748B" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.paymentOptionsScroll}>
+                {/* Option 1: Midtrans */}
+                <TouchableOpacity
+                  style={styles.paymentOptionItem}
+                  onPress={() => {
+                    setIsPaymentModalOpen(false);
+                    processMidtransPayment();
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.paymentIconBox, { backgroundColor: '#E0F2FE' }]}>
+                    <Ionicons name="card" size={24} color="#0284C7" />
+                  </View>
+                  <View style={styles.paymentOptionTextGroup}>
+                    <View style={styles.paymentTitleBadgeRow}>
+                      <Text style={styles.paymentOptionName}>Midtrans Payment Gateway</Text>
+                      <View style={styles.autoBadge}>
+                        <Text style={styles.autoBadgeText}>Otomatis</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.paymentOptionDesc}>
+                      QRIS, Transfer VA (BCA, Mandiri, BRI), GoPay, ShopeePay
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#0284C7" />
+                </TouchableOpacity>
+
+                {/* Option 2: COD */}
+                <TouchableOpacity
+                  style={styles.paymentOptionItem}
+                  onPress={() => {
+                    setIsPaymentModalOpen(false);
+                    processPayment('COD (Bayar di Tempat)');
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.paymentIconBox, { backgroundColor: '#DCFCE7' }]}>
+                    <Ionicons name="cash" size={24} color="#16A34A" />
+                  </View>
+                  <View style={styles.paymentOptionTextGroup}>
+                    <Text style={styles.paymentOptionName}>COD (Bayar di Tempat)</Text>
+                    <Text style={styles.paymentOptionDesc}>
+                      Bayar tunai secara langsung kepada kurir saat barang tiba
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#16A34A" />
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Loading Payment Overlay */}
+        {isLoadingPayment && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#FFFFFF" />
+            <Text style={styles.loadingText}>Menghubungkan ke Midtrans Payment Gateway...</Text>
+          </View>
+        )}
         </View>
       </View>
     </Modal>
@@ -1022,5 +1093,114 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '800',
+  },
+  /* Payment Modal Styles */
+  paymentModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    justifyContent: 'flex-end',
+  },
+  paymentModalCard: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  paymentModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  paymentModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  paymentModalTotal: {
+    fontSize: 13,
+    color: '#64748B',
+    marginTop: 2,
+  },
+  closePaymentBtn: {
+    padding: 4,
+  },
+  paymentOptionsScroll: {
+    gap: 12,
+    paddingVertical: 14,
+  },
+  paymentOptionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  paymentIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  paymentOptionTextGroup: {
+    flex: 1,
+    marginRight: 8,
+  },
+  paymentTitleBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  paymentOptionName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  autoBadge: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  autoBadgeText: {
+    color: '#0284C7',
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  paymentOptionDesc: {
+    fontSize: 12,
+    color: '#64748B',
+    lineHeight: 16,
+  },
+  /* Loading Overlay */
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999999,
+  },
+  loadingText: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 12,
   },
 });
