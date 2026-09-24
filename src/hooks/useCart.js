@@ -63,6 +63,15 @@ export function useCart() {
     }
   };
 
+  const removePurchasedItems = (purchasedItems) => {
+    if (!Array.isArray(purchasedItems) || purchasedItems.length === 0) {
+      clearCart();
+      return;
+    }
+    const purchasedIds = new Set(purchasedItems.map((item) => item.id));
+    setCartItems((prevCart) => prevCart.filter((item) => !purchasedIds.has(item.id)));
+  };
+
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -77,6 +86,7 @@ export function useCart() {
     updateQuantity,
     removeFromCart,
     clearCart,
+    removePurchasedItems,
     getItemQuantity,
     totalCartCount,
     subtotal,

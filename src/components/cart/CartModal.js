@@ -32,10 +32,43 @@ export default function CartModal({
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const [selectAll, setSelectAll] = useState(true);
+  const [selectedItemIds, setSelectedItemIds] = useState(() => cartItems.map((item) => item.id));
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  const totalPrice = cartItems.reduce(
+  // Sync selectedItemIds when cartItems changes
+  React.useEffect(() => {
+    setSelectedItemIds((prev) => {
+      const validIds = new Set(cartItems.map((item) => item.id));
+      const filtered = prev.filter((id) => validIds.has(id));
+      // If new item added, include it
+      cartItems.forEach((item) => {
+        if (!prev.includes(item.id)) {
+          filtered.push(item.id);
+        }
+      });
+      return filtered.length > 0 ? filtered : cartItems.map((item) => item.id);
+    });
+  }, [cartItems]);
+
+  const isAllSelected = cartItems.length > 0 && selectedItemIds.length === cartItems.length;
+
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(cartItems.map((item) => item.id));
+    }
+  };
+
+  const toggleItemSelection = (id) => {
+    setSelectedItemIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
+
+  const selectedCartItems = cartItems.filter((item) => selectedItemIds.includes(item.id));
+
+  const totalPrice = selectedCartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
   );
@@ -46,9 +79,14 @@ export default function CartModal({
   };
 
   const handleProceedToCheckout = () => {
+    const itemsToCheckout = selectedCartItems.length > 0 ? selectedCartItems : cartItems;
+    if (itemsToCheckout.length === 0) {
+      alert('Silakan pilih minimal 1 produk untuk di-checkout.');
+      return;
+    }
     onClose();
-    if (onCheckout) onCheckout();
-    if (onProceedToCheckout) onProceedToCheckout();
+    if (onCheckout) onCheckout(itemsToCheckout);
+    if (onProceedToCheckout) onProceedToCheckout(itemsToCheckout);
   };
 
   return (
@@ -147,28 +185,30 @@ export default function CartModal({
               {/* Checkbox "Pilih Semua" */}
               <TouchableOpacity
                 style={styles.pilihSemuaRow}
-                onPress={() => setSelectAll(!selectAll)}
+                onPress={toggleSelectAll}
                 activeOpacity={0.7}
               >
                 <Ionicons
-                  name={selectAll ? 'checkbox' : 'square-outline'}
+                  name={isAllSelected ? 'checkbox' : 'square-outline'}
                   size={22}
-                  color={selectAll ? '#0284C7' : '#94A3B8'}
+                  color={isAllSelected ? '#0284C7' : '#94A3B8'}
                 />
-                <Text style={styles.pilihSemuaText}>Pilih Semua</Text>
+                <Text style={styles.pilihSemuaText}>
+                  Pilih Semua ({selectedItemIds.length}/{cartItems.length})
+                </Text>
               </TouchableOpacity>
 
               {/* Delivery Group Header: Pengiriman Instan */}
               <View style={styles.deliverySection}>
                 <TouchableOpacity
                   style={styles.deliveryHeader}
-                  onPress={() => setSelectAll(!selectAll)}
+                  onPress={toggleSelectAll}
                   activeOpacity={0.7}
                 >
                   <Ionicons
-                    name={selectAll ? 'checkbox' : 'square-outline'}
+                    name={isAllSelected ? 'checkbox' : 'square-outline'}
                     size={22}
-                    color={selectAll ? '#0284C7' : '#94A3B8'}
+                    color={isAllSelected ? '#0284C7' : '#94A3B8'}
                   />
                   <Ionicons
                     name={selectedAddress?.isPickup ? 'storefront' : 'flash'}
@@ -183,55 +223,61 @@ export default function CartModal({
 
                 {/* Product Item List */}
                 <View style={styles.itemList}>
-                  {cartItems.map((item) => (
-                    <View key={item.id} style={styles.itemRow}>
-                      <TouchableOpacity activeOpacity={0.7}>
-                        <Ionicons
-                          name={selectAll ? 'checkbox' : 'square-outline'}
-                          size={22}
-                          color={selectAll ? '#0284C7' : '#94A3B8'}
-                        />
-                      </TouchableOpacity>
-
-                      <Image source={{ uri: item.image }} style={styles.itemImage} />
-
-                      <View style={styles.itemInfo}>
-                        <Text style={styles.itemName} numberOfLines={2}>
-                          {item.name}
-                        </Text>
-                        <Text style={styles.itemPrice}>{formatRupiah(item.price)}</Text>
-                      </View>
-
-                      {/* Plus Minus Stepper Control */}
-                      <View style={styles.stepperContainer}>
+                  {cartItems.map((item) => {
+                    const isChecked = selectedItemIds.includes(item.id);
+                    return (
+                      <View key={item.id} style={styles.itemRow}>
                         <TouchableOpacity
-                          style={styles.stepperBtn}
-                          onPress={() =>
-                            onUpdateQuantity && onUpdateQuantity(item.id, item.quantity - 1)
-                          }
+                          onPress={() => toggleItemSelection(item.id)}
                           activeOpacity={0.7}
                         >
                           <Ionicons
-                            name={item.quantity === 1 ? 'trash-outline' : 'remove'}
-                            size={16}
-                            color={item.quantity === 1 ? '#EF4444' : '#0284C7'}
+                            name={isChecked ? 'checkbox' : 'square-outline'}
+                            size={22}
+                            color={isChecked ? '#0284C7' : '#94A3B8'}
                           />
                         </TouchableOpacity>
 
-                        <Text style={styles.stepperValue}>{item.quantity}</Text>
+                        <Image source={{ uri: item.image }} style={styles.itemImage} />
 
-                        <TouchableOpacity
-                          style={styles.stepperBtn}
-                          onPress={() =>
-                            onUpdateQuantity && onUpdateQuantity(item.id, item.quantity + 1)
-                          }
-                          activeOpacity={0.7}
-                        >
-                          <Ionicons name="add" size={16} color="#0284C7" />
-                        </TouchableOpacity>
+                        <View style={styles.itemInfo}>
+                          <Text style={styles.itemName} numberOfLines={2}>
+                            {item.name}
+                          </Text>
+                          <Text style={styles.itemPrice}>{formatRupiah(item.price)}</Text>
+                        </View>
+
+                        {/* Plus Minus Stepper Control */}
+                        <View style={styles.stepperContainer}>
+                          <TouchableOpacity
+                            style={styles.stepperBtn}
+                            onPress={() =>
+                              onUpdateQuantity && onUpdateQuantity(item.id, item.quantity - 1)
+                            }
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons
+                              name={item.quantity === 1 ? 'trash-outline' : 'remove'}
+                              size={16}
+                              color={item.quantity === 1 ? '#EF4444' : '#0284C7'}
+                            />
+                          </TouchableOpacity>
+
+                          <Text style={styles.stepperValue}>{item.quantity}</Text>
+
+                          <TouchableOpacity
+                            style={styles.stepperBtn}
+                            onPress={() =>
+                              onUpdateQuantity && onUpdateQuantity(item.id, item.quantity + 1)
+                            }
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="add" size={16} color="#0284C7" />
+                          </TouchableOpacity>
+                        </View>
                       </View>
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               </View>
             </ScrollView>
@@ -239,12 +285,17 @@ export default function CartModal({
             {/* Sticky Bottom Bar */}
             <View style={styles.bottomBarContainer}>
               <TouchableOpacity
-                style={styles.bottomBarBtn}
+                style={[
+                  styles.bottomBarBtn,
+                  selectedCartItems.length === 0 && { backgroundColor: '#94A3B8' },
+                ]}
                 onPress={handleProceedToCheckout}
                 activeOpacity={0.85}
               >
                 <Text style={styles.bottomBarTotal}>{formatRupiah(totalPrice)}</Text>
-                <Text style={styles.bottomBarAction}>Selanjutnya</Text>
+                <Text style={styles.bottomBarAction}>
+                  Selanjutnya ({selectedCartItems.length})
+                </Text>
               </TouchableOpacity>
             </View>
           </>

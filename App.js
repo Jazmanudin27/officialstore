@@ -269,10 +269,13 @@ function AppContent() {
     updateQuantity,
     removeFromCart,
     clearCart,
+    removePurchasedItems,
     getItemQuantity,
     totalCartCount,
     cartTotal,
   } = useCart();
+
+  const [checkoutSelectedItems, setCheckoutSelectedItems] = useState([]);
 
   const { favorites, toggleFavorite, isFavorite, favoriteCount } = useFavorites();
   const [productList, setProductList] = useState(PRODUCTS);
@@ -513,7 +516,10 @@ function AppContent() {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeFromCart}
         totalAmount={cartTotal}
-        onProceedToCheckout={() => {
+        onProceedToCheckout={(selectedItems) => {
+          setCheckoutSelectedItems(
+            Array.isArray(selectedItems) && selectedItems.length > 0 ? selectedItems : cartItems
+          );
           setIsCartOpen(false);
           setIsCheckoutOpen(true);
         }}
@@ -529,7 +535,7 @@ function AppContent() {
       <CheckoutScreen
         visible={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        cartItems={cartItems}
+        cartItems={checkoutSelectedItems.length > 0 ? checkoutSelectedItems : cartItems}
         totalAmount={cartTotal}
         selectedAddress={selectedAddress}
         onSelectAddress={handleSelectAddress}
@@ -538,7 +544,10 @@ function AppContent() {
         onOpenVoucher={handleOpenVoucherFromCheckout}
         user={currentUser}
         onOrderSuccess={() => {
-          clearCart();
+          const itemsToRemove =
+            checkoutSelectedItems.length > 0 ? checkoutSelectedItems : cartItems;
+          removePurchasedItems(itemsToRemove);
+          setCheckoutSelectedItems([]);
           setSelectedVoucher(null);
         }}
       />
