@@ -27,6 +27,7 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
   const [namaLengkap, setNamaLengkap] = useState('');
   const [alamat, setAlamat] = useState('');
   const [otpCode, setOtpCode] = useState(['', '', '', '', '', '']);
+  const [sentOtp, setSentOtp] = useState('');
 
   // Loading & Timer
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +86,7 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
       if (authMode === 'login' && result && result.data && result.data.isRegistered === false) {
         Alert.alert(
           'Anda Belum Terdaftar',
-          'Anda belum terdaftar, silahkan daftar terlebih dahulu.'
+          'Anda belum terdaftar di database, silahkan daftar terlebih dahulu.'
         );
         setAuthMode('register');
         setStep('input');
@@ -95,7 +96,10 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
       setStep('otp');
       setCountdown(30);
       setCanResend(false);
-      setOtpCode(['1', '2', '3', '4', '5', '6']); // Auto fill demo OTP for extreme convenience
+      setOtpCode(['', '', '', '', '', '']); // Kosongkan agar pengguna memasukkan kode OTP
+      if (result && result.data && result.data.otp) {
+        setSentOtp(result.data.otp);
+      }
     } catch (err) {
       Alert.alert('Gagal', err.message || 'Gagal mengirim kode OTP.');
     } finally {
@@ -384,11 +388,17 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
               </Text>
               <Text style={styles.otpTargetPhone}>+62 {sanitizeInputPhone(phone)}</Text>
 
-              {/* Demo OTP Banner Info */}
+              {/* OTP Banner Info */}
               <View style={styles.demoInfoBox}>
                 <Ionicons name="information-circle" size={18} color="#0284C7" />
                 <Text style={styles.demoInfoText}>
-                  Kode OTP Demo: <Text style={{ fontWeight: '800' }}>123456</Text> (Otomatis Terisi)
+                  {sentOtp ? (
+                    <>
+                      Kode OTP Verifikasi: <Text style={{ fontWeight: '800' }}>{sentOtp}</Text>
+                    </>
+                  ) : (
+                    'Kode OTP 6-digit telah dikirim ke nomor WhatsApp / SMS Anda.'
+                  )}
                 </Text>
               </View>
 

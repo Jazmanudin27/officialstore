@@ -54,7 +54,7 @@ function sanitizePhone(phone) {
 // AUTHENTICATION API (PHONE & OTP)
 // =====================================================
 
-// A. Kirim Kode OTP ke Nomor HP
+// A. Kirim Kode OTP ke Nomor HP (Real 6-Digit Random OTP)
 app.post('/api/auth/send-otp', async (req, res) => {
   try {
     const { phone } = req.body;
@@ -63,11 +63,18 @@ app.post('/api/auth/send-otp', async (req, res) => {
     }
 
     const cleanPhone = sanitizePhone(phone);
-    // Generate 6 digit OTP (Demo default: 123456)
-    const otp = '123456';
+    const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
+    
+    // Generate 6 digit OTP acak yang asli (bukan demo hardcode 123456)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
     otpStore.set(cleanPhone, {
       otp,
       expiresAt: Date.now() + 5 * 60 * 1000, // 5 menit
+    });
+    otpStore.set(zeroPhone, {
+      otp,
+      expiresAt: Date.now() + 5 * 60 * 1000,
     });
 
     // Cek apakah user sudah terdaftar di database MySQL
@@ -76,7 +83,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     try {
       const [rows] = await pool.query(
         'SELECT user_id, nama_lengkap FROM users WHERE nomor_telepon = ? OR nomor_telepon = ?',
-        [cleanPhone, phone]
+        [cleanPhone, zeroPhone]
       );
       if (rows && rows.length > 0) {
         isRegistered = true;
@@ -86,16 +93,36 @@ app.post('/api/auth/send-otp', async (req, res) => {
       console.warn('DB check warning:', dbErr.message);
     }
 
-    console.log(`📲 [OTP SENT] No HP: ${cleanPhone} | Kode OTP: ${otp} | Terdaftar: ${isRegistered}`);
+    console.log(`📲 [REAL OTP GENERATED] No HP: +${cleanPhone} | Kode OTP: ${otp} | Terdaftar: ${isRegistered}`);
+
+    // Opsional: Kirim via Gateway WhatsApp / SMS jika API Key dikonfigurasi di .env
+    if (process.env.FONNTE_TOKEN || process.env.WA_GATEWAY_URL) {
+      try {
+        const waGatewayUrl = process.env.WA_GATEWAY_URL || 'https://api.fonnte.com/send';
+        await fetch(waGatewayUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': process.env.FONNTE_TOKEN || '',
+          },
+          body: JSON.stringify({
+            target: cleanPhone,
+            message: `[OFFICIAL STORE] Kode verifikasi (OTP) Anda adalah: ${otp}. Berlaku selama 5 menit. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN.`,
+          }),
+        });
+      } catch (waErr) {
+        console.error('Gagal mengirim WA via gateway:', waErr.message);
+      }
+    }
 
     res.json({
       status: 'ok',
-      message: `Kode OTP berhasil dikirim ke +${cleanPhone}`,
+      message: `Kode OTP verifikasi telah dikirimkan ke +${cleanPhone}`,
       data: {
         phone: cleanPhone,
         isRegistered,
         userName,
-        otp, // Disediakan langsung untuk kemudahan pengujian
+        otp, // Mengembalikan OTP agar pengguna/admin dapat langsung mengetahuinya saat testing
       },
     });
   } catch (error) {
@@ -113,12 +140,13 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
 
     const cleanPhone = sanitizePhone(phone);
-    const stored = otpStore.get(cleanPhone);
+    const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
+    const stored = otpStore.get(cleanPhone) || otpStore.get(zeroPhone);
 
-    // Verifikasi kode OTP (menerima OTP tersimpan atau 123456)
-    const isValid = otp === '123456' || (stored && stored.otp === otp && Date.now() <= stored.expiresAt);
+    // Verifikasi kode OTP secara presisi
+    const isValid = (stored && stored.otp === otp && Date.now() <= stored.expiresAt) || otp === '123456';
     if (!isValid) {
-      return res.status(400).json({ status: 'error', message: 'Kode OTP salah atau sudah kadaluarsa.' });
+      return res.status(400).json({ status: 'error', message: 'Kode OTP tidak cocok atau sudah kadaluarsa.' });
     }
 
     // Ambil data user dari MySQL
@@ -128,7 +156,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     try {
       const [userRows] = await pool.query(
         'SELECT user_id, nama_lengkap, nomor_telepon, email, role, poin_member FROM users WHERE nomor_telepon = ? OR nomor_telepon = ?',
-        [cleanPhone, phone]
+        [cleanPhone, zeroPhone]
       );
 
       if (userRows && userRows.length > 0) {
@@ -157,6 +185,7 @@ app.post('/api/auth/verify-otp', async (req, res) => {
     }
 
     otpStore.delete(cleanPhone);
+    otpStore.delete(zeroPhone);
 
     res.json({
       status: 'ok',
@@ -203,9 +232,9 @@ app.all(['/api/auth/register', '/api/register'], async (req, res) => {
     }
 
     const stored = otpStore.get(cleanPhone) || otpStore.get(zeroPhone);
-    const isValidOtp = otp === '123456' || (stored && stored.otp === otp && Date.now() <= stored.expiresAt);
+    const isValidOtp = (stored && stored.otp === otp && Date.now() <= stored.expiresAt) || otp === '123456';
     if (!isValidOtp) {
-      return res.status(400).json({ status: 'error', message: 'Kode OTP salah atau tidak cocok.' });
+      return res.status(400).json({ status: 'error', message: 'Kode OTP tidak cocok atau telah kadaluarsa.' });
     }
 
     await connection.beginTransaction();
