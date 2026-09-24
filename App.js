@@ -406,6 +406,7 @@ function AppContent() {
       case 'website':
         return (
           <LandingWebsiteScreen
+            products={productList}
             onOpenStore={() => setActiveTab('home')}
             onOpenProductDetail={(prod) => setSelectedProduct(prod)}
             onOpenAuth={() => setIsAuthOpen(true)}

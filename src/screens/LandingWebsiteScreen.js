@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,13 +13,31 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
+import { apiService } from '../services/api';
+import { PRODUCTS } from '../data/mockProducts';
 
 const BRAND_RED = 'rgb(217, 30, 40)';
 
-export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail, onOpenAuth }) {
+export default function LandingWebsiteScreen({ products = [], onOpenStore, onOpenProductDetail, onOpenAuth }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [activeMenu, setActiveMenu] = useState('home');
+  const [dbProducts, setDbProducts] = useState(products && products.length > 0 ? products : PRODUCTS);
+
+  useEffect(() => {
+    if (Array.isArray(products) && products.length > 0) {
+      setDbProducts(products);
+    } else {
+      apiService
+        .getProducts()
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setDbProducts(data);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [products]);
 
   const marketingRegions = [
     'Tasikmalaya',
@@ -38,62 +56,49 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
     'Bekasi',
   ];
 
-  const officialProducts = [
-    {
-      id: 'aida-500g',
-      name: 'Cabe Bubuk AIDA 500 GR',
-      brand: 'AIDA',
-      category: 'Cabe Bubuk',
-      desc: 'Cabe bubuk murni kualitas utama, terkenal di Priangan Timur & Nusantara.',
-      price: 23500,
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'aida-renteng',
-      name: 'AIDA RENTENG 25 GR',
-      brand: 'AIDA',
-      category: 'Cabe Bubuk Sachet',
-      desc: 'Kemasan praktis sachet ekonomis 25 gram isi 10 pcs.',
-      price: 14500,
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'swan-saus-bawang',
-      name: 'Cap Swan Terbang - Saus Sambal Bawang',
-      brand: 'Cap Swan Terbang',
-      category: 'Saus Sambal',
-      desc: 'Saus sambal bawang beraroma harum dan gurih pedas khas.',
-      price: 34000,
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'swan-ekstra-pedas',
-      name: 'Cap Swan Terbang - Saus Ekstra Pedas',
-      brand: 'Cap Swan Terbang',
-      category: 'Saus Pedas',
-      desc: 'Saus ekstra pedas dengan tekstur mantap untuk aneka kuliner.',
-      price: 18500,
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'swan-stick-premium',
-      name: 'Cap Swan Terbang - Saus Stick Premium',
-      brand: 'Cap Swan Terbang',
-      category: 'Saus Premium',
-      desc: 'Saus stick kemasan premium higienis siap guna.',
-      price: 22000,
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-    {
-      id: 'sambal-cabe-aida',
-      name: 'Sambal Cabe AIDA Premium',
-      brand: 'AIDA',
-      category: 'Sambal Olahan',
-      desc: 'Sambal cabe asli racikan khas CV Makmur Permata.',
-      price: 25000,
-      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
-    },
-  ];
+  const getProductImage = (item) => {
+    if (item.image && typeof item.image === 'string' && item.image.trim() !== '') {
+      return item.image;
+    }
+    if (item.gambar_utama && typeof item.gambar_utama === 'string' && item.gambar_utama.trim() !== '') {
+      return item.gambar_utama;
+    }
+    const name = (item.name || item.nama_produk || '').toLowerCase();
+    const category = (item.category || item.nama_kategori || '').toLowerCase();
+    if (name.includes('renteng') || category.includes('renteng')) {
+      return 'https://images.unsplash.com/photo-1588165171080-c89acfa5a259?w=500&auto=format&fit=crop&q=80';
+    }
+    if (name.includes('tabur') || category.includes('tabur') || name.includes('bumtabur')) {
+      return 'https://images.unsplash.com/photo-1509358271058-acd22cc93898?w=500&auto=format&fit=crop&q=80';
+    }
+    if (name.includes('swan') || name.includes('saus') || category.includes('saus') || name.includes('saosme')) {
+      return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80';
+    }
+    if (name.includes('pouch') || category.includes('pouch')) {
+      return 'https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=500&auto=format&fit=crop&q=80';
+    }
+    if (name.includes('sambal') || category.includes('sambal')) {
+      return 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500&auto=format&fit=crop&q=80';
+    }
+    return 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=500&auto=format&fit=crop&q=80';
+  };
+
+  const officialProducts = (dbProducts && dbProducts.length > 0 ? dbProducts : PRODUCTS)
+    .filter((p, idx, self) => {
+      const pName = p.parentName || p.name || p.nama_produk || '';
+      return idx === self.findIndex((t) => (t.parentName || t.name || t.nama_produk) === pName);
+    })
+    .slice(0, 8)
+    .map((item) => ({
+      id: item.id || item.variant_id || item.product_id,
+      name: item.name || item.nama_produk,
+      brand: item.category || item.parentName || 'CV. MAKMUR PERMATA',
+      category: item.category || 'Seasoning',
+      desc: item.desc || item.description || item.deskripsi || 'Produk olahan murni dan halal dari CV. Makmur Permata Tasikmalaya.',
+      price: item.price || item.harga || 0,
+      image: getProductImage(item),
+      rawItem: item,
+    }));
 
   const handleContactWA = () => {
     const phone = '6282119080044';
@@ -463,7 +468,12 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
           <View style={[styles.productsGrid, isDesktop ? styles.productsGridDesktop : styles.productsGridMobile]}>
             {officialProducts.map((prod) => (
-              <View key={prod.id} style={styles.productCard}>
+              <TouchableOpacity
+                key={prod.id}
+                style={styles.productCard}
+                onPress={() => (onOpenProductDetail ? onOpenProductDetail(prod.rawItem) : onOpenStore())}
+                activeOpacity={0.88}
+              >
                 <View style={styles.productImageWrap}>
                   <Image source={{ uri: prod.image }} style={styles.productCardImg} resizeMode="cover" />
                   <View style={styles.productBadgeTop}>
@@ -483,7 +493,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
                     <TouchableOpacity
                       style={styles.buyNowMiniBtn}
-                      onPress={onOpenStore}
+                      onPress={() => (onOpenProductDetail ? onOpenProductDetail(prod.rawItem) : onOpenStore())}
                       activeOpacity={0.85}
                     >
                       <Ionicons name="cart-outline" size={16} color="#FFFFFF" />
@@ -491,7 +501,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
                     </TouchableOpacity>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
