@@ -37,7 +37,6 @@ export default function Header({
   onOpenAuth = () => {},
   favoriteCount = 0,
   onOpenAdmin = () => {},
-  openPpob = () => {},
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -49,7 +48,6 @@ export default function Header({
   const navTabs = [
     { id: 'home', label: 'Beranda', icon: 'home-outline' },
     { id: 'belanja', label: 'Belanja', icon: 'storefront-outline' },
-    { id: 'ppob', label: 'Pulsa & PPOB', icon: 'flash-outline' },
     { id: 'promo', label: 'Promo Spesial', icon: 'pricetag-outline' },
     { id: 'pesanan', label: 'Pesanan Saya', icon: 'document-text-outline' },
     { id: 'wishlist', label: 'Wishlist', icon: 'heart-outline' },
@@ -172,12 +170,6 @@ export default function Header({
                 </TouchableOpacity>
               )}
 
-              {/* DigiFlazz PPOB Quick Button */}
-              <TouchableOpacity style={styles.desktopPpobHeaderBtn} onPress={openPpob} activeOpacity={0.85}>
-                <Ionicons name="flash" size={18} color="#F59E0B" />
-                <Text style={styles.desktopPpobHeaderBtnText}>Pulsa & PPOB</Text>
-              </TouchableOpacity>
-
               {/* Cart Button */}
               <TouchableOpacity style={styles.desktopCartBtn} onPress={openCart} activeOpacity={0.85}>
                 <Ionicons name="bag-handle" size={20} color="#D91E28" />
@@ -221,13 +213,7 @@ export default function Header({
                 <TouchableOpacity
                   key={tab.id}
                   style={[styles.desktopNavItem, isActive && styles.desktopNavItemActive]}
-                  onPress={() => {
-                    if (tab.id === 'ppob') {
-                      openPpob();
-                    } else {
-                      setActiveTab(tab.id);
-                    }
-                  }}
+                  onPress={() => setActiveTab(tab.id)}
                   activeOpacity={0.75}
                 >
                   <Ionicons
@@ -767,23 +753,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  desktopPpobHeaderBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    marginRight: 6,
-    gap: 6,
-  },
-  desktopPpobHeaderBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
   },
 });
 

@@ -25,7 +25,6 @@ export default function HomeScreen({
   onSelectProduct,
   user,
   onGoToShop,
-  openPpob,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -90,29 +89,6 @@ export default function HomeScreen({
           {/* Main Promo Carousel Banner */}
           <PromoBanner />
 
-          {/* DigiFlazz PPOB & Pulsa Banner Widget */}
-          <TouchableOpacity
-            style={styles.ppobWidgetBanner}
-            onPress={openPpob}
-            activeOpacity={0.85}
-          >
-            <View style={styles.ppobWidgetLeft}>
-              <View style={styles.ppobWidgetIconWrap}>
-                <Ionicons name="flash" size={22} color="#FFFFFF" />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.ppobWidgetTitle}>⚡ DigiFlazz Pulsa & PPOB 24 Jam</Text>
-                <Text style={styles.ppobWidgetSub} numberOfLines={1}>
-                  Pulsa, Data, PLN, BPJS, PDAM, Game & E-Wallet
-                </Text>
-              </View>
-            </View>
-            <View style={styles.ppobWidgetBtn}>
-              <Text style={styles.ppobWidgetBtnText}>Buka Layanan</Text>
-              <Ionicons name="chevron-forward" size={14} color="#FFFFFF" />
-            </View>
-          </TouchableOpacity>
-
           {/* Horizontal Icon Category Bar */}
           <CategoryGrid
             selectedCategory={selectedCategory}
@@ -175,61 +151,6 @@ const styles = StyleSheet.create({
   productCount: {
     color: '#0284C7',
     fontSize: 13,
-    fontWeight: '800',
-  },
-  ppobWidgetBanner: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#0F172A',
-    marginHorizontal: 10,
-    marginVertical: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    borderRadius: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  ppobWidgetLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    flex: 1,
-  },
-  ppobWidgetIconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#D91E28',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  ppobWidgetTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  ppobWidgetSub: {
-    color: '#94A3B8',
-    fontSize: 11,
-    marginTop: 2,
-  },
-  ppobWidgetBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#D91E28',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    gap: 4,
-    marginLeft: 8,
-  },
-  ppobWidgetBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
     fontWeight: '800',
   },
 });
