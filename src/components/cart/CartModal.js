@@ -28,6 +28,7 @@ export default function CartModal({
   selectedAddress,
   onSelectAddress,
   onStartShopping,
+  user,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -257,6 +258,7 @@ export default function CartModal({
             setIsAddressModalOpen(false);
             if (onSelectAddress) onSelectAddress(addr);
           }}
+          user={user}
         />
         </View>
       </View>

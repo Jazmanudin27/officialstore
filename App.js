@@ -75,6 +75,22 @@ function AppContent() {
       .catch((e) => console.warn('Get settings error:', e));
   }, []);
 
+  // Auto-sync selectedAddress when user logs in or page loads
+  useEffect(() => {
+    if (currentUser && currentUser.namaLengkap && currentUser.alamat && !selectedAddress) {
+      setSelectedAddress({
+        id: `user_addr_main_${currentUser.id || 1}`,
+        title: 'Rumah',
+        isUtama: true,
+        recipient: currentUser.namaLengkap,
+        phone: currentUser.phone || '',
+        addressLine1: currentUser.alamat,
+        addressLine2: 'Alamat Utama Terdaftar',
+        note: null,
+      });
+    }
+  }, [currentUser]);
+
   const handleSaveAdminSession = (data) => {
     setAdminUser(data);
     try {
@@ -487,6 +503,8 @@ function AppContent() {
         onOpenVoucher={handleOpenVoucherFromCart}
         selectedVoucher={selectedVoucher}
         selectedAddress={selectedAddress}
+        onSelectAddress={handleSelectAddress}
+        user={currentUser}
       />
 
       {/* Checkout Screen Modal */}
@@ -496,9 +514,11 @@ function AppContent() {
         cartItems={cartItems}
         totalAmount={cartTotal}
         selectedAddress={selectedAddress}
+        onSelectAddress={handleSelectAddress}
         selectedVoucher={selectedVoucher}
         onOpenAddress={handleOpenAddressFromCheckout}
         onOpenVoucher={handleOpenVoucherFromCheckout}
+        user={currentUser}
         onOrderSuccess={() => {
           clearCart();
           setSelectedVoucher(null);

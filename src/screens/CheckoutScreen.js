@@ -20,6 +20,36 @@ import AddressModal from './AddressModal';
 import VoucherScreen from './VoucherScreen';
 import apiService from '../services/api';
 
+const COURIER_OPTIONS = [
+  {
+    id: 'instan',
+    name: 'Pengiriman Instan',
+    badge: 'Maks. 1-2 Jam',
+    price: 12000,
+    desc: 'Dikirim cepat oleh kurir toko / pengiriman instan',
+    icon: 'flash',
+    color: '#D91E28',
+  },
+  {
+    id: 'jnt',
+    name: 'J&T Express',
+    badge: '1 - 2 Hari',
+    price: 10000,
+    desc: 'Pengiriman reguler cepat & terpercaya via J&T Express',
+    icon: 'car-sport',
+    color: '#0284C7',
+  },
+  {
+    id: 'jne',
+    name: 'JNE Reguler',
+    badge: '2 - 3 Hari',
+    price: 9000,
+    desc: 'Pengiriman hemat & aman via JNE Express',
+    icon: 'cube',
+    color: '#16A34A',
+  },
+];
+
 export default function CheckoutScreen({
   visible,
   onClose,
@@ -31,6 +61,7 @@ export default function CheckoutScreen({
   selectedAddress,
   onSelectAddress,
   onSelectVoucher,
+  user,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -38,6 +69,7 @@ export default function CheckoutScreen({
   const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
   const [internalVoucher, setInternalVoucher] = useState(selectedVoucher);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState('instan');
 
   React.useEffect(() => {
     setInternalVoucher(selectedVoucher);
@@ -65,7 +97,8 @@ export default function CheckoutScreen({
   const displayItems = cartItems.length > 0 ? cartItems : defaultItems;
 
   const totalProductPrice = displayItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const deliveryFee = selectedAddress?.isPickup ? 0 : 12000;
+  const currentCourier = COURIER_OPTIONS.find((c) => c.id === selectedCourier) || COURIER_OPTIONS[0];
+  const deliveryFee = selectedAddress?.isPickup ? 0 : currentCourier.price;
   const totalItemCount = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const discountAmount = activeVoucher ? activeVoucher.discountAmount : 0;
@@ -226,27 +259,52 @@ export default function CheckoutScreen({
 
           {/* Delivery Type Header */}
           <View style={styles.deliveryTypeRow}>
-            <Ionicons name="flash" size={20} color="#D91E28" />
-            <Text style={styles.deliveryTypeTitle}>Pengiriman Instan</Text>
+            <Ionicons name="car-sport" size={20} color="#D91E28" />
+            <Text style={styles.deliveryTypeTitle}>Pilihan Kurir & Pengiriman</Text>
           </View>
 
-          {/* Estimasi Sampai Card */}
-          <View style={styles.estimasiCard}>
-            <View style={styles.estimasiLeft}>
-              <View style={styles.motorIconBox}>
-                <Ionicons name="bicycle" size={26} color="#D91E28" />
-              </View>
-              <View style={styles.estimasiTextGroup}>
-                <Text style={styles.estimasiTitle}>
-                  Estimasi sampai: <Text style={{ fontWeight: '700' }}>Maks. Selasa, 22 Sep</Text>
-                </Text>
-                <Text style={styles.aturJamText}>Atur jam pengiriman</Text>
-              </View>
-            </View>
+          {/* Opsi Kurir Pengiriman Card (Instan, JNT, JNE) */}
+          <View style={styles.courierCardContainer}>
+            {COURIER_OPTIONS.map((courier) => {
+              const isSelected = selectedCourier === courier.id;
+              return (
+                <TouchableOpacity
+                  key={courier.id}
+                  style={[
+                    styles.courierItem,
+                    isSelected && styles.courierItemSelected,
+                  ]}
+                  onPress={() => setSelectedCourier(courier.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.courierLeft}>
+                    <View style={[styles.courierIconBox, { backgroundColor: courier.color + '18' }]}>
+                      <Ionicons name={courier.icon} size={20} color={courier.color} />
+                    </View>
+                    <View style={styles.courierTextGroup}>
+                      <View style={styles.courierTitleRow}>
+                        <Text style={styles.courierName}>{courier.name}</Text>
+                        <View style={[styles.courierBadge, { backgroundColor: courier.color + '20' }]}>
+                          <Text style={[styles.courierBadgeText, { color: courier.color }]}>
+                            {courier.badge}
+                          </Text>
+                        </View>
+                      </View>
+                      <Text style={styles.courierDesc}>{courier.desc}</Text>
+                    </View>
+                  </View>
 
-            <TouchableOpacity style={styles.aturBtn} activeOpacity={0.7}>
-              <Text style={styles.aturBtnText}>Atur</Text>
-            </TouchableOpacity>
+                  <View style={styles.courierRight}>
+                    <Text style={styles.courierPrice}>
+                      {selectedAddress?.isPickup ? 'Gratis' : formatRupiah(courier.price)}
+                    </Text>
+                    <View style={[styles.radioCircle, isSelected && styles.radioCircleSelected]}>
+                      {isSelected && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           {/* Itemized Products List */}
@@ -301,12 +359,15 @@ export default function CheckoutScreen({
 
             <View style={styles.summaryRow}>
               <View style={styles.labelWithInfo}>
-                <Text style={styles.summaryLabel}>Total Ongkos Kirim</Text>
+                <Text style={styles.summaryLabel}>
+                  Total Ongkos Kirim ({selectedAddress?.isPickup ? 'Pickup' : currentCourier.name})
+                </Text>
                 <Ionicons name="information-circle-outline" size={15} color="#64748B" />
               </View>
               <View style={styles.ongkirRow}>
-                <Text style={styles.ongkirStrike}>Rp 10.000</Text>
-                <Text style={styles.summaryValue}>Rp 0</Text>
+                <Text style={styles.summaryValue}>
+                  {selectedAddress?.isPickup ? 'Gratis (Rp 0)' : formatRupiah(deliveryFee)}
+                </Text>
               </View>
             </View>
 
@@ -473,6 +534,7 @@ export default function CheckoutScreen({
             setIsAddressModalOpen(false);
             if (onSelectAddress) onSelectAddress(addr);
           }}
+          user={user}
         />
 
         {/* Voucher Selection Full Screen Overlay inside Checkout */}
@@ -554,51 +616,87 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.textDark,
   },
-  /* Estimasi Card */
-  estimasiCard: {
-    backgroundColor: '#FEF3C7',
+  /* Courier Cards */
+  courierCardContainer: {
+    gap: 8,
+  },
+  courierItem: {
+    backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: '#E2E8F0',
   },
-  estimasiLeft: {
+  courierItemSelected: {
+    borderColor: '#0284C7',
+    backgroundColor: '#F0F9FF',
+  },
+  courierLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     marginRight: 8,
   },
-  motorIconBox: {
+  courierIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 10,
   },
-  estimasiTextGroup: {
+  courierTextGroup: {
     flex: 1,
   },
-  estimasiTitle: {
-    fontSize: 13,
-    color: COLORS.textDark,
+  courierTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginBottom: 2,
   },
-  aturJamText: {
+  courierName: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  courierBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+  },
+  courierBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  courierDesc: {
     fontSize: 12,
-    color: '#D91E28',
-    fontWeight: '700',
+    color: '#64748B',
   },
-  aturBtn: {
-    borderWidth: 1.5,
-    borderColor: '#0284C7',
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
+  courierRight: {
+    alignItems: 'flex-end',
+    gap: 4,
   },
-  aturBtnText: {
-    color: '#0284C7',
+  courierPrice: {
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#94A3B8',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+  },
+  radioCircleSelected: {
+    borderColor: '#0284C7',
+    backgroundColor: '#0284C7',
   },
   /* Products List */
   productsListCard: {
