@@ -70,6 +70,7 @@ export default function CheckoutScreen({
   const [internalVoucher, setInternalVoucher] = useState(selectedVoucher);
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedCourier, setSelectedCourier] = useState('instan');
 
   React.useEffect(() => {
     setInternalVoucher(selectedVoucher);
