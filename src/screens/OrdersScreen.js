@@ -14,7 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
-import { apiService } from '../services/api';
+import OrderDetailModal from './OrderDetailModal';
+import PaymentScreen from './PaymentScreen';
 
 export default function OrdersScreen({
   openSearch,
@@ -29,6 +30,8 @@ export default function OrdersScreen({
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [selectedOrderForDetail, setSelectedOrderForDetail] = useState(null);
+  const [payingOrder, setPayingOrder] = useState(null);
   const isLoggedIn = !!user;
 
   const fetchOrders = useCallback(async (showLoading = true) => {
@@ -202,7 +205,12 @@ export default function OrdersScreen({
               </View>
             ) : (
               filteredOrders.map((order) => (
-                <View key={order.id} style={styles.orderCard}>
+                <TouchableOpacity
+                  key={order.id}
+                  style={styles.orderCard}
+                  onPress={() => setSelectedOrderForDetail(order)}
+                  activeOpacity={0.92}
+                >
                   {/* Card Header: Type & Status */}
                   <View style={styles.cardHeader}>
                     <View style={styles.typeBadgeRow}>
@@ -258,10 +266,27 @@ export default function OrdersScreen({
                     </View>
 
                     <View style={styles.actionButtonsRow}>
+                      {order.status === 'menunggu' && (
+                        <TouchableOpacity
+                          style={styles.payBtn}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            setPayingOrder(order);
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="card-outline" size={14} color="#FFFFFF" />
+                          <Text style={styles.payBtnText}>Bayar Sekarang</Text>
+                        </TouchableOpacity>
+                      )}
+
                       {order.status === 'dikirim' && (
                         <TouchableOpacity
                           style={styles.trackBtn}
-                          onPress={() => handleTrackOrder(order)}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleTrackOrder(order);
+                          }}
                           activeOpacity={0.8}
                         >
                           <Text style={styles.trackBtnText}>Lacak</Text>
@@ -270,7 +295,10 @@ export default function OrdersScreen({
 
                       <TouchableOpacity
                         style={styles.reorderBtn}
-                        onPress={() => handleReorder(order)}
+                        onPress={(e) => {
+                          e.stopPropagation();
+                          handleReorder(order);
+                        }}
                         activeOpacity={0.8}
                       >
                         <Ionicons name="repeat" size={14} color={COLORS.white} />
@@ -278,12 +306,40 @@ export default function OrdersScreen({
                       </TouchableOpacity>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               ))
             )}
           </ScrollView>
         </>
       )}
+
+      {/* Order Detail Modal */}
+      <OrderDetailModal
+        visible={!!selectedOrderForDetail}
+        onClose={() => setSelectedOrderForDetail(null)}
+        order={selectedOrderForDetail}
+        onPayNow={(ord) => {
+          setSelectedOrderForDetail(null);
+          setPayingOrder(ord);
+        }}
+        onReorder={(ord) => handleReorder(ord)}
+      />
+
+      {/* Payment Screen Modal when Bayar Sekarang is clicked */}
+      <PaymentScreen
+        visible={!!payingOrder}
+        onClose={() => setPayingOrder(null)}
+        finalTotal={payingOrder?.totalAmount || 0}
+        subtotal={payingOrder?.productTotal || payingOrder?.totalAmount || 0}
+        deliveryFee={payingOrder?.shippingFee || 0}
+        discountAmount={payingOrder?.discount || 0}
+        selectedAddress={{ addressLine1: payingOrder?.address || 'Alamat Kirim' }}
+        cartItems={payingOrder?.items || []}
+        onCompleteCheckout={() => {
+          setPayingOrder(null);
+          fetchOrders(false);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -501,10 +557,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#475569',
   },
-  reorderBtn: {
+  payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#D91E28',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    gap: 4,
+  },
+  payBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: COLORS.white,
+  },
+  reorderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#005691',
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 8,

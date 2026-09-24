@@ -125,6 +125,39 @@ export const apiService = {
 
   // 3. Simpan Transaksi Pesanan ke Database
   async createOrder(orderPayload) {
+    let localOrders = [];
+    try {
+      const s = storage.getItem('official_store_orders');
+      if (s) localOrders = JSON.parse(s);
+    } catch (e) {}
+
+    const newOrderObj = {
+      id: orderPayload.nomorPesanan || `INV-${Date.now().toString().slice(-8)}`,
+      nomorPesanan: orderPayload.nomorPesanan || `INV-${Date.now().toString().slice(-8)}`,
+      date: new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }),
+      status: orderPayload.status || 'menunggu',
+      statusLabel: orderPayload.status === 'diproses' ? 'Sedang Diproses' : 'Belum Bayar',
+      statusBg: orderPayload.status === 'diproses' ? '#FEF3C7' : '#FEE2E2',
+      statusColor: orderPayload.status === 'diproses' ? '#D97706' : '#DC2626',
+      type: orderPayload.tipePesanan || 'delivery',
+      typeLabel: orderPayload.tipePesanan === 'pickup' ? 'Ambil di Toko Cabang' : 'Pengiriman Reguler',
+      courier: orderPayload.courier || 'J&T Express',
+      shippingFee: orderPayload.ongkosKirim || 0,
+      productTotal: orderPayload.totalHargaProduk || orderPayload.totalPembayaran,
+      discount: orderPayload.diskonVoucher || 0,
+      totalAmount: orderPayload.totalPembayaran,
+      recipient: orderPayload.recipient || 'Jazmanudin',
+      phone: orderPayload.phone || '089523888200',
+      address: orderPayload.address || 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya',
+      paymentMethod: orderPayload.paymentMethod || 'Midtrans / QRIS / Transfer Bank',
+      items: orderPayload.items || [],
+    };
+
+    localOrders = [newOrderObj, ...localOrders];
+    try {
+      storage.setItem('official_store_orders', JSON.stringify(localOrders));
+    } catch (e) {}
+
     try {
       const response = await fetch(`${BASE_URL}/api/orders`, {
         method: 'POST',
@@ -140,10 +173,7 @@ export const apiService = {
       return {
         status: 'ok',
         fallback: true,
-        data: {
-          nomorPesanan: `INV-${Date.now().toString().slice(-8)}`,
-          totalPembayaran: orderPayload.totalPembayaran,
-        },
+        data: newOrderObj,
       };
     }
   },
@@ -233,16 +263,73 @@ export const apiService = {
 
   // 3.5 Ambil Riwayat Pesanan User Langsung dari Database MySQL
   async getUserOrders(userId) {
-    if (!userId) return [];
+    const SAMPLE_ORDERS = [
+      {
+        id: 'INV-24016670',
+        nomorPesanan: 'INV-24016670',
+        date: '24 Sep 2026, 11:26 WIB',
+        status: 'menunggu',
+        statusLabel: 'Belum Bayar',
+        statusBg: '#FEE2E2',
+        statusColor: '#DC2626',
+        type: 'delivery',
+        typeLabel: 'Pengiriman Reguler',
+        courier: 'J&T Express',
+        shippingFee: 12000,
+        productTotal: 923500,
+        discount: 0,
+        totalAmount: 935500,
+        recipient: 'Jazmanudin',
+        phone: '089523888200',
+        address: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya',
+        paymentMethod: 'Midtrans / QRIS / Transfer Bank',
+        items: [
+          {
+            id: 'p1_pcs',
+            name: 'AIDA BESAR 500 GR [PCS]',
+            variant: 'AIDA BESAR 500 GR [PCS]',
+            price: 23500,
+            quantity: 1,
+            image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
+          },
+          {
+            id: 'p1_dus',
+            name: 'AIDA BESAR 500 GR [PCS]',
+            variant: 'AIDA BESAR 500 GR [DUS / 20 PCS]',
+            price: 450000,
+            quantity: 2,
+            image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
+          },
+        ],
+      },
+    ];
+
+    let localOrders = [];
     try {
-      const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${userId}&t=${Date.now()}`);
-      if (json.status === 'ok' && Array.isArray(json.data)) {
-        return json.data;
+      const s = storage.getItem('official_store_orders');
+      if (s) {
+        localOrders = JSON.parse(s);
+      }
+    } catch (e) {}
+
+    const combinedLocal = [...localOrders];
+    SAMPLE_ORDERS.forEach((so) => {
+      if (!combinedLocal.some((o) => o.id === so.id)) {
+        combinedLocal.push(so);
+      }
+    });
+
+    try {
+      const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${userId || 1}&t=${Date.now()}`);
+      if (json.status === 'ok' && Array.isArray(json.data) && json.data.length > 0) {
+        const serverIds = new Set(json.data.map((o) => o.id));
+        const extraLocal = combinedLocal.filter((o) => !serverIds.has(o.id));
+        return [...json.data, ...extraLocal];
       }
     } catch (error) {
       console.warn('ℹ️ Gagal mengambil pesanan user dari database:', error.message);
     }
-    return [];
+    return combinedLocal;
   },
 
   // 4. Kirim OTP ke Nomor HP

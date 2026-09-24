@@ -24,6 +24,7 @@ export default function Header({
   searchQuery,
   setSearchQuery,
   cartCount = 0,
+  notificationCount = 1,
   openCart,
   openChat,
   openNotification,
@@ -141,7 +142,7 @@ export default function Header({
                 <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
                 <Text style={styles.desktopActionLabel}>Notifikasi</Text>
                 <View style={styles.desktopBadge}>
-                  <Text style={styles.badgeText}>6</Text>
+                  <Text style={styles.badgeText}>{notificationCount}</Text>
                 </View>
               </TouchableOpacity>
 
@@ -262,7 +263,7 @@ export default function Header({
             <TouchableOpacity style={styles.iconBtn} onPress={openNotification} activeOpacity={0.7}>
               <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
               <View style={styles.yellowBadge}>
-                <Text style={styles.badgeText}>6</Text>
+                <Text style={styles.badgeText}>{notificationCount}</Text>
               </View>
             </TouchableOpacity>
 
@@ -338,7 +339,7 @@ export default function Header({
               <TouchableOpacity style={styles.iconBtn} onPress={openNotification} activeOpacity={0.7}>
                 <Ionicons name="notifications-outline" size={22} color={COLORS.white} />
                 <View style={styles.yellowBadge}>
-                  <Text style={styles.badgeText}>6</Text>
+                  <Text style={styles.badgeText}>{notificationCount}</Text>
                 </View>
               </TouchableOpacity>
 

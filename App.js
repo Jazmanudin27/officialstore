@@ -152,6 +152,18 @@ function AppContent() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeTab, setActiveTab] = useState('home');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeOrderCount, setActiveOrderCount] = useState(1);
+
+  useEffect(() => {
+    apiService.getUserOrders(currentUser?.id || 1).then((orders) => {
+      if (Array.isArray(orders)) {
+        const count = orders.filter(
+          (o) => o.status === 'menunggu' || o.status === 'diproses' || o.status === 'dikirim'
+        ).length;
+        setActiveOrderCount(count);
+      }
+    });
+  }, [currentUser, isNotificationOpen, activeTab]);
 
   // Address and modal flow handlers (avoids modal-over-modal collision on iOS/Web/Android)
   const handleOpenAddressFromHome = () => {
@@ -445,6 +457,7 @@ function AppContent() {
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           cartCount={totalCartCount}
+          notificationCount={activeOrderCount}
           openCart={() => setIsCartOpen(true)}
           openChat={() => setIsChatOpen(true)}
           openNotification={() => setIsNotificationOpen(true)}
@@ -485,6 +498,11 @@ function AppContent() {
       <NotificationScreen
         visible={isNotificationOpen}
         onClose={() => setIsNotificationOpen(false)}
+        user={currentUser}
+        onGoToOrders={() => {
+          setIsNotificationOpen(false);
+          setActiveTab('pesanan');
+        }}
       />
 
       {/* Shopping Cart Modal */}

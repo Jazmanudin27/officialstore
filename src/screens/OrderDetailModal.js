@@ -1,0 +1,553 @@
+import React from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Image,
+  StyleSheet,
+  Modal,
+  SafeAreaView,
+  Linking,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { formatRupiah } from '../utils/formatters';
+import { COLORS } from '../constants/theme';
+
+export default function OrderDetailModal({
+  visible,
+  onClose,
+  order,
+  onPayNow,
+  onReorder,
+}) {
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
+  if (!visible || !order) return null;
+
+  const handleContactAdminWA = () => {
+    const phone = '62895238888200';
+    const text = `Halo Admin Official Store! Saya mau menanyakan status pesanan saya dengan nomor ID: *${order.id}*`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url).catch(() => {});
+    }
+  };
+
+  const getStatusBanner = () => {
+    if (order.status === 'menunggu') {
+      return {
+        bg: '#FEE2E2',
+        border: '#FECACA',
+        icon: 'time-outline',
+        iconColor: '#DC2626',
+        title: 'Pesanan Belum Dibayar',
+        subtitle: 'Mohon lakukan pembayaran untuk memproses pesanan Anda.',
+        actionBtn: true,
+      };
+    } else if (order.status === 'diproses') {
+      return {
+        bg: '#FEF3C7',
+        border: '#FDE68A',
+        icon: 'cube-outline',
+        iconColor: '#D97706',
+        title: order.statusLabel || 'Pesanan Sedang Diproses',
+        subtitle: 'Penjual sedang menyiapkan & mengemas produk pesanan Anda.',
+        actionBtn: false,
+      };
+    } else if (order.status === 'dikirim') {
+      return {
+        bg: '#E0F2FE',
+        border: '#BAE6FD',
+        icon: 'bicycle-outline',
+        iconColor: '#0284C7',
+        title: 'Pesanan Sedang Dikirim',
+        subtitle: 'Paket dalam perjalanan menuju lokasi alamat pengiriman.',
+        actionBtn: false,
+      };
+    } else if (order.status === 'selesai') {
+      return {
+        bg: '#DCFCE7',
+        border: '#BBF7D0',
+        icon: 'checkmark-circle-outline',
+        iconColor: '#16A34A',
+        title: 'Pesanan Selesai',
+        subtitle: 'Terima kasih telah berbelanja di Official Store Tasikmalaya!',
+        actionBtn: false,
+      };
+    } else {
+      return {
+        bg: '#F1F5F9',
+        border: '#E2E8F0',
+        icon: 'close-circle-outline',
+        iconColor: '#64748B',
+        title: 'Pesanan Dibatalkan',
+        subtitle: 'Transaksi pesanan ini telah dibatalkan.',
+        actionBtn: false,
+      };
+    }
+  };
+
+  const banner = getStatusBanner();
+  const items = order.items || [];
+  const productSubtotal = items.reduce(
+    (sum, it) => sum + Number(it.price || 0) * Number(it.quantity || 1),
+    0
+  );
+
+  return (
+    <Modal
+      visible={visible}
+      animationType={isDesktop ? 'fade' : 'slide'}
+      transparent={isDesktop}
+      onRequestClose={onClose}
+    >
+      <View style={isDesktop ? styles.desktopOverlay : { flex: 1 }}>
+        <View style={isDesktop ? styles.desktopModalCard : styles.safeArea}>
+          {/* Top Red Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={onClose} style={styles.backBtn} activeOpacity={0.7}>
+              <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            </TouchableOpacity>
+            <View style={{ marginLeft: 10 }}>
+              <Text style={styles.headerTitle}>Detail Pesanan</Text>
+              <Text style={styles.headerSub}>{order.id}</Text>
+            </View>
+          </View>
+
+          <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+            {/* Order Status Banner */}
+            <View style={[styles.statusBannerBox, { backgroundColor: banner.bg, borderColor: banner.border }]}>
+              <Ionicons name={banner.icon} size={24} color={banner.iconColor} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.statusBannerTitle, { color: banner.iconColor }]}>
+                  {banner.title}
+                </Text>
+                <Text style={styles.statusBannerSub}>{banner.subtitle}</Text>
+              </View>
+            </View>
+
+            {/* Pay Now Button if Unpaid */}
+            {order.status === 'menunggu' && (
+              <TouchableOpacity
+                style={styles.payNowBtn}
+                onPress={() => {
+                  onClose();
+                  if (onPayNow) onPayNow(order);
+                }}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="card-outline" size={20} color={COLORS.white} />
+                <Text style={styles.payNowBtnText}>
+                  Bayar Sekarang ({formatRupiah(order.totalAmount)})
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Delivery Address & Recipient Card */}
+            <View style={styles.cardContainer}>
+              <View style={styles.cardHeaderRow}>
+                <Ionicons name="location-outline" size={20} color="#D91E28" />
+                <Text style={styles.cardHeaderTitle}>Info Pengiriman & Alamat</Text>
+              </View>
+
+              <View style={styles.cardContent}>
+                <View style={styles.badgeRow}>
+                  <View style={styles.typeBadge}>
+                    <Text style={styles.typeBadgeText}>
+                      {order.type === 'pickup' ? 'Ambil di Toko (Pickup)' : 'Kirim ke Alamat'}
+                    </Text>
+                  </View>
+                  {order.courier && (
+                    <Text style={styles.courierText}>Kurir: {order.courier}</Text>
+                  )}
+                </View>
+
+                <Text style={styles.addressLine}>{order.address}</Text>
+                <Text style={styles.dateLine}>Tanggal Transaksi: {order.date}</Text>
+              </View>
+            </View>
+
+            {/* Products List Card */}
+            <View style={styles.cardContainer}>
+              <View style={styles.cardHeaderRow}>
+                <Ionicons name="bag-handle-outline" size={20} color="#0284C7" />
+                <Text style={styles.cardHeaderTitle}>Daftar Produk ({items.length})</Text>
+              </View>
+
+              <View style={styles.itemsList}>
+                {items.map((item, idx) => (
+                  <View key={idx} style={styles.itemRow}>
+                    <Image source={{ uri: item.image }} style={styles.itemImage} />
+                    <View style={styles.itemTextGroup}>
+                      <Text style={styles.itemName} numberOfLines={2}>
+                        {item.name}
+                      </Text>
+                      {item.variant && (
+                        <Text style={styles.itemVariant}>Varian: {item.variant}</Text>
+                      )}
+                      <View style={styles.itemPriceQtyRow}>
+                        <Text style={styles.itemPrice}>{formatRupiah(item.price)}</Text>
+                        <Text style={styles.itemQty}>x{item.quantity}</Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Payment Summary breakdown */}
+            <View style={styles.cardContainer}>
+              <View style={styles.cardHeaderRow}>
+                <Ionicons name="receipt-outline" size={20} color="#16A34A" />
+                <Text style={styles.cardHeaderTitle}>Rincian Pembayaran</Text>
+              </View>
+
+              <View style={styles.summaryBody}>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Subtotal Produk</Text>
+                  <Text style={styles.summaryValue}>
+                    {formatRupiah(order.productTotal || productSubtotal)}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Total Ongkos Kirim</Text>
+                  <Text style={styles.summaryValue}>
+                    {order.type === 'pickup' ? 'Gratis' : formatRupiah(order.shippingFee || 0)}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Diskon Voucher</Text>
+                  <Text
+                    style={[
+                      styles.summaryValue,
+                      order.discount > 0 && { color: '#D91E28', fontWeight: '800' },
+                    ]}
+                  >
+                    {order.discount > 0 ? `- ${formatRupiah(order.discount)}` : 'Rp 0'}
+                  </Text>
+                </View>
+
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryLabel}>Metode Pembayaran</Text>
+                  <Text style={[styles.summaryValue, { color: '#0284C7', fontWeight: '700' }]}>
+                    {order.catatanPesanan || 'Midtrans Payment Gateway'}
+                  </Text>
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.totalRow}>
+                  <Text style={styles.totalLabel}>Total Pembayaran</Text>
+                  <Text style={styles.totalValue}>{formatRupiah(order.totalAmount)}</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Customer Care / Support Card */}
+            <TouchableOpacity
+              style={styles.supportCard}
+              onPress={handleContactAdminWA}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="logo-whatsapp" size={22} color="#25D366" />
+              <Text style={styles.supportText}>Butuh Bantuan? Chat Admin WhatsApp</Text>
+            </TouchableOpacity>
+          </ScrollView>
+
+          {/* Bottom Action Footer */}
+          <View style={styles.bottomFooter}>
+            <TouchableOpacity
+              style={styles.reorderFooterBtn}
+              onPress={() => {
+                onClose();
+                if (onReorder) onReorder(order);
+              }}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="repeat" size={18} color={COLORS.white} />
+              <Text style={styles.reorderFooterText}>Beli Lagi Produk Ini</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  desktopOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  desktopModalCard: {
+    width: 620,
+    maxHeight: '88%',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#D91E28',
+  },
+  backBtn: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.white,
+  },
+  headerSub: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.85)',
+  },
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 14,
+    gap: 12,
+    paddingBottom: 80,
+  },
+  statusBannerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 12,
+  },
+  statusBannerTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 2,
+  },
+  statusBannerSub: {
+    fontSize: 12.5,
+    color: '#64748B',
+    lineHeight: 18,
+  },
+  payNowBtn: {
+    backgroundColor: '#D91E28',
+    borderRadius: 12,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#D91E28',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  payNowBtnText: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '900',
+  },
+  cardContainer: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    overflow: 'hidden',
+  },
+  cardHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#F8FAFC',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    gap: 8,
+  },
+  cardHeaderTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  cardContent: {
+    padding: 14,
+    gap: 6,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  typeBadge: {
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  typeBadgeText: {
+    color: '#0284C7',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  courierText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  addressLine: {
+    fontSize: 13,
+    color: COLORS.textDark,
+    lineHeight: 19,
+  },
+  dateLine: {
+    fontSize: 12,
+    color: '#94A3B8',
+    marginTop: 2,
+  },
+  itemsList: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  itemImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#F1F5F9',
+  },
+  itemTextGroup: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginBottom: 2,
+  },
+  itemVariant: {
+    fontSize: 11.5,
+    color: '#64748B',
+    marginBottom: 4,
+  },
+  itemPriceQtyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  itemPrice: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#D91E28',
+  },
+  itemQty: {
+    fontSize: 12,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  summaryBody: {
+    padding: 14,
+    gap: 8,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 13,
+    color: '#64748B',
+  },
+  summaryValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textDark,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#E2E8F0',
+    marginVertical: 4,
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  totalLabel: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: COLORS.textDark,
+  },
+  totalValue: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#D91E28',
+  },
+  supportCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#DCFCE7',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    borderRadius: 12,
+    padding: 12,
+    gap: 8,
+  },
+  supportText: {
+    color: '#15803D',
+    fontSize: 13.5,
+    fontWeight: '800',
+  },
+  bottomFooter: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  reorderFooterBtn: {
+    backgroundColor: '#005691',
+    borderRadius: 10,
+    height: 46,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  reorderFooterText: {
+    color: COLORS.white,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+});
