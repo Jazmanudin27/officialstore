@@ -321,6 +321,7 @@ export default function NotificationScreen({ visible, onClose, user, onGoToOrder
         discountAmount={payingOrder?.discount || 0}
         selectedAddress={{ addressLine1: payingOrder?.address || 'Alamat Kirim' }}
         cartItems={payingOrder?.items || []}
+        user={user}
         onCompleteCheckout={() => {
           setPayingOrder(null);
           fetchActiveOrders();

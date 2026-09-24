@@ -140,7 +140,7 @@ export default function CheckoutScreen({
       // Simpan pesanan ke database MySQL
       try {
         await apiService.createOrder({
-          userId: 1,
+          userId: user?.id || 1,
           tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
           totalHargaProduk: totalProductPrice,
           ongkosKirim: deliveryFee,
@@ -549,6 +549,7 @@ export default function CheckoutScreen({
           discountAmount={discountAmount}
           selectedAddress={selectedAddress}
           cartItems={displayItems}
+          user={user}
           onCompleteCheckout={() => {
             setIsPaymentModalOpen(false);
             if (onCompleteCheckout) onCompleteCheckout();

@@ -83,6 +83,7 @@ export default function PaymentScreen({
   selectedAddress,
   cartItems = [],
   onCompleteCheckout,
+  user,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -129,7 +130,7 @@ export default function PaymentScreen({
       // Save order to MySQL DB
       try {
         await apiService.createOrder({
-          userId: 1,
+          userId: user?.id || 1,
           tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
           totalHargaProduk: subtotal,
           ongkosKirim: deliveryFee,
@@ -204,7 +205,7 @@ export default function PaymentScreen({
     setIsLoadingPayment(true);
     try {
       await apiService.createOrder({
-        userId: 1,
+        userId: user?.id || 1,
         tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
         metodePembayaran: 'cod',
         statusPesanan: 'processing',
