@@ -530,7 +530,7 @@ app.post('/api/orders', async (req, res) => {
       initialStatus = 'processing';
     }
 
-    const nomorPesanan = `INV-${Date.now().toString().slice(-8)}`;
+    const nomorPesanan = req.body.nomorPesanan || req.body.orderId || `INV-${Date.now().toString().slice(-8)}`;
 
     const [orderResult] = await connection.query(
       `INSERT INTO orders (
@@ -757,7 +757,7 @@ app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
         o.status_pesanan AS status,
         DATE_FORMAT(o.created_at, "%d %b %Y, %H:%i WIB") AS date
       FROM orders o
-      WHERE o.user_id = ? OR o.user_id = 1
+      WHERE o.user_id = ?
       ORDER BY o.order_id DESC`,
       [userId]
     );

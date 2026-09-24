@@ -104,15 +104,36 @@ export default function PaymentScreen({
 
   const processMidtransPayment = async () => {
     setIsLoadingPayment(true);
-    try {
-      const orderId = `INV-${Date.now().toString().slice(-8)}`;
-      const customerName = selectedAddress
-        ? selectedAddress.recipient || selectedAddress.nama_penerima || 'Pelanggan Official Store'
-        : 'Pelanggan Official Store';
-      const customerPhone = selectedAddress
-        ? selectedAddress.phone || selectedAddress.nomor_telepon || '089523888200'
-        : '089523888200';
+    const orderId = `INV-${Date.now().toString().slice(-8)}`;
+    const customerName = selectedAddress
+      ? selectedAddress.recipient || selectedAddress.nama_penerima || 'Pelanggan Official Store'
+      : 'Pelanggan Official Store';
+    const customerPhone = selectedAddress
+      ? selectedAddress.phone || selectedAddress.nomor_telepon || '089523888200'
+      : '089523888200';
 
+    // 1. DAHULU SIMPAN PESANAN LANGSUNG KE DATABASE MYSQL
+    try {
+      await apiService.createOrder({
+        nomorPesanan: orderId,
+        userId: user?.id || 1,
+        tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
+        metodePembayaran: selectedMethodObj.name,
+        statusPesanan: 'pending',
+        status: 'menunggu',
+        totalHargaProduk: subtotal,
+        ongkosKirim: deliveryFee,
+        diskonVoucher: discountAmount,
+        totalPembayaran: finalTotal,
+        catatanPesanan: `Midtrans Snap Order (${selectedMethodObj.name}) ${orderId}`,
+        items: cartItems,
+      });
+    } catch (dbErr) {
+      console.warn('Order save error:', dbErr.message);
+    }
+
+    try {
+      // 2. KEMUDIAN BUAT SNAP TOKEN UNTUK MIDTRANS
       const snapRes = await apiService.createMidtransSnapToken({
         orderId,
         grossAmount: finalTotal,
@@ -127,22 +148,6 @@ export default function PaymentScreen({
         })),
       });
 
-      // Save order to MySQL DB
-      try {
-        await apiService.createOrder({
-          userId: user?.id || 1,
-          tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
-          totalHargaProduk: subtotal,
-          ongkosKirim: deliveryFee,
-          diskonVoucher: discountAmount,
-          totalPembayaran: finalTotal,
-          catatanPesanan: `Midtrans Snap Order (${selectedMethodObj.name}) ${orderId}`,
-          items: cartItems,
-        });
-      } catch (dbErr) {
-        console.warn('Order save error:', dbErr.message);
-      }
-
       if (snapRes && snapRes.token) {
         if (Platform.OS === 'web' && typeof window !== 'undefined') {
           const launchSnapModal = () => {
@@ -155,14 +160,10 @@ export default function PaymentScreen({
                   finishOrder(`Midtrans (${selectedMethodObj.name} - Menunggu Pembayaran)`);
                 },
                 onError: (result) => {
-                  if (Platform.OS === 'web') {
-                    window.alert('Pembayaran Gagal. Silakan coba kembali.');
-                  } else {
-                    Alert.alert('Pembayaran Gagal', 'Proses pembayaran Midtrans tidak berhasil.');
-                  }
+                  finishOrder(`Midtrans (${selectedMethodObj.name} - Belum Bayar)`);
                 },
                 onClose: () => {
-                  console.log('Snap popup closed by user');
+                  finishOrder(`Midtrans (${selectedMethodObj.name} - Belum Bayar)`);
                 },
               });
             } else if (snapRes.redirectUrl) {
@@ -188,14 +189,10 @@ export default function PaymentScreen({
           finishOrder(`Midtrans Redirect (${selectedMethodObj.name})`);
         }
       } else {
-        throw new Error('Gagal mendapatkan token transaksi Midtrans.');
+        finishOrder(`Pesanan Dibuat (${selectedMethodObj.name})`);
       }
     } catch (err) {
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert(`Midtrans Info: ${err.message || 'Gagal memproses pembayaran Midtrans.'}`);
-      } else {
-        Alert.alert('Midtrans Payment Info', err.message || 'Gagal memproses pembayaran Midtrans.');
-      }
+      finishOrder(`Pesanan Dibuat (${selectedMethodObj.name})`);
     } finally {
       setIsLoadingPayment(false);
     }
@@ -203,12 +200,15 @@ export default function PaymentScreen({
 
   const processCodPayment = async () => {
     setIsLoadingPayment(true);
+    const orderId = `INV-${Date.now().toString().slice(-8)}`;
     try {
       await apiService.createOrder({
+        nomorPesanan: orderId,
         userId: user?.id || 1,
         tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
         metodePembayaran: 'cod',
         statusPesanan: 'processing',
+        status: 'diproses',
         totalHargaProduk: subtotal,
         ongkosKirim: deliveryFee,
         diskonVoucher: discountAmount,
