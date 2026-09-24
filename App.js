@@ -38,6 +38,7 @@ import ProductDetailModal from './src/screens/ProductDetailModal';
 import AdminDashboardScreen from './src/screens/AdminDashboardScreen';
 import AdminAuthScreen from './src/screens/AdminAuthScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
+import LandingWebsiteScreen from './src/screens/LandingWebsiteScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import { storage } from './src/utils/storage';
 
@@ -136,6 +137,21 @@ function AppContent() {
     }
     return false;
   })();
+
+  // Deteksi URL /website atau ?website=1
+  const isWebsiteRoute = (() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const path = (window.location.pathname || '').toLowerCase();
+      const search = (window.location.search || '').toLowerCase();
+      return (
+        path.startsWith('/website') ||
+        search.includes('website=1') ||
+        search.includes('mode=website')
+      );
+    }
+    return false;
+  })();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -150,7 +166,7 @@ function AppContent() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [activeTab, setActiveTab] = useState('home');
+  const [activeTab, setActiveTab] = useState(isWebsiteRoute ? 'website' : 'home');
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeOrderCount, setActiveOrderCount] = useState(1);
 
@@ -387,6 +403,14 @@ function AppContent() {
             onOpenAuth={() => setIsAuthOpen(true)}
           />
         );
+      case 'website':
+        return (
+          <LandingWebsiteScreen
+            onOpenStore={() => setActiveTab('home')}
+            onOpenProductDetail={(prod) => setSelectedProduct(prod)}
+            onOpenAuth={() => setIsAuthOpen(true)}
+          />
+        );
       case 'akun':
       case 'profile':
         return (
@@ -453,8 +477,8 @@ function AppContent() {
       {/* Animated E-Commerce Splash Screen */}
       {showSplash && <SplashScreen storeSettings={storeSettings} onFinish={() => setShowSplash(false)} />}
 
-      {/* Header (Continuous on Desktop, Home-only on Mobile) */}
-      {(isDesktop || activeTab === 'home') && (
+      {/* Header (Continuous on Desktop, Home-only on Mobile, Hidden on Website view) */}
+      {(isDesktop || activeTab === 'home') && activeTab !== 'website' && (
         <Header
           storeSettings={storeSettings}
           searchQuery={searchQuery}
@@ -642,10 +666,12 @@ function AppContent() {
       )}
 
       {/* Bottom 5-Tab Navigation Bar */}
-      <BottomNavigation
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
+      {activeTab !== 'website' && (
+        <BottomNavigation
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+        />
+      )}
     </SafeAreaView>
   );
 }
