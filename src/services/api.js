@@ -299,9 +299,7 @@ export const apiService = {
             };
           }),
         }));
-        const serverIds = new Set(cleanedServerOrders.map((o) => o.id || o.nomorPesanan));
-        const extraLocal = localOrders.filter((o) => !serverIds.has(o.id) && !serverIds.has(o.nomorPesanan));
-        return [...cleanedServerOrders, ...extraLocal];
+        return cleanedServerOrders;
       }
     } catch (error) {
       console.warn('ℹ️ Gagal mengambil pesanan user dari database:', error.message);
