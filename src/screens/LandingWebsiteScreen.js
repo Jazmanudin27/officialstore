@@ -356,16 +356,22 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
               <Ionicons name="ribbon-outline" size={14} color={BRAND_RED} />
               <Text style={styles.sectionTaglineText}>STANDARISASI & KUALITAS</Text>
             </View>
-            <Text style={styles.sectionHeadingCenter}>Kebijakan Mutu, Halal, & Keamanan Pangan</Text>
+            <Text style={styles.sectionHeadingCenter}>Kebijakan Mutu, Halal, dan Keamanan Pangan</Text>
             <Text style={styles.sectionSubCenter}>
-              CV. MAKMUR PERMATA berkomitmen untuk menghasilkan produk yang berkualitas, halal, dan aman untuk dikonsumsi, memenuhi persyaratan peraturan perundang-undangan serta persyaratan pelanggan.
+              CV. MAKMUR PERMATA berkomitmen untuk menghasilkan produk yang berkualitas, halal, dan aman untuk dikonsumsi, memenuhi persyaratan peraturan perundang-undangan serta persyaratan pelanggan yang telah disetujui bersama serta mempertimbangkan konteks dan arah strategi perusahaan.
+            </Text>
+          </View>
+
+          <View style={{ maxWidth: 1000, width: '100%', alignSelf: 'center', marginBottom: 24 }}>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: '#1C2417', textAlign: 'center', lineHeight: 22 }}>
+              Untuk selalu mencapai kebijakan tersebut maka CV. MAKMUR PERMATA:
             </Text>
           </View>
 
           <View style={[styles.kebijakanGrid, isDesktop ? styles.kebijakanGridDesktop : styles.kebijakanGridMobile]}>
             <View style={styles.kebijakanCard}>
               <View style={styles.kebijakanNumberBadge}>
-                <Text style={styles.kebijakanNumberText}>01</Text>
+                <Text style={styles.kebijakanNumberText}>1</Text>
               </View>
               <Text style={styles.kebijakanCardTitle}>Penerapan Konsisten</Text>
               <Text style={styles.kebijakanCardDesc}>
@@ -375,35 +381,41 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
             <View style={styles.kebijakanCard}>
               <View style={styles.kebijakanNumberBadge}>
-                <Text style={styles.kebijakanNumberText}>02</Text>
+                <Text style={styles.kebijakanNumberText}>2</Text>
               </View>
-              <Text style={styles.kebijakanCardTitle}>Memenuhi Regulasi</Text>
+              <Text style={styles.kebijakanCardTitle}>Memenuhi Regulasi & Pelanggan</Text>
               <Text style={styles.kebijakanCardDesc}>
-                Menghasilkan produk yang senantiasa memenuhi persyaratan peraturan perundang-undangan nasional dan persyaratan pelanggan.
+                Menghasilkan produk yang memenuhi persyaratan peraturan perundang-undangan dan persyaratan pelanggan.
               </Text>
             </View>
 
             <View style={styles.kebijakanCard}>
               <View style={styles.kebijakanNumberBadge}>
-                <Text style={styles.kebijakanNumberText}>03</Text>
+                <Text style={styles.kebijakanNumberText}>3</Text>
               </View>
               <Text style={styles.kebijakanCardTitle}>Pengembangan SDM & Sarana</Text>
               <Text style={styles.kebijakanCardDesc}>
-                Selalu berkomitmen untuk meningkatkan dan mengembangkan SDM, sarana dan prasarana penunjang keberhasilan Sistem Manajemen Mutu & Halal.
+                Selalu berkomitmen untuk meningkatkan dan mengembangkan sumber daya manusia, perusahaan baik sarana dan prasarana yang menunjang keberhasilan Sistem Manajemen Mutu, Halal, dan Keamanan Pangan.
               </Text>
             </View>
           </View>
 
           <View style={styles.directorBadgeBox}>
             <Ionicons name="document-text-outline" size={24} color={BRAND_RED} />
-            <View>
-              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C2417' }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#1C2417' }}>
                 Ditetapkan di Tasikmalaya, 29 Maret 2021
               </Text>
-              <Text style={{ fontSize: 12, color: BRAND_RED, marginTop: 2, fontWeight: '700' }}>
+              <Text style={{ fontSize: 12.5, color: BRAND_RED, marginTop: 2, fontWeight: '800' }}>
                 Direktur CV. MAKMUR PERMATA
               </Text>
             </View>
+          </View>
+
+          <View style={{ maxWidth: 840, width: '100%', alignSelf: 'center', marginTop: 20, backgroundColor: '#FFFFFF', padding: 20, borderRadius: 14, borderWidth: 1, borderColor: '#FFE4E6', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
+            <Text style={{ fontSize: 13.5, color: '#334155', lineHeight: 22, textAlign: 'center', fontWeight: '600' }}>
+              Untuk mendukung keberhasilan dari kebijakan keamanan pangan, CV. MAKMUR PERMATA membuat sasaran keamanan pangan masing-masing fungsi dan Departemen.
+            </Text>
           </View>
         </View>
 
