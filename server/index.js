@@ -58,43 +58,45 @@ function sanitizePhone(phone) {
 async function sendWhatsAppOtp(phone, otp) {
   const cleanPhone = sanitizePhone(phone);
   const formattedPhone = cleanPhone.startsWith('62') ? cleanPhone : '62' + cleanPhone.replace(/^0/, '');
+  const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
   const message = `[OFFICIAL STORE]\n\nKode verifikasi (OTP) Anda adalah: *${otp}*\n\nBerlaku selama 5 menit. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN.`;
 
   const waGatewayBaseUrl = process.env.WA_GATEWAY_URL || 'https://wa.aspartech.com';
   const apiKey = process.env.WA_GATEWAY_API_KEY || 'V8q2Zp7Lm4Xr9Nc6Tj3Ks5Wd1Hy7Fa8Qv2Bn6Rx4Pc9Mz1';
 
-  // Daftar format endpoint WhatsApp Gateway (wa.aspartech.com / Baileys / WPPConnect)
-  const candidateEndpoints = [
-    { url: `${waGatewayBaseUrl}/send-message`, body: { number: formattedPhone, message } },
-    { url: `${waGatewayBaseUrl}/send-message`, body: { phone: formattedPhone, message } },
-    { url: `${waGatewayBaseUrl}/api/send-message`, body: { number: formattedPhone, message } },
-    { url: `${waGatewayBaseUrl}/send`, body: { number: formattedPhone, message } },
-    { url: `${waGatewayBaseUrl}/send`, body: { target: formattedPhone, message } },
-    { url: `${waGatewayBaseUrl}/message/send-text`, body: { number: formattedPhone, message } },
+  // Format endpoint WhatsApp Gateway (wa.aspartech.com)
+  const candidatePayloads = [
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { to: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { to: zeroPhone, message } },
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { to: `${formattedPhone}@c.us`, message } },
+    { url: `${waGatewayBaseUrl}/send-message`, body: { to: formattedPhone, message } },
   ];
 
-  for (const ep of candidateEndpoints) {
+  for (const ep of candidatePayloads) {
     try {
       const response = await fetch(ep.url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': apiKey,
-          'Authorization': process.env.FONNTE_TOKEN || apiKey,
         },
         body: JSON.stringify(ep.body),
       });
 
-      if (response.ok) {
-        console.log(`✅ [WA OTP SENT SUCCESSFULLY] No: +${formattedPhone} via ${ep.url}`);
+      const resData = await response.json().catch(() => ({}));
+
+      if (response.ok && (resData.status === 'queued' || resData.status === 'success' || resData.success)) {
+        console.log(`✅ [WA OTP SENT SUCCESSFULLY] No: +${formattedPhone} | Status: ${resData.status || 'ok'} via ${ep.url}`);
         return true;
+      } else {
+        console.warn(`⚠️ [WA GATEWAY RESPONDED] ${ep.url} -> HTTP ${response.status}:`, resData);
       }
     } catch (err) {
-      // Coba format berikutnya
+      console.error(`❌ [WA GATEWAY ERROR] ${ep.url}:`, err.message);
     }
   }
 
-  console.warn(`⚠️ [WA GATEWAY DISPATCHED] No: +${formattedPhone} | Kode OTP: ${otp}`);
+  console.warn(`⚠️ [WA GATEWAY DISPATCHED FALLBACK] No: +${formattedPhone} | Kode OTP: ${otp}`);
   return false;
 }
 
