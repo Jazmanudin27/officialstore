@@ -206,6 +206,8 @@ export default function PaymentScreen({
       await apiService.createOrder({
         userId: 1,
         tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
+        metodePembayaran: 'cod',
+        statusPesanan: 'processing',
         totalHargaProduk: subtotal,
         ongkosKirim: deliveryFee,
         diskonVoucher: discountAmount,

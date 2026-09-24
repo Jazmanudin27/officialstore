@@ -505,6 +505,8 @@ app.post('/api/orders', async (req, res) => {
     const {
       userId = 1,
       tipePesanan = 'delivery',
+      metodePembayaran = '',
+      statusPesanan = null,
       addressId = null,
       snapshotAlamatKirim = null,
       storeId = null,
@@ -518,6 +520,16 @@ app.post('/api/orders', async (req, res) => {
       items = [],
     } = req.body;
 
+    let initialStatus = 'pending';
+    if (statusPesanan) {
+      initialStatus = statusPesanan;
+    } else if (
+      (catatanPesanan && catatanPesanan.toUpperCase().includes('COD')) ||
+      (metodePembayaran && metodePembayaran.toLowerCase() === 'cod')
+    ) {
+      initialStatus = 'processing';
+    }
+
     const nomorPesanan = `INV-${Date.now().toString().slice(-8)}`;
 
     const [orderResult] = await connection.query(
@@ -525,7 +537,7 @@ app.post('/api/orders', async (req, res) => {
         nomor_pesanan, user_id, tipe_pesanan, address_id, snapshot_alamat_kirim, 
         store_id, total_harga_produk, ongkos_kirim, diskon_voucher, voucher_id, 
         biaya_layanan, total_pembayaran, catatan_pesanan, status_pesanan
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         nomorPesanan,
         userId,
@@ -540,6 +552,7 @@ app.post('/api/orders', async (req, res) => {
         biayaLayanan,
         totalPembayaran,
         catatanPesanan,
+        initialStatus,
       ]
     );
 
@@ -770,7 +783,8 @@ app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
         [ord.id]
       );
 
-      let statusLabel = 'Sedang Diproses';
+      const isCodOrder = ord.catatan_pesanan && ord.catatan_pesanan.toUpperCase().includes('COD');
+      let statusLabel = isCodOrder ? 'Sedang Diproses (COD)' : 'Sedang Diproses';
       let statusColor = '#D97706';
       let statusBg = '#FEF3C7';
       let formattedStatus = 'diproses';
