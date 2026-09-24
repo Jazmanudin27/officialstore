@@ -112,6 +112,10 @@ export default function PaymentScreen({
       ? selectedAddress.phone || selectedAddress.nomor_telepon || '089523888200'
       : '089523888200';
 
+    const addressText = selectedAddress?.addressLine1 || selectedAddress?.alamat || user?.alamat || 'Alamat Kirim Utama';
+    const recipientText = selectedAddress?.recipient || selectedAddress?.nama_penerima || user?.namaLengkap || 'Pelanggan Official Store';
+    const phoneText = selectedAddress?.phone || selectedAddress?.nomor_telepon || user?.phone || '089523888200';
+
     // 1. DAHULU SIMPAN PESANAN LANGSUNG KE DATABASE MYSQL
     try {
       await apiService.createOrder({
@@ -125,6 +129,10 @@ export default function PaymentScreen({
         ongkosKirim: deliveryFee,
         diskonVoucher: discountAmount,
         totalPembayaran: finalTotal,
+        address: addressText,
+        snapshotAlamatKirim: addressText,
+        recipient: recipientText,
+        phone: phoneText,
         catatanPesanan: `Midtrans Snap Order (${selectedMethodObj.name}) ${orderId}`,
         items: cartItems,
       });
@@ -137,8 +145,8 @@ export default function PaymentScreen({
       const snapRes = await apiService.createMidtransSnapToken({
         orderId,
         grossAmount: finalTotal,
-        customerName,
-        customerPhone,
+        customerName: recipientText,
+        customerPhone: phoneText,
         enabledPayments: selectedMethodObj.enabledPayments,
         items: cartItems.map((it) => ({
           id: it.id,
@@ -201,6 +209,10 @@ export default function PaymentScreen({
   const processCodPayment = async () => {
     setIsLoadingPayment(true);
     const orderId = `INV-${Date.now().toString().slice(-8)}`;
+    const addressText = selectedAddress?.addressLine1 || selectedAddress?.alamat || user?.alamat || 'Alamat Kirim Utama';
+    const recipientText = selectedAddress?.recipient || selectedAddress?.nama_penerima || user?.namaLengkap || 'Pelanggan Official Store';
+    const phoneText = selectedAddress?.phone || selectedAddress?.nomor_telepon || user?.phone || '089523888200';
+
     try {
       await apiService.createOrder({
         nomorPesanan: orderId,
@@ -213,6 +225,10 @@ export default function PaymentScreen({
         ongkosKirim: deliveryFee,
         diskonVoucher: discountAmount,
         totalPembayaran: finalTotal,
+        address: addressText,
+        snapshotAlamatKirim: addressText,
+        recipient: recipientText,
+        phone: phoneText,
         catatanPesanan: `COD (Bayar di Tempat)`,
         items: cartItems,
       });

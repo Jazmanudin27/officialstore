@@ -139,13 +139,22 @@ export default function CheckoutScreen({
 
       // Simpan pesanan ke database MySQL
       try {
+        const addressText = selectedAddress?.addressLine1 || selectedAddress?.alamat || user?.alamat || 'Alamat Kirim Utama';
+        const recipientText = selectedAddress?.recipient || selectedAddress?.nama_penerima || user?.namaLengkap || 'Pelanggan Official Store';
+        const phoneText = selectedAddress?.phone || selectedAddress?.nomor_telepon || user?.phone || '089523888200';
+
         await apiService.createOrder({
+          nomorPesanan: orderId,
           userId: user?.id || 1,
           tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
           totalHargaProduk: totalProductPrice,
           ongkosKirim: deliveryFee,
           diskonVoucher: discountAmount,
           totalPembayaran: finalTotal,
+          address: addressText,
+          snapshotAlamatKirim: addressText,
+          recipient: recipientText,
+          phone: phoneText,
           catatanPesanan: `Midtrans Snap Order ${orderId}`,
           items: displayItems,
         });

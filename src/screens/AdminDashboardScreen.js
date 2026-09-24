@@ -770,7 +770,7 @@ export default function AdminDashboardScreen({
 
               {/* Status Filter Horizontal */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orderFilterScroll}>
-                {['all', 'pending', 'processing', 'shipped', 'completed', 'cancelled'].map((st) => (
+                {['all', 'pending', 'processing', 'packing', 'shipped', 'completed', 'cancelled'].map((st) => (
                   <TouchableOpacity
                     key={st}
                     style={[styles.filterPill, orderStatusFilter === st && styles.filterPillActive]}
@@ -784,6 +784,8 @@ export default function AdminDashboardScreen({
                         ? 'Menunggu'
                         : st === 'processing'
                         ? 'Diproses'
+                        : st === 'packing'
+                        ? 'Dikemas'
                         : st === 'shipped'
                         ? 'Dikirim'
                         : st === 'completed'
@@ -826,10 +828,17 @@ export default function AdminDashboardScreen({
                             ? { backgroundColor: '#DCFCE7' }
                             : ord.status === 'shipped' || ord.status === 'dikirim'
                             ? { backgroundColor: '#E0F2FE' }
+                            : ord.status === 'packing' || ord.status === 'dikemas'
+                            ? { backgroundColor: '#F3E8FF' }
                             : { backgroundColor: '#FEF3C7' },
                         ]}
                       >
-                        <Text style={styles.statusBadgeText}>{(ord.statusLabel || ord.status || 'DIPROSES').toUpperCase()}</Text>
+                        <Text style={[
+                          styles.statusBadgeText,
+                          (ord.status === 'packing' || ord.status === 'dikemas') && { color: '#8B5CF6' }
+                        ]}>
+                          {(ord.statusLabel || ord.status || 'DIPROSES').toUpperCase()}
+                        </Text>
                       </View>
                     </View>
 
@@ -852,14 +861,14 @@ export default function AdminDashboardScreen({
                     <View style={styles.orderActionRow}>
                       <Text style={styles.updateLabel}>Ubah Status:</Text>
                       <TouchableOpacity
-                        style={styles.statusActionBtn}
+                        style={[styles.statusActionBtn, { backgroundColor: '#8B5CF6' }]}
                         onPress={(e) => {
                           e.stopPropagation();
-                          handleUpdateOrderStatus(ord.dbId || ord.id, 'processing');
+                          handleUpdateOrderStatus(ord.dbId || ord.id, 'packing');
                         }}
                         activeOpacity={0.7}
                       >
-                        <Text style={styles.statusActionText}>Proses</Text>
+                        <Text style={styles.statusActionText}>Terima & Kemas</Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity

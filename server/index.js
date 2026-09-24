@@ -545,9 +545,22 @@ app.post('/api/orders', async (req, res) => {
     const targetAddressId = parseInt(addressId, 10) || null;
     const targetStoreId = parseInt(storeId, 10) || null;
     const targetVoucherId = parseInt(voucherId, 10) || null;
-    const addressSnapshotText = typeof snapshotAlamatKirim === 'object'
-      ? JSON.stringify(snapshotAlamatKirim)
-      : (snapshotAlamatKirim || req.body.address || 'Alamat Kirim Utama');
+    let addressSnapshotText = 'Alamat Kirim Utama';
+    if (typeof snapshotAlamatKirim === 'object' && snapshotAlamatKirim !== null) {
+      addressSnapshotText = JSON.stringify(snapshotAlamatKirim);
+    } else {
+      const candidate = snapshotAlamatKirim || req.body.address || req.body.alamat;
+      if (candidate && candidate !== 'null' && String(candidate).trim().length > 0) {
+        addressSnapshotText = String(candidate).trim();
+      } else {
+        try {
+          const [uRows] = await connection.query('SELECT alamat FROM users WHERE user_id = ? LIMIT 1', [targetUserId]);
+          if (uRows && uRows.length > 0 && uRows[0].alamat) {
+            addressSnapshotText = uRows[0].alamat;
+          }
+        } catch (uErr) {}
+      }
+    }
 
     const [orderResult] = await connection.query(
       `INSERT INTO orders (
@@ -839,6 +852,11 @@ app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
         statusColor = '#DC2626';
         statusBg = '#FEE2E2';
         formattedStatus = 'menunggu';
+      } else if (ord.status === 'packing' || ord.status === 'dikemas') {
+        statusLabel = 'Sedang Dikemas';
+        statusColor = '#8B5CF6';
+        statusBg = '#F3E8FF';
+        formattedStatus = 'dikemas';
       } else if (ord.status === 'shipped') {
         statusLabel = 'Sedang Dikirim';
         statusColor = '#0284C7';
@@ -1428,6 +1446,11 @@ app.get('/api/admin/orders', async (req, res) => {
         statusColor = '#DC2626';
         statusBg = '#FEE2E2';
         formattedStatus = 'menunggu';
+      } else if (ord.status === 'packing' || ord.status === 'dikemas') {
+        statusLabel = 'Sedang Dikemas';
+        statusColor = '#8B5CF6';
+        statusBg = '#F3E8FF';
+        formattedStatus = 'dikemas';
       } else if (ord.status === 'shipped') {
         statusLabel = 'Sedang Dikirim';
         statusColor = '#0284C7';
