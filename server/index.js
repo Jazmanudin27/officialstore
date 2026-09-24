@@ -59,11 +59,28 @@ async function sendWhatsAppOtp(phone, otp) {
   const cleanPhone = sanitizePhone(phone);
   const formattedPhone = cleanPhone.startsWith('62') ? cleanPhone : '62' + cleanPhone.replace(/^0/, '');
   const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
-  const message = `[OFFICIAL STORE]\n\nKode verifikasi (OTP) Anda adalah: *${otp}*\n\nBerlaku selama 5 menit. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN.`;
+  
+  const message = 
+`🌶️ *OFFICIAL STORE TASIKMALAYA* 🌶️
+=================================
+Halo Kak! 👋
+
+Terima kasih telah menggunakan layanan *Official Store*.
+
+Berikut adalah Kode Verifikasi (OTP) Anda:
+
+🔑 *[ ${otp} ]*
+
+⏱️ *Kode ini berlaku selama 15 menit.*
+
+⚠️ *KEAMANAN:*
+JANGAN berikan kode ini kepada siapapun (termasuk pihak Official Store).
+
+=================================
+Pusat Bumbu, Saus & Cabai Asli Tasikmalaya 🌟`;
 
   const waGatewayBaseUrl = process.env.WA_GATEWAY_URL || 'https://wa.aspartech.com';
   const apiKey = process.env.WA_GATEWAY_API_KEY || 'V8q2Zp7Lm4Xr9Nc6Tj3Ks5Wd1Hy7Fa8Qv2Bn6Rx4Pc9Mz1';
-
   const waSession = process.env.WA_SESSION || 'aspartecherp';
 
   // Format endpoint WhatsApp Gateway (wa.aspartech.com)
@@ -102,6 +119,70 @@ async function sendWhatsAppOtp(phone, otp) {
   return false;
 }
 
+// Helper Simpan OTP ke Memory Cache & MySQL Database
+async function saveOtp(phone, otp) {
+  const cleanPhone = sanitizePhone(phone);
+  const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
+  const rawDigits = cleanPhone.replace(/^62/, '');
+  const expiresAt = Date.now() + 15 * 60 * 1000; // 15 Menit
+
+  const entry = { otp: String(otp).trim(), expiresAt };
+  otpStore.set(cleanPhone, entry);
+  otpStore.set(zeroPhone, entry);
+  otpStore.set(rawDigits, entry);
+
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS otp_codes (
+        phone VARCHAR(50) PRIMARY KEY,
+        otp VARCHAR(10) NOT NULL,
+        expires_at BIGINT NOT NULL
+      )
+    `);
+    await pool.query(
+      'REPLACE INTO otp_codes (phone, otp, expires_at) VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?)',
+      [cleanPhone, String(otp).trim(), expiresAt, zeroPhone, String(otp).trim(), expiresAt, rawDigits, String(otp).trim(), expiresAt]
+    );
+  } catch (err) {
+    console.warn('MySQL OTP save warning:', err.message);
+  }
+}
+
+// Helper Verifikasi OTP
+async function verifyAndClearOtp(phone, otpInput) {
+  const inputOtp = String(otpInput || '').trim();
+  if (!inputOtp) return false;
+  if (inputOtp === '123456') return true;
+
+  const cleanPhone = sanitizePhone(phone);
+  const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
+  const rawDigits = cleanPhone.replace(/^62/, '');
+
+  // 1. Cek Memory Cache (otpStore)
+  const stored = otpStore.get(cleanPhone) || otpStore.get(zeroPhone) || otpStore.get(rawDigits);
+  if (stored && String(stored.otp).trim() === inputOtp && Date.now() <= stored.expiresAt) {
+    return true;
+  }
+
+  // 2. Cek Database MySQL (otp_codes table)
+  try {
+    const [rows] = await pool.query(
+      'SELECT otp, expires_at FROM otp_codes WHERE phone = ? OR phone = ? OR phone = ? ORDER BY expires_at DESC LIMIT 1',
+      [cleanPhone, zeroPhone, rawDigits]
+    );
+    if (rows && rows.length > 0) {
+      const dbEntry = rows[0];
+      if (String(dbEntry.otp).trim() === inputOtp && Date.now() <= Number(dbEntry.expires_at)) {
+        return true;
+      }
+    }
+  } catch (err) {
+    console.warn('MySQL OTP verify warning:', err.message);
+  }
+
+  return false;
+}
+
 // A. Kirim Kode OTP ke Nomor HP (Real 6-Digit Random OTP)
 app.post('/api/auth/send-otp', async (req, res) => {
   try {
@@ -116,14 +197,8 @@ app.post('/api/auth/send-otp', async (req, res) => {
     // Generate 6 digit OTP acak yang asli
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
-    otpStore.set(cleanPhone, {
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000, // 5 menit
-    });
-    otpStore.set(zeroPhone, {
-      otp,
-      expiresAt: Date.now() + 5 * 60 * 1000,
-    });
+    // Simpan ke Memory Cache & MySQL Database
+    await saveOtp(phone, otp);
 
     // Cek apakah user sudah terdaftar di database MySQL
     let isRegistered = false;
@@ -143,7 +218,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
     console.log(`📲 [REAL OTP GENERATED] No HP: +${cleanPhone} | Kode OTP: ${otp} | Terdaftar: ${isRegistered}`);
 
-    // Kirim pesan WhatsApp otomatis via https://wa.aspartech.com (Header: x-api-key)
+    // Kirim pesan WhatsApp otomatis via https://wa.aspartech.com
     await sendWhatsAppOtp(cleanPhone, otp);
 
     res.json({
@@ -170,15 +245,13 @@ app.post('/api/auth/verify-otp', async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Nomor HP dan kode OTP wajib diisi.' });
     }
 
-    const cleanPhone = sanitizePhone(phone);
-    const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
-    const stored = otpStore.get(cleanPhone) || otpStore.get(zeroPhone);
-
-    // Verifikasi kode OTP secara presisi
-    const isValid = (stored && stored.otp === otp && Date.now() <= stored.expiresAt) || otp === '123456';
+    const isValid = await verifyAndClearOtp(phone, otp);
     if (!isValid) {
       return res.status(400).json({ status: 'error', message: 'Kode OTP tidak cocok atau sudah kadaluarsa.' });
     }
+
+    const cleanPhone = sanitizePhone(phone);
+    const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
 
     // Ambil data user dari MySQL
     let user = null;
@@ -262,8 +335,7 @@ app.all(['/api/auth/register', '/api/register'], async (req, res) => {
       return res.status(400).json({ status: 'error', message: 'Kode OTP wajib diisi.' });
     }
 
-    const stored = otpStore.get(cleanPhone) || otpStore.get(zeroPhone);
-    const isValidOtp = (stored && stored.otp === otp && Date.now() <= stored.expiresAt) || otp === '123456';
+    const isValidOtp = await verifyAndClearOtp(phone, otp);
     if (!isValidOtp) {
       return res.status(400).json({ status: 'error', message: 'Kode OTP tidak cocok atau telah kadaluarsa.' });
     }
