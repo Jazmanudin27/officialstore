@@ -35,7 +35,18 @@ export default function OrdersScreen({
   const isLoggedIn = true; // Always allow viewing orders for user session
 
   const fetchOrders = useCallback(async (showLoading = true) => {
-    const targetUserId = user?.id || 1;
+    let targetUserId = user?.id;
+    if (!targetUserId) {
+      try {
+        const saved = storage.getItem('official_store_user_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          targetUserId = parsed?.id;
+        }
+      } catch (e) {}
+    }
+    targetUserId = targetUserId || 1;
+
     if (showLoading) setLoading(true);
     try {
       const data = await apiService.getUserOrders(targetUserId);

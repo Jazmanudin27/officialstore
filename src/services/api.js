@@ -263,64 +263,28 @@ export const apiService = {
 
   // 3.5 Ambil Riwayat Pesanan User Langsung dari Database MySQL
   async getUserOrders(userId) {
-    const SAMPLE_ORDERS = [
-      {
-        id: 'INV-24016670',
-        nomorPesanan: 'INV-24016670',
-        date: '24 Sep 2026, 11:26 WIB',
-        status: 'menunggu',
-        statusLabel: 'Belum Bayar',
-        statusBg: '#FEE2E2',
-        statusColor: '#DC2626',
-        type: 'delivery',
-        typeLabel: 'Pengiriman Reguler',
-        courier: 'J&T Express',
-        shippingFee: 12000,
-        productTotal: 923500,
-        discount: 0,
-        totalAmount: 935500,
-        recipient: 'Jazmanudin',
-        phone: '089523888200',
-        address: 'Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya',
-        paymentMethod: 'Midtrans / QRIS / Transfer Bank',
-        items: [
-          {
-            id: 'p1_pcs',
-            name: 'AIDA BESAR 500 GR [PCS]',
-            variant: 'AIDA BESAR 500 GR [PCS]',
-            price: 23500,
-            quantity: 1,
-            image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
-          },
-          {
-            id: 'p1_dus',
-            name: 'AIDA BESAR 500 GR [PCS]',
-            variant: 'AIDA BESAR 500 GR [DUS / 20 PCS]',
-            price: 450000,
-            quantity: 2,
-            image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
-          },
-        ],
-      },
-    ];
+    let targetId = userId;
+    if (!targetId) {
+      try {
+        const saved = storage.getItem('official_store_user_session');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          targetId = parsed?.id;
+        }
+      } catch (e) {}
+    }
+    targetId = targetId || 1;
 
     let localOrders = [];
     try {
       const s = storage.getItem('official_store_orders');
       if (s) {
-        localOrders = JSON.parse(s);
+        localOrders = JSON.parse(s).filter((o) => !o.userId || String(o.userId) === String(targetId));
       }
     } catch (e) {}
 
-    const combinedLocal = [...localOrders];
-    SAMPLE_ORDERS.forEach((so) => {
-      if (!combinedLocal.some((o) => o.id === so.id)) {
-        combinedLocal.push(so);
-      }
-    });
-
     try {
-      const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${userId || 1}&t=${Date.now()}`);
+      const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${targetId}&t=${Date.now()}`);
       if (json.status === 'ok' && Array.isArray(json.data)) {
         const cleanedServerOrders = json.data.map((ord) => ({
           ...ord,
@@ -336,13 +300,13 @@ export const apiService = {
           }),
         }));
         const serverIds = new Set(cleanedServerOrders.map((o) => o.id || o.nomorPesanan));
-        const extraLocal = combinedLocal.filter((o) => !serverIds.has(o.id) && !serverIds.has(o.nomorPesanan));
+        const extraLocal = localOrders.filter((o) => !serverIds.has(o.id) && !serverIds.has(o.nomorPesanan));
         return [...cleanedServerOrders, ...extraLocal];
       }
     } catch (error) {
       console.warn('ℹ️ Gagal mengambil pesanan user dari database:', error.message);
     }
-    return combinedLocal;
+    return localOrders;
   },
 
   // 4. Kirim OTP ke Nomor HP
