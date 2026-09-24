@@ -799,6 +799,7 @@ app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
         o.diskon_voucher AS discount,
         o.total_pembayaran AS totalAmount,
         o.status_pesanan AS status,
+        o.catatan_pesanan AS note,
         DATE_FORMAT(o.created_at, "%d %b %Y, %H:%i WIB") AS date
       FROM orders o
       WHERE o.user_id = ?
@@ -818,16 +819,16 @@ app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
           COALESCE(
             (SELECT pi.url_gambar FROM product_images pi WHERE pi.product_id = p.product_id ORDER BY pi.image_id DESC LIMIT 1),
             p.gambar_utama,
-            'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?w=300&q=80'
+            'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80'
           ) AS image
         FROM order_items oi
-        LEFT JOIN product_variants v ON oi.variant_id = v.variant_id
+        LEFT JOIN product_variants v ON (oi.variant_id = v.variant_id OR oi.sku_saat_beli = v.sku)
         LEFT JOIN products p ON v.product_id = p.product_id
         WHERE oi.order_id = ?`,
         [ord.id]
       );
 
-      const isCodOrder = ord.catatan_pesanan && ord.catatan_pesanan.toUpperCase().includes('COD');
+      const isCodOrder = ord.note && ord.note.toUpperCase().includes('COD');
       let statusLabel = isCodOrder ? 'Sedang Diproses (COD)' : 'Sedang Diproses';
       let statusColor = '#D97706';
       let statusBg = '#FEF3C7';
@@ -867,10 +868,21 @@ app.get(['/api/user/orders', '/api/user/orders/:userId'], async (req, res) => {
         typeLabel: ord.type === 'pickup' ? 'Ambil di Toko (Pickup)' : 'Pengiriman Reguler',
         address: ord.address,
         courier: ord.courier,
-        items: itemRows.map((it) => ({
-          ...it,
-          price: Number(it.price),
-        })),
+        productTotal: Number(ord.productTotal || ord.totalAmount),
+        recipient: 'Pelanggan Official Store',
+        phone: '089523888200',
+        paymentMethod: isCodOrder ? 'COD (Bayar di Tempat)' : 'Midtrans / Online Payment',
+        items: itemRows.map((it) => {
+          let cleanImg = it.image;
+          if (typeof cleanImg === 'string' && cleanImg.startsWith('data:image') && cleanImg.length > 500) {
+            cleanImg = 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80';
+          }
+          return {
+            ...it,
+            price: Number(it.price),
+            image: cleanImg || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
+          };
+        }),
         totalAmount: Number(ord.totalAmount),
         discount: Number(ord.discount || 0),
         shippingFee: Number(ord.shippingFee || 0),

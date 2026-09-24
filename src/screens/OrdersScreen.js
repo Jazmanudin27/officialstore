@@ -67,12 +67,13 @@ export default function OrdersScreen({
   };
 
   const filteredOrders = orders.filter((order) => {
+    const st = String(order.status || '').toLowerCase().trim();
     if (activeTab === 'semua') return true;
-    if (activeTab === 'menunggu') return order.status === 'menunggu';
-    if (activeTab === 'diproses') return order.status === 'diproses';
-    if (activeTab === 'dikirim') return order.status === 'dikirim';
-    if (activeTab === 'selesai') return order.status === 'selesai';
-    if (activeTab === 'batal') return order.status === 'batal';
+    if (activeTab === 'menunggu') return st === 'menunggu' || st === 'pending' || st.includes('menunggu') || st.includes('belum');
+    if (activeTab === 'diproses') return st === 'diproses' || st === 'processing' || st.includes('proses');
+    if (activeTab === 'dikirim') return st === 'dikirim' || st === 'shipped' || st.includes('kirim');
+    if (activeTab === 'selesai') return st === 'selesai' || st === 'completed';
+    if (activeTab === 'batal') return st === 'batal' || st === 'cancelled';
     return true;
   });
 

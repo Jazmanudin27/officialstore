@@ -322,9 +322,22 @@ export const apiService = {
     try {
       const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${userId || 1}&t=${Date.now()}`);
       if (json.status === 'ok' && Array.isArray(json.data)) {
-        const serverIds = new Set(json.data.map((o) => o.id || o.nomorPesanan));
+        const cleanedServerOrders = json.data.map((ord) => ({
+          ...ord,
+          items: (ord.items || []).map((it) => {
+            let cleanImg = it.image;
+            if (typeof cleanImg === 'string' && cleanImg.startsWith('data:image') && cleanImg.length > 500) {
+              cleanImg = 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80';
+            }
+            return {
+              ...it,
+              image: cleanImg || 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=300&q=80',
+            };
+          }),
+        }));
+        const serverIds = new Set(cleanedServerOrders.map((o) => o.id || o.nomorPesanan));
         const extraLocal = combinedLocal.filter((o) => !serverIds.has(o.id) && !serverIds.has(o.nomorPesanan));
-        return [...json.data, ...extraLocal];
+        return [...cleanedServerOrders, ...extraLocal];
       }
     } catch (error) {
       console.warn('ℹ️ Gagal mengambil pesanan user dari database:', error.message);
