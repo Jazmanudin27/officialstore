@@ -635,12 +635,12 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 0,
     backgroundColor: '#F8FAFC',
-    paddingBottom: Platform.OS === 'web' ? 64 : 0,
+    paddingBottom: Platform.OS === 'web' ? 80 : 0,
   },
   desktopMainWrapper: {
     width: '100%',
     flex: 1,
     minHeight: '100vh',
-    paddingBottom: 0,
+    paddingBottom: 60,
   },
 });

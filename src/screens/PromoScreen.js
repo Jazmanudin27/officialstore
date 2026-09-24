@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingBottom: 130,
   },
   /* Desktop Header Banner */
   desktopBannerHeader: {

@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   productListContent: {
-    paddingBottom: 20,
+    paddingBottom: 130,
   },
   emptyState: {
     alignItems: 'center',

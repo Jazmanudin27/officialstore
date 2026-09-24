@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   productListContent: {
     paddingHorizontal: 10,
-    paddingBottom: 20,
+    paddingBottom: 120,
   },
   sectionHeaderRow: {
     flexDirection: 'row',

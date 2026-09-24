@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 90,
+    paddingBottom: 130,
   },
   /* Category Pills */
   categoryFilterContainer: {
