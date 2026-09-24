@@ -14,6 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 
+const BRAND_RED = 'rgb(217, 30, 40)';
+
 export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail, onOpenAuth }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -124,7 +126,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* Top Announcement Bar (Deep Crimson Red) */}
+      {/* Top Announcement Bar */}
       <View style={styles.announcementBar}>
         <Text style={styles.announcementText}>
           🌶️ CV. MAKMUR PERMATA • PRODUSEN RESMI CABE BUBUK AIDA & CAP SWAN TERBANG • TASIKMALAYA 🌶️
@@ -137,7 +139,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           {/* Brand Logo */}
           <TouchableOpacity style={styles.logoGroup} onPress={onOpenStore} activeOpacity={0.85}>
             <View style={styles.logoBadgeIcon}>
-              <Ionicons name="flame" size={24} color="#D91E28" />
+              <Ionicons name="flame" size={24} color={BRAND_RED} />
             </View>
             <View>
               <Text style={styles.logoTitle}>CV. MAKMUR PERMATA</Text>
@@ -181,14 +183,14 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
       <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         
-        {/* HERO SECTION (RED BRANDING THEME) */}
+        {/* HERO SECTION WITH EXACT rgb(217, 30, 40) BACKGROUND */}
         <View style={styles.heroSection}>
           <View style={[styles.heroContainer, isDesktop ? styles.heroDesktopRow : styles.heroMobileCol]}>
             
             {/* Left Hero Content */}
             <View style={isDesktop ? styles.heroLeftDesktop : styles.heroLeftMobile}>
               <View style={styles.taglineBadge}>
-                <Ionicons name="shield-checkmark-outline" size={13} color="#991B1B" />
+                <Ionicons name="shield-checkmark-outline" size={13} color="#FDE68A" />
                 <Text style={styles.taglineText}>MUTU • HALAL • TERSTANDARISASI</Text>
               </View>
 
@@ -205,11 +207,11 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <TouchableOpacity style={styles.heroCtaBtn} onPress={onOpenStore} activeOpacity={0.88}>
                   <Text style={styles.heroCtaText}>BELI PRODUK ONLINE</Text>
-                  <Ionicons name="arrow-forward-outline" size={18} color="#FFFFFF" />
+                  <Ionicons name="arrow-forward-outline" size={18} color={BRAND_RED} />
                 </TouchableOpacity>
 
                 <TouchableOpacity style={styles.heroCtaBtnOutline} onPress={handleOpenLinktree} activeOpacity={0.85}>
-                  <Ionicons name="git-network-outline" size={18} color="#991B1B" />
+                  <Ionicons name="git-network-outline" size={18} color="#FFFFFF" />
                   <Text style={styles.heroCtaTextOutline}>INFO KERJASAMA & PEMESANAN</Text>
                 </TouchableOpacity>
               </View>
@@ -218,28 +220,28 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
               <View style={styles.heroBadgesGrid}>
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="checkmark-done-circle" size={18} color="#D91E28" />
+                    <Ionicons name="checkmark-done-circle" size={18} color="#FFFFFF" />
                   </View>
                   <Text style={styles.badgeText}>100% HALAL &{'\n'}HIGIENIS</Text>
                 </View>
 
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="location-outline" size={18} color="#D91E28" />
+                    <Ionicons name="location-outline" size={18} color="#FFFFFF" />
                   </View>
                   <Text style={styles.badgeText}>KAWALU, KOTA{'\n'}TASIKMALAYA</Text>
                 </View>
 
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="ribbon-outline" size={18} color="#D91E28" />
+                    <Ionicons name="ribbon-outline" size={18} color="#FFFFFF" />
                   </View>
                   <Text style={styles.badgeText}>KEAMANAN{'\n'}PANGAN BPOM</Text>
                 </View>
 
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="globe-outline" size={18} color="#D91E28" />
+                    <Ionicons name="globe-outline" size={18} color="#FFFFFF" />
                   </View>
                   <Text style={styles.badgeText}>DISTRIBUSI{'\n'}NASIONAL</Text>
                 </View>
@@ -257,7 +259,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
                 
                 {/* Stamp Seal Badge */}
                 <View style={styles.stampSealBadge}>
-                  <Ionicons name="flame" size={22} color="#D91E28" />
+                  <Ionicons name="flame" size={22} color={BRAND_RED} />
                   <Text style={styles.stampText}>AIDA & SWAN</Text>
                   <Text style={styles.stampSubText}>CV MAKMUR PERMATA</Text>
                 </View>
@@ -266,12 +268,12 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
                 <View style={styles.floatingHighlightCard}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}>
-                      <Ionicons name="nutrition" size={24} color="#D91E28" />
+                      <Ionicons name="nutrition" size={24} color={BRAND_RED} />
                     </View>
                     <View>
                       <Text style={{ fontSize: 13, fontWeight: '900', color: '#1C2417' }}>CV. MAKMUR PERMATA</Text>
                       <Text style={{ fontSize: 11, color: '#64748B' }}>Tasikmalaya, Jawa Barat</Text>
-                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#D91E28', marginTop: 2 }}>Produsen Seasoning Terpercaya</Text>
+                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: BRAND_RED, marginTop: 2 }}>Produsen Seasoning Terpercaya</Text>
                     </View>
                   </View>
                 </View>
@@ -281,7 +283,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           </View>
         </View>
 
-        {/* BOTTOM VALUE PROPOSITIONS BAR (DEEP CRIMSON RED) */}
+        {/* BOTTOM VALUE PROPOSITIONS BAR */}
         <View style={styles.valuePropsBar}>
           <View style={[styles.valuePropsContainer, isDesktop ? styles.valuePropsDesktopRow : styles.valuePropsMobileCol]}>
             <View style={styles.valueItem}>
@@ -327,7 +329,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
             <View style={isDesktop ? styles.storyTextSide : styles.storyTextMobile}>
               <View style={styles.sectionTagline}>
-                <Ionicons name="business-outline" size={14} color="#D91E28" />
+                <Ionicons name="business-outline" size={14} color={BRAND_RED} />
                 <Text style={styles.sectionTaglineText}>TENTANG KAMI</Text>
               </View>
               <Text style={styles.sectionHeading}>
@@ -351,7 +353,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
         <View style={styles.kebijakanSection}>
           <View style={styles.sectionHeaderCenter}>
             <View style={styles.sectionTagline}>
-              <Ionicons name="ribbon-outline" size={14} color="#D91E28" />
+              <Ionicons name="ribbon-outline" size={14} color={BRAND_RED} />
               <Text style={styles.sectionTaglineText}>STANDARISASI & KUALITAS</Text>
             </View>
             <Text style={styles.sectionHeadingCenter}>Kebijakan Mutu, Halal, & Keamanan Pangan</Text>
@@ -393,12 +395,12 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           </View>
 
           <View style={styles.directorBadgeBox}>
-            <Ionicons name="document-text-outline" size={24} color="#D91E28" />
+            <Ionicons name="document-text-outline" size={24} color={BRAND_RED} />
             <View>
               <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C2417' }}>
                 Ditetapkan di Tasikmalaya, 29 Maret 2021
               </Text>
-              <Text style={{ fontSize: 12, color: '#D91E28', marginTop: 2, fontWeight: '700' }}>
+              <Text style={{ fontSize: 12, color: BRAND_RED, marginTop: 2, fontWeight: '700' }}>
                 Direktur CV. MAKMUR PERMATA
               </Text>
             </View>
@@ -409,7 +411,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
         <View style={styles.visiMisiSection}>
           <View style={[styles.visiMisiRow, isDesktop ? styles.visiMisiDesktopRow : styles.visiMisiMobileCol]}>
             
-            {/* VISI (RED THEME) */}
+            {/* VISI */}
             <View style={styles.visiCard}>
               <View style={styles.visiIconCircle}>
                 <Ionicons name="eye" size={28} color="#FFFFFF" />
@@ -428,14 +430,14 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
               <Text style={styles.misiTitle}>MISI PERUSAHAAN</Text>
               <View style={{ gap: 10, marginTop: 10 }}>
                 <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                  <Ionicons name="checkmark-circle" size={18} color="#D91E28" style={{ marginTop: 2 }} />
+                  <Ionicons name="checkmark-circle" size={18} color={BRAND_RED} style={{ marginTop: 2 }} />
                   <Text style={styles.misiPointText}>
                     Mengutamakan kepuasan pelanggan dalam memproduksi produk yang berkualitas dan aman.
                   </Text>
                 </View>
 
                 <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                  <Ionicons name="checkmark-circle" size={18} color="#D91E28" style={{ marginTop: 2 }} />
+                  <Ionicons name="checkmark-circle" size={18} color={BRAND_RED} style={{ marginTop: 2 }} />
                   <Text style={styles.misiPointText}>
                     Terus menerus melakukan perbaikan dan peningkatan kualitas sistem manajemen keamanan pangan.
                   </Text>
@@ -450,7 +452,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
         <View style={styles.productsSection}>
           <View style={styles.sectionHeaderCenter}>
             <View style={styles.sectionTagline}>
-              <Ionicons name="cube-outline" size={14} color="#D91E28" />
+              <Ionicons name="cube-outline" size={14} color={BRAND_RED} />
               <Text style={styles.sectionTaglineText}>PRODUK UNGGULAN</Text>
             </View>
             <Text style={styles.sectionHeadingCenter}>Produk Resmi CV. Makmur Permata</Text>
@@ -498,7 +500,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
         <View style={styles.regionsSection}>
           <View style={styles.sectionHeaderCenter}>
             <View style={styles.sectionTagline}>
-              <Ionicons name="map-outline" size={14} color="#D91E28" />
+              <Ionicons name="map-outline" size={14} color={BRAND_RED} />
               <Text style={styles.sectionTaglineText}>DISTRIBUSI NASIONAL</Text>
             </View>
             <Text style={styles.sectionHeadingCenter}>Wilayah Pemasaran Kami</Text>
@@ -510,14 +512,14 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           <View style={styles.regionsGrid}>
             {marketingRegions.map((region, idx) => (
               <View key={idx} style={styles.regionBadge}>
-                <Ionicons name="location" size={14} color="#D91E28" />
+                <Ionicons name="location" size={14} color={BRAND_RED} />
                 <Text style={styles.regionText}>{region}</Text>
               </View>
             ))}
           </View>
         </View>
 
-        {/* LINKTREE & HUBUNGI KAMI BANNER (DARK CRIMSON RED) */}
+        {/* LINKTREE & HUBUNGI KAMI BANNER (EXACT rgb(217, 30, 40)) */}
         <View style={styles.linktreeBanner}>
           <View style={styles.linktreeContainer}>
             <Ionicons name="link-outline" size={36} color="#FDE68A" />
@@ -525,13 +527,13 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
             <Text style={styles.linktreeSub}>Hubungi tim pemasaran resmi kami untuk agen, distributor, dan pembelian grosir.</Text>
 
             <TouchableOpacity style={styles.linktreeBtn} onPress={handleOpenLinktree} activeOpacity={0.85}>
-              <Ionicons name="open-outline" size={18} color="#881337" />
+              <Ionicons name="open-outline" size={18} color={BRAND_RED} />
               <Text style={styles.linktreeBtnText}>KLIK LINK PEMESANAN & KERJASAMA</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* FOOTER & LOKASI KAMI (DARK RED CHARCOAL #1F080A - ZERO BOTTOM WHITESPACE) */}
+        {/* FOOTER & LOKASI KAMI (DARK CHARCOAL #120304 - ZERO BOTTOM WHITESPACE) */}
         <View style={styles.footerBg}>
           <View style={styles.footerContainer}>
             <View style={[styles.footerGrid, isDesktop ? styles.footerGridDesktop : styles.footerGridMobile]}>
@@ -580,7 +582,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
             <View style={styles.footerBottomRow}>
               <Text style={{ fontSize: 12, color: '#94A3B8' }}>
-                © 2026 CV. Makmur Permata. Hak Cipta Dilindungi Undang-Undang. Designed in Red Brand Theme.
+                © 2026 CV. Makmur Permata. Hak Cipta Dilindungi Undang-Undang.
               </Text>
               <TouchableOpacity onPress={onOpenStore} activeOpacity={0.8}>
                 <Text style={{ fontSize: 12, fontWeight: '800', color: '#FDE68A' }}>← Ke Aplikasi Toko Online</Text>
@@ -597,7 +599,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#1F080A',
+    backgroundColor: '#120304',
   },
   container: {
     flex: 1,
@@ -607,16 +609,16 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
 
-  /* Top Announcement Bar */
+  /* Top Announcement Bar (EXACT rgb(217, 30, 40)) */
   announcementBar: {
-    backgroundColor: '#881337',
+    backgroundColor: 'rgb(217, 30, 40)',
     paddingVertical: 8,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   announcementText: {
-    color: '#FDE68A',
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
@@ -657,13 +659,13 @@ const styles = StyleSheet.create({
   logoTitle: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#881337',
+    color: 'rgb(217, 30, 40)',
     letterSpacing: 0.8,
   },
   logoSubtitle: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#D91E28',
+    color: 'rgb(217, 30, 40)',
     letterSpacing: 0.5,
   },
   navLinksRow: {
@@ -680,10 +682,10 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
   navLinkActive: {
-    color: '#D91E28',
+    color: 'rgb(217, 30, 40)',
     fontWeight: '900',
     borderBottomWidth: 2,
-    borderBottomColor: '#D91E28',
+    borderBottomColor: 'rgb(217, 30, 40)',
   },
   headerRightActions: {
     flexDirection: 'row',
@@ -694,11 +696,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#D91E28',
+    backgroundColor: 'rgb(217, 30, 40)',
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 20,
-    shadowColor: '#D91E28',
+    shadowColor: 'rgb(217, 30, 40)',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
@@ -710,10 +712,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
-  /* HERO SECTION */
+  /* HERO SECTION (EXACT rgb(217, 30, 40) BACKGROUND) */
   heroSection: {
-    backgroundColor: '#FFF1F2',
-    paddingVertical: 40,
+    backgroundColor: 'rgb(217, 30, 40)',
+    paddingVertical: 44,
     paddingHorizontal: 20,
   },
   heroContainer: {
@@ -742,7 +744,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     alignSelf: 'flex-start',
-    backgroundColor: '#FFE4E6',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 14,
@@ -751,43 +753,43 @@ const styles = StyleSheet.create({
   taglineText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#991B1B',
+    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   heroTitle: {
-    fontSize: 42,
+    fontSize: 44,
     fontWeight: '900',
-    color: '#1C2417',
-    lineHeight: 50,
+    color: '#FFFFFF',
+    lineHeight: 52,
     marginBottom: 16,
   },
   heroTitleHighlight: {
-    color: '#D91E28',
+    color: '#FDE68A',
     fontStyle: 'italic',
   },
   heroSubtitle: {
-    fontSize: 15,
-    color: '#475569',
+    fontSize: 15.5,
+    color: 'rgba(255, 255, 255, 0.92)',
     lineHeight: 24,
-    marginBottom: 24,
+    marginBottom: 26,
     maxWidth: 540,
   },
   heroCtaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    backgroundColor: '#D91E28',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     paddingVertical: 13,
     borderRadius: 22,
-    shadowColor: '#D91E28',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
   },
   heroCtaText: {
-    color: '#FFFFFF',
+    color: 'rgb(217, 30, 40)',
     fontWeight: '900',
     fontSize: 13.5,
     letterSpacing: 0.6,
@@ -797,14 +799,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderWidth: 2,
-    borderColor: '#991B1B',
+    borderColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingVertical: 11,
     borderRadius: 22,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
   },
   heroCtaTextOutline: {
-    color: '#991B1B',
+    color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 12.5,
   },
@@ -817,7 +819,7 @@ const styles = StyleSheet.create({
     marginTop: 36,
     paddingTop: 24,
     borderTopWidth: 1,
-    borderTopColor: '#FECACA',
+    borderTopColor: 'rgba(255, 255, 255, 0.25)',
   },
   badgeItem: {
     flexDirection: 'row',
@@ -828,16 +830,16 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#FEE2E2',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#FECACA',
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   badgeText: {
     fontSize: 10.5,
     fontWeight: '800',
-    color: '#991B1B',
+    color: '#FFFFFF',
     lineHeight: 13,
   },
 
@@ -873,7 +875,7 @@ const styles = StyleSheet.create({
     borderRadius: 47,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#D91E28',
+    borderColor: 'rgb(217, 30, 40)',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -885,13 +887,13 @@ const styles = StyleSheet.create({
   stampText: {
     fontSize: 9.5,
     fontWeight: '900',
-    color: '#D91E28',
+    color: 'rgb(217, 30, 40)',
     marginTop: 2,
   },
   stampSubText: {
     fontSize: 7,
     fontWeight: '800',
-    color: '#881337',
+    color: '#1C2417',
   },
   floatingHighlightCard: {
     position: 'absolute',
@@ -908,9 +910,9 @@ const styles = StyleSheet.create({
     maxWidth: 290,
   },
 
-  /* VALUE PROPS BAR */
+  /* VALUE PROPS BAR (DARK RED ACCENT) */
   valuePropsBar: {
-    backgroundColor: '#881337',
+    backgroundColor: 'rgb(160, 20, 30)',
     paddingVertical: 20,
     paddingHorizontal: 20,
   },
@@ -967,7 +969,7 @@ const styles = StyleSheet.create({
   sectionTaglineText: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#D91E28',
+    color: 'rgb(217, 30, 40)',
     letterSpacing: 1,
   },
   sectionHeading: {
@@ -1065,13 +1067,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: '#881337',
+    backgroundColor: 'rgb(217, 30, 40)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
   },
   kebijakanNumberText: {
-    color: '#FDE68A',
+    color: '#FFFFFF',
     fontWeight: '900',
     fontSize: 16,
   },
@@ -1092,7 +1094,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
     backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#D91E28',
+    borderColor: 'rgb(217, 30, 40)',
     borderRadius: 14,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -1120,7 +1122,7 @@ const styles = StyleSheet.create({
   },
   visiCard: {
     flex: 1,
-    backgroundColor: '#881337',
+    backgroundColor: 'rgb(217, 30, 40)',
     borderRadius: 20,
     padding: 28,
   },
@@ -1128,7 +1130,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: 'rgba(253, 230, 138, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
@@ -1158,7 +1160,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#D91E28',
+    backgroundColor: 'rgb(217, 30, 40)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
@@ -1166,7 +1168,7 @@ const styles = StyleSheet.create({
   misiTitle: {
     fontSize: 18,
     fontWeight: '900',
-    color: '#881337',
+    color: 'rgb(217, 30, 40)',
     marginBottom: 10,
     letterSpacing: 1,
   },
@@ -1223,7 +1225,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     left: 10,
-    backgroundColor: '#D91E28',
+    backgroundColor: 'rgb(217, 30, 40)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1263,13 +1265,13 @@ const styles = StyleSheet.create({
   priceAmount: {
     fontSize: 14,
     fontWeight: '900',
-    color: '#D91E28',
+    color: 'rgb(217, 30, 40)',
   },
   buyNowMiniBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#D91E28',
+    backgroundColor: 'rgb(217, 30, 40)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1309,12 +1311,12 @@ const styles = StyleSheet.create({
   regionText: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#991B1B',
+    color: 'rgb(217, 30, 40)',
   },
 
-  /* LINKTREE BANNER */
+  /* LINKTREE BANNER (EXACT rgb(217, 30, 40)) */
   linktreeBanner: {
-    backgroundColor: '#881337',
+    backgroundColor: 'rgb(217, 30, 40)',
     paddingVertical: 40,
     paddingHorizontal: 20,
   },
@@ -1343,21 +1345,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FDE68A',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     paddingVertical: 13,
     borderRadius: 24,
   },
   linktreeBtnText: {
-    color: '#881337',
+    color: 'rgb(217, 30, 40)',
     fontWeight: '900',
     fontSize: 13.5,
     letterSpacing: 0.5,
   },
 
-  /* FOOTER (ULTRA DARK RED CHARCOAL #1F080A - ZERO BOTTOM WHITESPACE) */
+  /* FOOTER (ULTRA DARK CHARCOAL #120304 - ZERO BOTTOM WHITESPACE) */
   footerBg: {
-    backgroundColor: '#1F080A',
+    backgroundColor: '#120304',
     paddingTop: 50,
     paddingBottom: 30,
     paddingHorizontal: 20,
