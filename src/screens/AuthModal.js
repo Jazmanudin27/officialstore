@@ -397,7 +397,7 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
                       Kode OTP Verifikasi: <Text style={{ fontWeight: '800' }}>{sentOtp}</Text>
                     </>
                   ) : (
-                    'Kode OTP 6-digit telah dikirim ke nomor WhatsApp / SMS Anda.'
+                    'Kode OTP 6-digit telah dikirimkan ke nomor Anda.'
                   )}
                 </Text>
               </View>
@@ -433,9 +433,9 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
                 )}
               </View>
 
-              {/* Verify Button */}
+              {/* Verify Button (Sleek Red Elevated Button with Shield Icon) */}
               <TouchableOpacity
-                style={[styles.submitBtn, isLoading && styles.submitBtnDisabled]}
+                style={[styles.verifySubmitBtn, isLoading && styles.submitBtnDisabled]}
                 onPress={handleVerifyOtp}
                 disabled={isLoading}
                 activeOpacity={0.85}
@@ -443,7 +443,10 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
                 {isLoading ? (
                   <ActivityIndicator color={COLORS.white} size="small" />
                 ) : (
-                  <Text style={styles.submitBtnText}>Verifikasi & Masuk</Text>
+                  <>
+                    <Ionicons name="shield-checkmark" size={20} color="#FFFFFF" style={{ marginRight: 4 }} />
+                    <Text style={styles.verifySubmitBtnText}>Verifikasi</Text>
+                  </>
                 )}
               </TouchableOpacity>
 
@@ -681,6 +684,28 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 15,
     fontWeight: '800',
+  },
+  verifySubmitBtn: {
+    backgroundColor: '#D91E28',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: 52,
+    borderRadius: 14,
+    gap: 8,
+    marginTop: 16,
+    shadowColor: '#D91E28',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  verifySubmitBtnText: {
+    color: COLORS.white,
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   switchRow: {
     flexDirection: 'row',
