@@ -18,6 +18,7 @@ import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import AddressModal from './AddressModal';
 import VoucherScreen from './VoucherScreen';
+import PaymentScreen from './PaymentScreen';
 import apiService from '../services/api';
 
 const COURIER_OPTIONS = [
@@ -538,87 +539,22 @@ export default function CheckoutScreen({
           }}
         />
 
-        {/* Interactive Payment Method Selection Modal */}
-        <Modal
+        {/* Full Screen Dedicated Payment Screen matching user design */}
+        <PaymentScreen
           visible={isPaymentModalOpen}
-          animationType="slide"
-          transparent
-          onRequestClose={() => setIsPaymentModalOpen(false)}
-        >
-          <View style={styles.paymentModalOverlay}>
-            <View style={styles.paymentModalCard}>
-              <View style={styles.paymentModalHeader}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.paymentModalTitle}>Pilih Metode Pembayaran</Text>
-                  <Text style={styles.paymentModalTotal}>
-                    Total Tagihan:{' '}
-                    <Text style={{ color: '#D91E28', fontWeight: '900' }}>{formatRupiah(finalTotal)}</Text>
-                  </Text>
-                </View>
-                <TouchableOpacity onPress={() => setIsPaymentModalOpen(false)} style={styles.closePaymentBtn}>
-                  <Ionicons name="close" size={24} color="#64748B" />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView contentContainerStyle={styles.paymentOptionsScroll}>
-                {/* Option 1: Midtrans */}
-                <TouchableOpacity
-                  style={styles.paymentOptionItem}
-                  onPress={() => {
-                    setIsPaymentModalOpen(false);
-                    processMidtransPayment();
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.paymentIconBox, { backgroundColor: '#E0F2FE' }]}>
-                    <Ionicons name="card" size={24} color="#0284C7" />
-                  </View>
-                  <View style={styles.paymentOptionTextGroup}>
-                    <View style={styles.paymentTitleBadgeRow}>
-                      <Text style={styles.paymentOptionName}>Midtrans Payment Gateway</Text>
-                      <View style={styles.autoBadge}>
-                        <Text style={styles.autoBadgeText}>Otomatis</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.paymentOptionDesc}>
-                      QRIS, Transfer VA (BCA, Mandiri, BRI), GoPay, ShopeePay
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#0284C7" />
-                </TouchableOpacity>
-
-                {/* Option 2: COD */}
-                <TouchableOpacity
-                  style={styles.paymentOptionItem}
-                  onPress={() => {
-                    setIsPaymentModalOpen(false);
-                    processPayment('COD (Bayar di Tempat)');
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.paymentIconBox, { backgroundColor: '#DCFCE7' }]}>
-                    <Ionicons name="cash" size={24} color="#16A34A" />
-                  </View>
-                  <View style={styles.paymentOptionTextGroup}>
-                    <Text style={styles.paymentOptionName}>COD (Bayar di Tempat)</Text>
-                    <Text style={styles.paymentOptionDesc}>
-                      Bayar tunai secara langsung kepada kurir saat barang tiba
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color="#16A34A" />
-                </TouchableOpacity>
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Loading Payment Overlay */}
-        {isLoadingPayment && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#FFFFFF" />
-            <Text style={styles.loadingText}>Menghubungkan ke Midtrans Payment Gateway...</Text>
-          </View>
-        )}
+          onClose={() => setIsPaymentModalOpen(false)}
+          finalTotal={finalTotal}
+          subtotal={subtotal}
+          deliveryFee={deliveryFee}
+          discountAmount={discountAmount}
+          selectedAddress={selectedAddress}
+          cartItems={displayItems}
+          onCompleteCheckout={() => {
+            setIsPaymentModalOpen(false);
+            if (onCompleteCheckout) onCompleteCheckout();
+            onClose();
+          }}
+        />
         </View>
       </View>
     </Modal>
