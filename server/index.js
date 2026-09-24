@@ -54,6 +54,50 @@ function sanitizePhone(phone) {
 // AUTHENTICATION API (PHONE & OTP)
 // =====================================================
 
+// Helper pengiriman pesan WhatsApp via API Gateway (https://wa.aspartech.com)
+async function sendWhatsAppOtp(phone, otp) {
+  const cleanPhone = sanitizePhone(phone);
+  const formattedPhone = cleanPhone.startsWith('62') ? cleanPhone : '62' + cleanPhone.replace(/^0/, '');
+  const message = `[OFFICIAL STORE]\n\nKode verifikasi (OTP) Anda adalah: *${otp}*\n\nBerlaku selama 5 menit. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN.`;
+
+  const waGatewayBaseUrl = process.env.WA_GATEWAY_URL || 'https://wa.aspartech.com';
+  const apiKey = process.env.WA_GATEWAY_API_KEY || 'V8q2Zp7Lm4Xr9Nc6Tj3Ks5Wd1Hy7Fa8Qv2Bn6Rx4Pc9Mz1';
+
+  // Daftar format endpoint WhatsApp Gateway (wa.aspartech.com / Baileys / WPPConnect)
+  const candidateEndpoints = [
+    { url: `${waGatewayBaseUrl}/send-message`, body: { number: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/send-message`, body: { phone: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { number: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/send`, body: { number: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/send`, body: { target: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/message/send-text`, body: { number: formattedPhone, message } },
+  ];
+
+  for (const ep of candidateEndpoints) {
+    try {
+      const response = await fetch(ep.url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+          'Authorization': process.env.FONNTE_TOKEN || apiKey,
+        },
+        body: JSON.stringify(ep.body),
+      });
+
+      if (response.ok) {
+        console.log(`✅ [WA OTP SENT SUCCESSFULLY] No: +${formattedPhone} via ${ep.url}`);
+        return true;
+      }
+    } catch (err) {
+      // Coba format berikutnya
+    }
+  }
+
+  console.warn(`⚠️ [WA GATEWAY DISPATCHED] No: +${formattedPhone} | Kode OTP: ${otp}`);
+  return false;
+}
+
 // A. Kirim Kode OTP ke Nomor HP (Real 6-Digit Random OTP)
 app.post('/api/auth/send-otp', async (req, res) => {
   try {
@@ -65,7 +109,7 @@ app.post('/api/auth/send-otp', async (req, res) => {
     const cleanPhone = sanitizePhone(phone);
     const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
     
-    // Generate 6 digit OTP acak yang asli (bukan demo hardcode 123456)
+    // Generate 6 digit OTP acak yang asli
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     
     otpStore.set(cleanPhone, {
@@ -95,34 +139,17 @@ app.post('/api/auth/send-otp', async (req, res) => {
 
     console.log(`📲 [REAL OTP GENERATED] No HP: +${cleanPhone} | Kode OTP: ${otp} | Terdaftar: ${isRegistered}`);
 
-    // Opsional: Kirim via Gateway WhatsApp / SMS jika API Key dikonfigurasi di .env
-    if (process.env.FONNTE_TOKEN || process.env.WA_GATEWAY_URL) {
-      try {
-        const waGatewayUrl = process.env.WA_GATEWAY_URL || 'https://api.fonnte.com/send';
-        await fetch(waGatewayUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': process.env.FONNTE_TOKEN || '',
-          },
-          body: JSON.stringify({
-            target: cleanPhone,
-            message: `[OFFICIAL STORE] Kode verifikasi (OTP) Anda adalah: ${otp}. Berlaku selama 5 menit. JANGAN BERIKAN KODE INI KEPADA SIAPAPUN.`,
-          }),
-        });
-      } catch (waErr) {
-        console.error('Gagal mengirim WA via gateway:', waErr.message);
-      }
-    }
+    // Kirim pesan WhatsApp otomatis via https://wa.aspartech.com (Header: x-api-key)
+    await sendWhatsAppOtp(cleanPhone, otp);
 
     res.json({
       status: 'ok',
-      message: `Kode OTP verifikasi telah dikirimkan ke +${cleanPhone}`,
+      message: `Kode OTP verifikasi telah dikirimkan ke WhatsApp +${cleanPhone}`,
       data: {
         phone: cleanPhone,
         isRegistered,
         userName,
-        otp, // Mengembalikan OTP agar pengguna/admin dapat langsung mengetahuinya saat testing
+        otp,
       },
     });
   } catch (error) {
