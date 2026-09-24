@@ -64,12 +64,14 @@ async function sendWhatsAppOtp(phone, otp) {
   const waGatewayBaseUrl = process.env.WA_GATEWAY_URL || 'https://wa.aspartech.com';
   const apiKey = process.env.WA_GATEWAY_API_KEY || 'V8q2Zp7Lm4Xr9Nc6Tj3Ks5Wd1Hy7Fa8Qv2Bn6Rx4Pc9Mz1';
 
+  const waSession = process.env.WA_SESSION || 'aspartecherp';
+
   // Format endpoint WhatsApp Gateway (wa.aspartech.com)
   const candidatePayloads = [
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { session: waSession, to: formattedPhone, message } },
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { session: waSession, to: zeroPhone, message } },
+    { url: `${waGatewayBaseUrl}/api/send-message`, body: { session: waSession, to: `${formattedPhone}@c.us`, message } },
     { url: `${waGatewayBaseUrl}/api/send-message`, body: { to: formattedPhone, message } },
-    { url: `${waGatewayBaseUrl}/api/send-message`, body: { to: zeroPhone, message } },
-    { url: `${waGatewayBaseUrl}/api/send-message`, body: { to: `${formattedPhone}@c.us`, message } },
-    { url: `${waGatewayBaseUrl}/send-message`, body: { to: formattedPhone, message } },
   ];
 
   for (const ep of candidatePayloads) {
