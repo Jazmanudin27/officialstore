@@ -349,114 +349,90 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           </View>
         </View>
 
-        {/* SECTION: KEBIJAKAN MUTU, HALAL, & KEAMANAN PANGAN */}
-        <View style={styles.kebijakanSection}>
-          <View style={styles.sectionHeaderCenter}>
-            <View style={styles.sectionTagline}>
-              <Ionicons name="ribbon-outline" size={14} color={BRAND_RED} />
-              <Text style={styles.sectionTaglineText}>STANDARISASI & KUALITAS</Text>
-            </View>
-            <Text style={styles.sectionHeadingCenter}>Kebijakan Mutu, Halal, dan Keamanan Pangan</Text>
-            <Text style={styles.sectionSubCenter}>
-              CV. MAKMUR PERMATA berkomitmen untuk menghasilkan produk yang berkualitas, halal, dan aman untuk dikonsumsi, memenuhi persyaratan peraturan perundang-undangan serta persyaratan pelanggan yang telah disetujui bersama serta mempertimbangkan konteks dan arah strategi perusahaan.
-            </Text>
-          </View>
+        {/* SECTION: KEBIJAKAN MUTU, HALAL, KEAMANAN PANGAN & VISI MISI (EXACT PEDASALAMI.COM VERBATIM LAYOUT) */}
+        <View style={styles.kebijakanDocSection}>
+          <View style={styles.kebijakanDocContainer}>
+            <View style={[styles.kebijakanDocRow, isDesktop ? styles.kebijakanDocDesktopRow : styles.kebijakanDocMobileCol]}>
+              
+              {/* LEFT COLUMN: KEBIJAKAN MUTU, HALAL, DAN KEAMANAN PANGAN */}
+              <View style={isDesktop ? styles.kebijakanDocLeftCol : styles.kebijakanDocFullCol}>
+                <Text style={styles.kebijakanDocTitle}>Kebijakan Mutu, Halal, dan Keamanan Pangan</Text>
+                
+                <Text style={styles.kebijakanDocParagraph}>
+                  CV. MAKMUR PERMATA berkomitmen untuk menghasilkan produk yang berkualitas, halal, dan aman untuk dikonsumsi, memenuhi persyaratan peraturan perundang-undangan serta persyaratan pelanggan yang telah disetujui bersama serta mempertimbangkan konteks dan arah strategi perusahaan.
+                </Text>
 
-          <View style={{ maxWidth: 1000, width: '100%', alignSelf: 'center', marginBottom: 24 }}>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#1C2417', textAlign: 'center', lineHeight: 22 }}>
-              Untuk selalu mencapai kebijakan tersebut maka CV. MAKMUR PERMATA:
-            </Text>
-          </View>
+                <Text style={[styles.kebijakanDocParagraph, { marginTop: 16 }]}>
+                  Untuk selalu mencapai kebijakan tersebut maka CV. MAKMUR PERMATA:
+                </Text>
 
-          <View style={[styles.kebijakanGrid, isDesktop ? styles.kebijakanGridDesktop : styles.kebijakanGridMobile]}>
-            <View style={styles.kebijakanCard}>
-              <View style={styles.kebijakanNumberBadge}>
-                <Text style={styles.kebijakanNumberText}>1</Text>
+                <View style={styles.kebijakanDocList}>
+                  <View style={styles.kebijakanDocListItem}>
+                    <Text style={styles.kebijakanDocListNum}>1.</Text>
+                    <Text style={styles.kebijakanDocListText}>
+                      Semua stakeholder berkomitmen menerapkan semua persyaratan Sistem Mutu, Halal, dan Keamanan Pangan secara baik dan konsisten.
+                    </Text>
+                  </View>
+
+                  <View style={styles.kebijakanDocListItem}>
+                    <Text style={styles.kebijakanDocListNum}>2.</Text>
+                    <Text style={styles.kebijakanDocListText}>
+                      Menghasilkan produk yang memenuhi persyaratan peraturan perundang-undangan dan persyaratan pelanggan.
+                    </Text>
+                  </View>
+
+                  <View style={styles.kebijakanDocListItem}>
+                    <Text style={styles.kebijakanDocListNum}>3.</Text>
+                    <Text style={styles.kebijakanDocListText}>
+                      Selalu berkomitmen untuk meningkatkan dan mengembangkan sumber daya manusia, perusahaan baik sarana dan prasarana yang menunjang keberhasilan Sistem Manajemen Mutu, Halal, dan Keamanan Pangan.
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.kebijakanDocSignatureBox}>
+                  <Text style={styles.kebijakanDocDate}>Ditetapkan di Tasikmalaya, 29 Maret 2021</Text>
+                  <Text style={styles.kebijakanDocDirector}>Direktur CV. MAKMUR PERMATA</Text>
+                </View>
+
+                <Text style={[styles.kebijakanDocParagraph, { marginTop: 20 }]}>
+                  Untuk mendukung keberhasilan dari kebijakan keamanan pangan, CV. MAKMUR PERMATA membuat sasaran keamanan pangan masing-masing fungsi dan Departemen.
+                </Text>
               </View>
-              <Text style={styles.kebijakanCardTitle}>Penerapan Konsisten</Text>
-              <Text style={styles.kebijakanCardDesc}>
-                Semua stakeholder berkomitmen menerapkan semua persyaratan Sistem Mutu, Halal, dan Keamanan Pangan secara baik dan konsisten.
-              </Text>
-            </View>
 
-            <View style={styles.kebijakanCard}>
-              <View style={styles.kebijakanNumberBadge}>
-                <Text style={styles.kebijakanNumberText}>2</Text>
-              </View>
-              <Text style={styles.kebijakanCardTitle}>Memenuhi Regulasi & Pelanggan</Text>
-              <Text style={styles.kebijakanCardDesc}>
-                Menghasilkan produk yang memenuhi persyaratan peraturan perundang-undangan dan persyaratan pelanggan.
-              </Text>
-            </View>
-
-            <View style={styles.kebijakanCard}>
-              <View style={styles.kebijakanNumberBadge}>
-                <Text style={styles.kebijakanNumberText}>3</Text>
-              </View>
-              <Text style={styles.kebijakanCardTitle}>Pengembangan SDM & Sarana</Text>
-              <Text style={styles.kebijakanCardDesc}>
-                Selalu berkomitmen untuk meningkatkan dan mengembangkan sumber daya manusia, perusahaan baik sarana dan prasarana yang menunjang keberhasilan Sistem Manajemen Mutu, Halal, dan Keamanan Pangan.
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.directorBadgeBox}>
-            <Ionicons name="document-text-outline" size={24} color={BRAND_RED} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#1C2417' }}>
-                Ditetapkan di Tasikmalaya, 29 Maret 2021
-              </Text>
-              <Text style={{ fontSize: 12.5, color: BRAND_RED, marginTop: 2, fontWeight: '800' }}>
-                Direktur CV. MAKMUR PERMATA
-              </Text>
-            </View>
-          </View>
-
-          <View style={{ maxWidth: 840, width: '100%', alignSelf: 'center', marginTop: 20, backgroundColor: '#FFFFFF', padding: 20, borderRadius: 14, borderWidth: 1, borderColor: '#FFE4E6', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 1 }}>
-            <Text style={{ fontSize: 13.5, color: '#334155', lineHeight: 22, textAlign: 'center', fontWeight: '600' }}>
-              Untuk mendukung keberhasilan dari kebijakan keamanan pangan, CV. MAKMUR PERMATA membuat sasaran keamanan pangan masing-masing fungsi dan Departemen.
-            </Text>
-          </View>
-        </View>
-
-        {/* SECTION: VISI & MISI PERUSAHAAN */}
-        <View style={styles.visiMisiSection}>
-          <View style={[styles.visiMisiRow, isDesktop ? styles.visiMisiDesktopRow : styles.visiMisiMobileCol]}>
-            
-            {/* VISI */}
-            <View style={styles.visiCard}>
-              <View style={styles.visiIconCircle}>
-                <Ionicons name="eye" size={28} color="#FFFFFF" />
-              </View>
-              <Text style={styles.visiTitle}>VISI PERUSAHAAN</Text>
-              <Text style={styles.visiDesc}>
-                "CV. Makmur Permata berusaha menjadi salah satu produsen seasoning terkemuka di Indonesia dan Internasional."
-              </Text>
-            </View>
-
-            {/* MISI */}
-            <View style={styles.misiCard}>
-              <View style={styles.misiIconCircle}>
-                <Ionicons name="rocket" size={28} color="#FFFFFF" />
-              </View>
-              <Text style={styles.misiTitle}>MISI PERUSAHAAN</Text>
-              <View style={{ gap: 10, marginTop: 10 }}>
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                  <Ionicons name="checkmark-circle" size={18} color={BRAND_RED} style={{ marginTop: 2 }} />
-                  <Text style={styles.misiPointText}>
-                    Mengutamakan kepuasan pelanggan dalam memproduksi produk yang berkualitas dan aman.
+              {/* RIGHT COLUMN: VISI & MISI */}
+              <View style={isDesktop ? styles.kebijakanDocRightCol : styles.kebijakanDocFullCol}>
+                
+                {/* VISI CARD */}
+                <View style={styles.visiMisiBlock}>
+                  <Text style={styles.visiMisiBlockTitle}>VISI</Text>
+                  <Text style={styles.visiMisiBlockText}>
+                    CV. Makmur Permata berusaha menjadi salah satu produsen seasoning terkemuka di Indonesia dan Internasional.
                   </Text>
                 </View>
 
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                  <Ionicons name="checkmark-circle" size={18} color={BRAND_RED} style={{ marginTop: 2 }} />
-                  <Text style={styles.misiPointText}>
-                    Terus menerus melakukan perbaikan dan peningkatan kualitas sistem manajemen keamanan pangan.
-                  </Text>
-                </View>
-              </View>
-            </View>
+                {/* MISI CARD */}
+                <View style={[styles.visiMisiBlock, { marginTop: 24 }]}>
+                  <Text style={styles.visiMisiBlockTitle}>MISI</Text>
+                  <View style={styles.misiDocList}>
+                    <View style={styles.misiDocListItem}>
+                      <Text style={styles.misiDocListNum}>1.</Text>
+                      <Text style={styles.visiMisiBlockText}>
+                        Mengutamakan kepuasan pelanggan dalam memproduksi produk yang berkualitas dan aman.
+                      </Text>
+                    </View>
 
+                    <View style={styles.misiDocListItem}>
+                      <Text style={styles.misiDocListNum}>2.</Text>
+                      <Text style={styles.visiMisiBlockText}>
+                        Terus menerus melakukan perbaikan dan peningkatan kualitas sistem manajemen keamanan pangan.
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+              </View>
+
+            </View>
           </View>
         </View>
 
@@ -1025,170 +1001,119 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
 
-  /* KEBIJAKAN MUTU SECTION */
-  kebijakanSection: {
-    backgroundColor: '#FFF1F2',
+  /* KEBIJAKAN MUTU & VISI MISI DOCUMENT SECTION (EXACT 1:1 REPLICA OF PEDASALAMI.COM) */
+  kebijakanDocSection: {
+    backgroundColor: '#FFFFFF',
     paddingVertical: 50,
     paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
   },
-  sectionHeaderCenter: {
-    alignItems: 'center',
-    marginBottom: 36,
-    textAlign: 'center',
-  },
-  sectionHeadingCenter: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: '#1C2417',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  sectionSubCenter: {
-    fontSize: 14,
-    color: '#475569',
-    textAlign: 'center',
-    maxWidth: 680,
-    lineHeight: 22,
-  },
-  kebijakanGrid: {
-    maxWidth: 1200,
+  kebijakanDocContainer: {
+    maxWidth: 1140,
     width: '100%',
     alignSelf: 'center',
-    gap: 20,
   },
-  kebijakanGridDesktop: {
+  kebijakanDocRow: {
+    gap: 40,
+  },
+  kebijakanDocDesktopRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
   },
-  kebijakanGridMobile: {
+  kebijakanDocMobileCol: {
     flexDirection: 'column',
   },
-  kebijakanCard: {
+  kebijakanDocLeftCol: {
+    flex: 2,
+    paddingRight: 10,
+  },
+  kebijakanDocRightCol: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 24,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
-  kebijakanNumberBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: 'rgb(217, 30, 40)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
+  kebijakanDocFullCol: {
+    width: '100%',
   },
-  kebijakanNumberText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 16,
-  },
-  kebijakanCardTitle: {
-    fontSize: 16,
+  kebijakanDocTitle: {
+    fontSize: 28,
     fontWeight: '800',
-    color: '#1C2417',
-    marginBottom: 8,
+    color: '#1E293B',
+    lineHeight: 36,
+    marginBottom: 20,
   },
-  kebijakanCardDesc: {
-    fontSize: 13,
+  kebijakanDocParagraph: {
+    fontSize: 15,
     color: '#475569',
-    lineHeight: 20,
+    lineHeight: 25,
   },
-  directorBadgeBox: {
-    maxWidth: 500,
-    alignSelf: 'center',
-    marginTop: 30,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1.5,
-    borderColor: 'rgb(217, 30, 40)',
-    borderRadius: 14,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+  kebijakanDocList: {
+    marginTop: 14,
+    marginBottom: 20,
+    gap: 12,
+  },
+  kebijakanDocListItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  kebijakanDocListNum: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#475569',
+    lineHeight: 25,
+  },
+  kebijakanDocListText: {
+    fontSize: 15,
+    color: '#475569',
+    lineHeight: 25,
+    flex: 1,
+  },
+  kebijakanDocSignatureBox: {
+    marginTop: 16,
+    marginBottom: 10,
+  },
+  kebijakanDocDate: {
+    fontSize: 14.5,
+    color: '#475569',
+    lineHeight: 24,
+  },
+  kebijakanDocDirector: {
+    fontSize: 14.5,
+    color: '#475569',
+    lineHeight: 24,
+    marginTop: 12,
+    fontWeight: '600',
   },
 
-  /* VISI MISI SECTION */
-  visiMisiSection: {
-    paddingVertical: 50,
-    paddingHorizontal: 20,
-    maxWidth: 1200,
-    width: '100%',
-    alignSelf: 'center',
+  /* VISI MISI RIGHT SIDE BLOCK */
+  visiMisiBlock: {
+    backgroundColor: '#FFFFFF',
   },
-  visiMisiRow: {
-    gap: 24,
+  visiMisiBlockTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 12,
+    letterSpacing: 0.5,
   },
-  visiMisiDesktopRow: {
-    flexDirection: 'row',
-  },
-  visiMisiMobileCol: {
-    flexDirection: 'column',
-  },
-  visiCard: {
-    flex: 1,
-    backgroundColor: 'rgb(217, 30, 40)',
-    borderRadius: 20,
-    padding: 28,
-  },
-  visiIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  visiTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: '#FDE68A',
-    marginBottom: 10,
-    letterSpacing: 1,
-  },
-  visiDesc: {
+  visiMisiBlockText: {
     fontSize: 15,
-    color: '#FFFFFF',
-    lineHeight: 24,
-    fontStyle: 'italic',
+    color: '#475569',
+    lineHeight: 25,
   },
-  misiCard: {
-    flex: 1.2,
-    backgroundColor: '#FFF1F2',
-    borderRadius: 20,
-    padding: 28,
-    borderWidth: 2,
-    borderColor: '#FECACA',
+  misiDocList: {
+    gap: 12,
   },
-  misiIconCircle: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: 'rgb(217, 30, 40)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 14,
+  misiDocListItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
   },
-  misiTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: 'rgb(217, 30, 40)',
-    marginBottom: 10,
-    letterSpacing: 1,
-  },
-  misiPointText: {
-    fontSize: 14,
-    color: '#1C2417',
-    lineHeight: 22,
-    flex: 1,
+  misiDocListNum: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#475569',
+    lineHeight: 25,
   },
 
   /* PRODUK KAMI SECTION */
