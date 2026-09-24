@@ -389,12 +389,27 @@ export default function AuthModal({ visible, onClose, onLoginSuccess }) {
               <Text style={styles.otpTargetPhone}>+62 {sanitizeInputPhone(phone)}</Text>
 
               {/* WhatsApp OTP Banner Info */}
-              <View style={styles.demoInfoBox}>
-                <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
-                <Text style={styles.demoInfoText}>
-                  Silahkan cek WhatsApp Anda untuk melihat 6 digit kode OTP verifikasi.
-                </Text>
-              </View>
+              <TouchableOpacity
+                style={styles.demoInfoBox}
+                activeOpacity={0.8}
+                onPress={() => {
+                  const targetPhone = '62' + sanitizeInputPhone(phone);
+                  const url = `https://wa.me/${targetPhone}`;
+                  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+                    window.open(url, '_blank');
+                  }
+                }}
+              >
+                <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.demoInfoText}>
+                    Silahkan cek WhatsApp Anda untuk melihat 6 digit kode OTP verifikasi.
+                  </Text>
+                  <Text style={{ fontSize: 11, color: '#0284C7', fontWeight: '700', marginTop: 2 }}>
+                    Klik di sini jika ingin membuka WhatsApp secara langsung 📱
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
               {/* 6-Digit OTP Boxes */}
               <View style={styles.otpBoxesRow}>
