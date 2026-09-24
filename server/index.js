@@ -60,24 +60,7 @@ async function sendWhatsAppOtp(phone, otp) {
   const formattedPhone = cleanPhone.startsWith('62') ? cleanPhone : '62' + cleanPhone.replace(/^0/, '');
   const zeroPhone = cleanPhone.startsWith('62') ? '0' + cleanPhone.slice(2) : cleanPhone;
   
-  const message = 
-`🌶️ *OFFICIAL STORE TASIKMALAYA* 🌶️
-=================================
-Halo Kak! 👋
-
-Terima kasih telah menggunakan layanan *Official Store*.
-
-Berikut adalah Kode Verifikasi (OTP) Anda:
-
-🔑 *[ ${otp} ]*
-
-⏱️ *Kode ini berlaku selama 15 menit.*
-
-⚠️ *KEAMANAN:*
-JANGAN berikan kode ini kepada siapapun (termasuk pihak Official Store).
-
-=================================
-Pusat Bumbu, Saus & Cabai Asli Tasikmalaya 🌟`;
+  const message = `[OFFICIAL STORE TASIKMALAYA]\n\nHalo Kak!\n\nKode Verifikasi (OTP) Anda adalah: *${otp}*\n\nKode ini berlaku selama 15 menit.\nJANGAN BERIKAN KODE INI KEPADA SIAPAPUN.`;
 
   const waGatewayBaseUrl = process.env.WA_GATEWAY_URL || 'https://wa.aspartech.com';
   const apiKey = process.env.WA_GATEWAY_API_KEY || 'V8q2Zp7Lm4Xr9Nc6Tj3Ks5Wd1Hy7Fa8Qv2Bn6Rx4Pc9Mz1';
