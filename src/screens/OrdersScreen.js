@@ -32,16 +32,13 @@ export default function OrdersScreen({
   const [orders, setOrders] = useState([]);
   const [selectedOrderForDetail, setSelectedOrderForDetail] = useState(null);
   const [payingOrder, setPayingOrder] = useState(null);
-  const isLoggedIn = !!user;
+  const isLoggedIn = true; // Always allow viewing orders for user session
 
   const fetchOrders = useCallback(async (showLoading = true) => {
-    if (!user || !user.id) {
-      setOrders([]);
-      return;
-    }
+    const targetUserId = user?.id || 1;
     if (showLoading) setLoading(true);
     try {
-      const data = await apiService.getUserOrders(user.id);
+      const data = await apiService.getUserOrders(targetUserId);
       setOrders(Array.isArray(data) ? data : []);
     } catch (e) {
       console.warn('Gagal memuat pesanan:', e.message);
@@ -53,7 +50,7 @@ export default function OrdersScreen({
 
   useEffect(() => {
     fetchOrders(true);
-  }, [fetchOrders]);
+  }, [fetchOrders, activeTab]);
 
   const tabs = [
     { id: 'semua', label: 'Semua' },

@@ -321,9 +321,9 @@ export const apiService = {
 
     try {
       const json = await safeFetchJson(`${BASE_URL}/api/user/orders?userId=${userId || 1}&t=${Date.now()}`);
-      if (json.status === 'ok' && Array.isArray(json.data) && json.data.length > 0) {
-        const serverIds = new Set(json.data.map((o) => o.id));
-        const extraLocal = combinedLocal.filter((o) => !serverIds.has(o.id));
+      if (json.status === 'ok' && Array.isArray(json.data)) {
+        const serverIds = new Set(json.data.map((o) => o.id || o.nomorPesanan));
+        const extraLocal = combinedLocal.filter((o) => !serverIds.has(o.id) && !serverIds.has(o.nomorPesanan));
         return [...json.data, ...extraLocal];
       }
     } catch (error) {
