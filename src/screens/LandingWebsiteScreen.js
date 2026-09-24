@@ -20,23 +20,103 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
   const [activeMenu, setActiveMenu] = useState('home');
-  const [emailSubscribe, setEmailSubscribe] = useState('');
-  const [subscribedSuccess, setSubscribedSuccess] = useState(false);
 
-  const featuredProducts = PRODUCTS.slice(0, 6);
+  const marketingRegions = [
+    'Tasikmalaya',
+    'Garut',
+    'Bandung',
+    'Purwokerto',
+    'Cirebon',
+    'Surabaya',
+    'Semarang',
+    'Cianjur',
+    'Bogor',
+    'Purwakarta',
+    'Tangerang',
+    'Banten',
+    'Yogyakarta',
+    'Bekasi',
+  ];
 
-  const handleSubscribe = () => {
-    if (emailSubscribe.trim().includes('@')) {
-      setSubscribedSuccess(true);
-      setEmailSubscribe('');
-      setTimeout(() => setSubscribedSuccess(false), 4000);
+  const officialProducts = [
+    {
+      id: 'aida-500g',
+      name: 'Cabe Bubuk AIDA 500 GR',
+      brand: 'AIDA',
+      category: 'Cabe Bubuk',
+      desc: 'Cabe bubuk murni kualitas utama, terkenal di Priangan Timur & Nusantara.',
+      price: 23500,
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+    {
+      id: 'aida-renteng',
+      name: 'AIDA RENTENG 25 GR',
+      brand: 'AIDA',
+      category: 'Cabe Bubuk Sachet',
+      desc: 'Kemasan praktis sachet ekonomis 25 gram isi 10 pcs.',
+      price: 14500,
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+    {
+      id: 'swan-saus-bawang',
+      name: 'Cap Swan Terbang - Saus Sambal Bawang',
+      brand: 'Cap Swan Terbang',
+      category: 'Saus Sambal',
+      desc: 'Saus sambal bawang beraroma harum dan gurih pedas khas.',
+      price: 34000,
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+    {
+      id: 'swan-ekstra-pedas',
+      name: 'Cap Swan Terbang - Saus Ekstra Pedas',
+      brand: 'Cap Swan Terbang',
+      category: 'Saus Pedas',
+      desc: 'Saus ekstra pedas dengan tekstur mantap untuk aneka kuliner.',
+      price: 18500,
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+    {
+      id: 'swan-stick-premium',
+      name: 'Cap Swan Terbang - Saus Stick Premium',
+      brand: 'Cap Swan Terbang',
+      category: 'Saus Premium',
+      desc: 'Saus stick kemasan premium higienis siap guna.',
+      price: 22000,
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+    {
+      id: 'sambal-cabe-aida',
+      name: 'Sambal Cabe AIDA Premium',
+      brand: 'AIDA',
+      category: 'Sambal Olahan',
+      desc: 'Sambal cabe asli racikan khas CV Makmur Permata.',
+      price: 25000,
+      image: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=400&q=80',
+    },
+  ];
+
+  const handleContactWA = () => {
+    const phone = '6282119080044';
+    const text = 'Halo CV Makmur Permata! Saya berminat untuk informasi pemesanan & kerjasama produk Cabe Bubuk AIDA / Cap Swan Terbang.';
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url).catch(() => {});
     }
   };
 
-  const handleContactWA = () => {
-    const phone = '62895238888200';
-    const text = 'Halo Official Store Tasikmalaya! Saya ingin menanyakan tentang produk rempah & saus premium.';
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  const handleOpenInstagram = () => {
+    const url = 'https://instagram.com/cabebubuk_aida';
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.open(url, '_blank');
+    } else {
+      Linking.openURL(url).catch(() => {});
+    }
+  };
+
+  const handleOpenLinktree = () => {
+    const url = 'https://linktr.ee/cabebubukaida';
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       window.open(url, '_blank');
     } else {
@@ -49,7 +129,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
       {/* Top Announcement Bar */}
       <View style={styles.announcementBar}>
         <Text style={styles.announcementText}>
-          🌾 PURELY TASIKMALAYA • PROMO REMPAH & SAUS PREMIUM KELUARGA • DISKON ONGKIR SELURUH INDONESIA 🌾
+          🌶️ CV. MAKMUR PERMATA • PRODUSEN RESMI CABE BUBUK AIDA & CAP SWAN TERBANG • TASIKMALAYA 🌶️
         </Text>
       </View>
 
@@ -59,11 +139,11 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           {/* Brand Logo */}
           <TouchableOpacity style={styles.logoGroup} onPress={onOpenStore} activeOpacity={0.85}>
             <View style={styles.logoBadgeIcon}>
-              <Ionicons name="nutrition-outline" size={24} color="#2E3A23" />
+              <Ionicons name="flame" size={22} color="#D91E28" />
             </View>
             <View>
-              <Text style={styles.logoTitle}>IDUKKI STYLE</Text>
-              <Text style={styles.logoSubtitle}>TASIK SPICE & SAUCE</Text>
+              <Text style={styles.logoTitle}>CV. MAKMUR PERMATA</Text>
+              <Text style={styles.logoSubtitle}>PRODUSEN CABE BUBUK AIDA & SAUS</Text>
             </View>
           </TouchableOpacity>
 
@@ -71,22 +151,22 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           {isDesktop && (
             <View style={styles.navLinksRow}>
               <TouchableOpacity onPress={() => setActiveMenu('home')} style={styles.navLinkItem}>
-                <Text style={[styles.navLinkText, activeMenu === 'home' && styles.navLinkActive]}>Beranda</Text>
+                <Text style={[styles.navLinkText, activeMenu === 'home' && styles.navLinkActive]}>Home</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setActiveMenu('shop')} style={styles.navLinkItem}>
-                <Text style={[styles.navLinkText, activeMenu === 'shop' && styles.navLinkActive]}>Katalog Produk</Text>
+              <TouchableOpacity onPress={() => setActiveMenu('tentang')} style={styles.navLinkItem}>
+                <Text style={[styles.navLinkText, activeMenu === 'tentang' && styles.navLinkActive]}>Tentang Kami</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setActiveMenu('story')} style={styles.navLinkItem}>
-                <Text style={[styles.navLinkText, activeMenu === 'story' && styles.navLinkActive]}>Kisah Kami</Text>
+              <TouchableOpacity onPress={() => setActiveMenu('produk')} style={styles.navLinkItem}>
+                <Text style={[styles.navLinkText, activeMenu === 'produk' && styles.navLinkActive]}>Produk Kami</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setActiveMenu('benefits')} style={styles.navLinkItem}>
-                <Text style={[styles.navLinkText, activeMenu === 'benefits' && styles.navLinkActive]}>Keunggulan</Text>
+              <TouchableOpacity onPress={() => setActiveMenu('kebijakan')} style={styles.navLinkItem}>
+                <Text style={[styles.navLinkText, activeMenu === 'kebijakan' && styles.navLinkActive]}>Kebijakan Mutu & Halal</Text>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => setActiveMenu('recipes')} style={styles.navLinkItem}>
-                <Text style={[styles.navLinkText, activeMenu === 'recipes' && styles.navLinkActive]}>Resep Pilihan</Text>
+              <TouchableOpacity onPress={() => setActiveMenu('wilayah')} style={styles.navLinkItem}>
+                <Text style={[styles.navLinkText, activeMenu === 'wilayah' && styles.navLinkActive]}>Wilayah Pemasaran</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleContactWA} style={styles.navLinkItem}>
-                <Text style={styles.navLinkText}>Hubungi Kami</Text>
+                <Text style={styles.navLinkText}>Kontak</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -95,73 +175,80 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           <View style={styles.headerRightActions}>
             <TouchableOpacity onPress={onOpenStore} style={styles.appStoreBtn} activeOpacity={0.85}>
               <Ionicons name="bag-handle" size={16} color="#FFFFFF" />
-              <Text style={styles.appStoreBtnText}>Buka Toko Online</Text>
+              <Text style={styles.appStoreBtnText}>Toko Belanja Online</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
 
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* HERO SECTION (Matching Reference Image "IDUKKI SPICE" Design) */}
+        
+        {/* HERO SECTION (IDUKKI SPICE Luxury Visual Theme for CV Makmur Permata) */}
         <View style={styles.heroSection}>
           <View style={[styles.heroContainer, isDesktop ? styles.heroDesktopRow : styles.heroMobileCol]}>
             
             {/* Left Hero Content */}
             <View style={isDesktop ? styles.heroLeftDesktop : styles.heroLeftMobile}>
               <View style={styles.taglineBadge}>
-                <Ionicons name="sparkles" size={12} color="#4A5D3B" />
-                <Text style={styles.taglineText}>PURELY TASIKMALAYA, PERFECTLY PREMIUM</Text>
+                <Ionicons name="shield-checkmark-outline" size={13} color="#2E3A23" />
+                <Text style={styles.taglineText}>MUTU • HALAL • TERSTANDARISASI</Text>
               </View>
 
               <Text style={styles.heroTitle}>
-                The Rich Aroma{'\n'}
-                <Text style={styles.heroTitleHighlight}>of Tasikmalaya</Text>
+                Cabe Bubuk AIDA{'\n'}
+                <Text style={styles.heroTitleHighlight}>& Cap Swan Terbang</Text>
               </Text>
 
               <Text style={styles.heroSubtitle}>
-                Diolah secara alami dari rempah & cabai asli pilihan pegunungan Tasikmalaya.
-                Menghadirkan keharuman pedas gurih, kemurnian aroma, dan kelezatan alami di setiap masakan dapur Anda.
+                CV. Makmur Permata merupakan perusahaan industri pengolahan makanan terkemuka yang memproduksi Cabe Bubuk AIDA, Saus Sambal Bawang, dan Saus Ekstra Pedas dengan proses higienis & bahan baku halal berkualitas.
               </Text>
 
-              {/* Shop CTA Button */}
-              <TouchableOpacity style={styles.heroCtaBtn} onPress={onOpenStore} activeOpacity={0.88}>
-                <Text style={styles.heroCtaText}>BELANJA SEKARANG</Text>
-                <Ionicons name="arrow-forward-outline" size={18} color="#FFFFFF" />
-              </TouchableOpacity>
+              {/* Action CTA Buttons */}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <TouchableOpacity style={styles.heroCtaBtn} onPress={onOpenStore} activeOpacity={0.88}>
+                  <Text style={styles.heroCtaText}>BELI PRODUK ONLINE</Text>
+                  <Ionicons name="arrow-forward-outline" size={18} color="#FFFFFF" />
+                </TouchableOpacity>
 
-              {/* 4 Feature Badges Grid */}
+                <TouchableOpacity style={styles.heroCtaBtnOutline} onPress={handleOpenLinktree} activeOpacity={0.85}>
+                  <Ionicons name="git-network-outline" size={18} color="#2E3A23" />
+                  <Text style={styles.heroCtaTextOutline}>INFO KERJASAMA & PEMESANAN</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* 4 Trust Feature Badges */}
               <View style={styles.heroBadgesGrid}>
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="leaf-outline" size={18} color="#2E3A23" />
+                    <Ionicons name="checkmark-done-circle" size={18} color="#2E3A23" />
                   </View>
-                  <Text style={styles.badgeText}>100%{'\n'}NATURAL</Text>
+                  <Text style={styles.badgeText}>100% HALAL &{'\n'}HIGIENIS</Text>
                 </View>
 
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="navigate-outline" size={18} color="#2E3A23" />
+                    <Ionicons name="location-outline" size={18} color="#2E3A23" />
                   </View>
-                  <Text style={styles.badgeText}>REMPAH{'\n'}TASIK</Text>
+                  <Text style={styles.badgeText}>KAWALU, KOTA{'\n'}TASIKMALAYA</Text>
                 </View>
 
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="flask-outline" size={18} color="#2E3A23" />
+                    <Ionicons name="ribbon-outline" size={18} color="#2E3A23" />
                   </View>
-                  <Text style={styles.badgeText}>TANPA{'\n'}PENGAWET</Text>
+                  <Text style={styles.badgeText}>KEAMANAN{'\n'}PANGAN BPOM</Text>
                 </View>
 
                 <View style={styles.badgeItem}>
                   <View style={styles.badgeIconCircle}>
-                    <Ionicons name="flame-outline" size={18} color="#2E3A23" />
+                    <Ionicons name="globe-outline" size={18} color="#2E3A23" />
                   </View>
-                  <Text style={styles.badgeText}>AROMA &{'\n'}PEDAS ALAMI</Text>
+                  <Text style={styles.badgeText}>DISTRIBUSI{'\n'}NASIONAL</Text>
                 </View>
               </View>
             </View>
 
-            {/* Right Hero Visuals / Image Package */}
+            {/* Right Hero Visual Package */}
             <View style={isDesktop ? styles.heroRightDesktop : styles.heroRightMobile}>
               <View style={styles.heroImageWrapper}>
                 <Image
@@ -170,24 +257,23 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
                   resizeMode="cover"
                 />
                 
-                {/* Stamp Seal Badge (Top Right) */}
+                {/* Stamp Seal Badge */}
                 <View style={styles.stampSealBadge}>
-                  <Ionicons name="ribbon-outline" size={20} color="#2E3A23" />
-                  <Text style={styles.stampText}>PURELY TASIK</Text>
-                  <Text style={styles.stampSubText}>PREMIUM QUALITY</Text>
+                  <Ionicons name="flame" size={22} color="#D91E28" />
+                  <Text style={styles.stampText}>AIDA & SWAN</Text>
+                  <Text style={styles.stampSubText}>CV MAKMUR PERMATA</Text>
                 </View>
 
-                {/* Floating Product Highlight Card */}
+                {/* Floating Info Card */}
                 <View style={styles.floatingHighlightCard}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <Image
-                      source={{ uri: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=150&q=80' }}
-                      style={{ width: 44, height: 44, borderRadius: 8 }}
-                    />
+                    <View style={{ width: 44, height: 44, borderRadius: 10, backgroundColor: '#FEE2E2', justifyContent: 'center', alignItems: 'center' }}>
+                      <Ionicons name="nutrition" size={24} color="#D91E28" />
+                    </View>
                     <View>
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C2417' }}>AIDA CABAI ASLI</Text>
-                      <Text style={{ fontSize: 11, color: '#5B6651' }}>Bumbu Cabai Bubuk Murni 500g</Text>
-                      <Text style={{ fontSize: 12, fontWeight: '800', color: '#D91E28', marginTop: 2 }}>Rp 23.500</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '900', color: '#1C2417' }}>CV. MAKMUR PERMATA</Text>
+                      <Text style={{ fontSize: 11, color: '#5B6651' }}>Tasikmalaya, Jawa Barat</Text>
+                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#D91E28', marginTop: 2 }}>Produsen Seasoning Terpercaya</Text>
                     </View>
                   </View>
                 </View>
@@ -197,50 +283,40 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
           </View>
         </View>
 
-        {/* BOTTOM VALUE PROPOSITION BAR */}
+        {/* BOTTOM VALUE PROPOSITIONS BAR */}
         <View style={styles.valuePropsBar}>
           <View style={[styles.valuePropsContainer, isDesktop ? styles.valuePropsDesktopRow : styles.valuePropsMobileCol]}>
             <View style={styles.valueItem}>
-              <Ionicons name="sparkles-outline" size={22} color="#D4B886" />
+              <Ionicons name="shield-checkmark" size={22} color="#D4B886" />
               <View>
-                <Text style={styles.valueTitle}>REMPAH QUALITY SUPER</Text>
-                <Text style={styles.valueSub}>Bahan pilihan dari petani terbaik</Text>
+                <Text style={styles.valueTitle}>SISTEM MANAJEMEN HALAL</Text>
+                <Text style={styles.valueSub}>Memenuhi standar keamanan pangan nasional</Text>
               </View>
             </View>
 
             <View style={styles.valueDivider} />
 
             <View style={styles.valueItem}>
-              <Ionicons name="car-outline" size={22} color="#D4B886" />
+              <Ionicons name="leaf" size={22} color="#D4B886" />
               <View>
-                <Text style={styles.valueTitle}>PENGIRIMAN CEPAT & AMAN</Text>
-                <Text style={styles.valueSub}>Packing rapi hingga ke tangan Anda</Text>
+                <Text style={styles.valueTitle}>BAHAN BAKU BERKUALITAS</Text>
+                <Text style={styles.valueSub}>Diproses dari cabai segar pilihan</Text>
               </View>
             </View>
 
             <View style={styles.valueDivider} />
 
             <View style={styles.valueItem}>
-              <Ionicons name="shield-checkmark-outline" size={22} color="#D4B886" />
+              <Ionicons name="storefront" size={22} color="#D4B886" />
               <View>
-                <Text style={styles.valueTitle}>PEMBAYARAN TERJAMIN</Text>
-                <Text style={styles.valueSub}>Transfer, QRIS, & COD Bayar Tempat</Text>
-              </View>
-            </View>
-
-            <View style={styles.valueDivider} />
-
-            <View style={styles.valueItem}>
-              <Ionicons name="heart-outline" size={22} color="#D4B886" />
-              <View>
-                <Text style={styles.valueTitle}>KEPUASAN PELANGGAN</Text>
-                <Text style={styles.valueSub}>Layanan respon cepat & garansi</Text>
+                <Text style={styles.valueTitle}>PABRIK KAWALU TASIKMALAYA</Text>
+                <Text style={styles.valueSub}>Pusat produksi Cabe Bubuk AIDA</Text>
               </View>
             </View>
           </View>
         </View>
 
-        {/* OUR STORY SECTION (KISAH KAMI) */}
+        {/* SECTION: TENTANG KAMI (CV MAKMUR PERMATA) */}
         <View style={styles.sectionContainer}>
           <View style={[styles.storyRow, isDesktop ? styles.storyDesktopRow : styles.storyMobileCol]}>
             <View style={isDesktop ? styles.storyImageSide : styles.storyImageMobile}>
@@ -253,57 +329,151 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
             <View style={isDesktop ? styles.storyTextSide : styles.storyTextMobile}>
               <View style={styles.sectionTagline}>
-                <Ionicons name="book-outline" size={14} color="#4A5D3B" />
-                <Text style={styles.sectionTaglineText}>OUR STORY & HERITAGE</Text>
+                <Ionicons name="business-outline" size={14} color="#4A5D3B" />
+                <Text style={styles.sectionTaglineText}>TENTANG KAMI</Text>
               </View>
               <Text style={styles.sectionHeading}>
-                Warisan Cita Rasa Pedas & Gurih Sejak Dahulu
+                CV. MAKMUR PERMATA
               </Text>
 
               <Text style={styles.storyParagraph}>
-                Official Store Tasikmalaya hadir membawa tradisi pengolahan rempah dan saus cabai legendaris. 
-                Produk seperti Aida Cabai Bubuk dan Saus Bawang diproduksi dari cabai segar pilihan pegunungan 
-                Tasikmalaya tanpa bahan kimia berbahaya.
+                CV Makmur Permata merupakan Perusahaan berkembang yang bergerak dalam industri pengolahan makanan yang memproduksi Saus, Sambal, dan Cabe Bubuk dengan proses yang higienis dan terstandarisasi serta menggunakan bahan baku yang halal & berkualitas.
               </Text>
               <Text style={styles.storyParagraph}>
-                Setiap bulir cabai diolah dengan standar kebersihan dan higienitas tinggi untuk memastikan 
-                aroma pedas alami, warna merah menggugah selera, dan rasa gurih yang tak tertandingi di setiap sajian kuliner Nusantara.
+                Produk CV Makmur Permata memiliki banyak varian unggulan, salah satunya Cabe Bubuk AIDA. Produk Cabe Bubuk AIDA sudah sangat terkenal di wilayah Priangan Timur, khususnya di daerah Tasikmalaya. Pusat dari pembuatan Cabe Bubuk AIDA ini bertempat di Kota Tasikmalaya, Kec. Kawalu.
               </Text>
-
-              <TouchableOpacity style={styles.outlineCtaBtn} onPress={onOpenStore} activeOpacity={0.85}>
-                <Text style={styles.outlineCtaText}>JELAJAHI KATALOG LENGKAP</Text>
-                <Ionicons name="chevron-forward" size={16} color="#2E3A23" />
-              </TouchableOpacity>
+              <Text style={styles.storyParagraph}>
+                Selain AIDA, terdapat juga brand Cap Swan Terbang yang memproduksi Saus Sambal Bawang, Saus Ekstra Pedas, Saus Stick Premium, Saus Ekstra Pedas Premium, dan Sambal Cabe AIDA.
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* FEATURED PRODUCTS SHOWCASE */}
-        <View style={styles.productsSection}>
-          <View style={styles.productsHeaderCenter}>
+        {/* SECTION: KEBIJAKAN MUTU, HALAL, & KEAMANAN PANGAN */}
+        <View style={styles.kebijakanSection}>
+          <View style={styles.sectionHeaderCenter}>
             <View style={styles.sectionTagline}>
-              <Ionicons name="pricetags-outline" size={14} color="#4A5D3B" />
-              <Text style={styles.sectionTaglineText}>PREMIUM SELECTION</Text>
+              <Ionicons name="ribbon-outline" size={14} color="#4A5D3B" />
+              <Text style={styles.sectionTaglineText}>STANDARISASI & KUALITAS</Text>
             </View>
-            <Text style={styles.sectionHeadingCenter}>Koleksi Produk Terfavorit</Text>
+            <Text style={styles.sectionHeadingCenter}>Kebijakan Mutu, Halal, & Keamanan Pangan</Text>
             <Text style={styles.sectionSubCenter}>
-              Pilihan bumbu, rempah, dan saus khas Tasikmalaya paling dicari oleh dapur rumah tangga & UMKM Kuliner.
+              CV. MAKMUR PERMATA berkomitmen untuk menghasilkan produk yang berkualitas, halal, dan aman untuk dikonsumsi, memenuhi persyaratan peraturan perundang-undangan serta persyaratan pelanggan.
+            </Text>
+          </View>
+
+          <View style={[styles.kebijakanGrid, isDesktop ? styles.kebijakanGridDesktop : styles.kebijakanGridMobile]}>
+            <View style={styles.kebijakanCard}>
+              <View style={styles.kebijakanNumberBadge}>
+                <Text style={styles.kebijakanNumberText}>01</Text>
+              </View>
+              <Text style={styles.kebijakanCardTitle}>Penerapan Konsisten</Text>
+              <Text style={styles.kebijakanCardDesc}>
+                Semua stakeholder berkomitmen menerapkan semua persyaratan Sistem Mutu, Halal, dan Keamanan Pangan secara baik dan konsisten.
+              </Text>
+            </View>
+
+            <View style={styles.kebijakanCard}>
+              <View style={styles.kebijakanNumberBadge}>
+                <Text style={styles.kebijakanNumberText}>02</Text>
+              </View>
+              <Text style={styles.kebijakanCardTitle}>Memenuhi Regulasi</Text>
+              <Text style={styles.kebijakanCardDesc}>
+                Menghasilkan produk yang senantiasa memenuhi persyaratan peraturan perundang-undangan nasional dan persyaratan pelanggan.
+              </Text>
+            </View>
+
+            <View style={styles.kebijakanCard}>
+              <View style={styles.kebijakanNumberBadge}>
+                <Text style={styles.kebijakanNumberText}>03</Text>
+              </View>
+              <Text style={styles.kebijakanCardTitle}>Pengembangan SDM & Sarana</Text>
+              <Text style={styles.kebijakanCardDesc}>
+                Selalu berkomitmen untuk meningkatkan dan mengembangkan SDM, sarana dan prasarana penunjang keberhasilan Sistem Manajemen Mutu & Halal.
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.directorBadgeBox}>
+            <Ionicons name="document-text-outline" size={24} color="#2E3A23" />
+            <View>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1C2417' }}>
+                Ditetapkan di Tasikmalaya, 29 Maret 2021
+              </Text>
+              <Text style={{ fontSize: 12, color: '#4A5D3B', marginTop: 2 }}>
+                Direktur CV. MAKMUR PERMATA
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* SECTION: VISI & MISI PERUSAHAAN */}
+        <View style={styles.visiMisiSection}>
+          <View style={[styles.visiMisiRow, isDesktop ? styles.visiMisiDesktopRow : styles.visiMisiMobileCol]}>
+            
+            {/* VISI */}
+            <View style={styles.visiCard}>
+              <View style={styles.visiIconCircle}>
+                <Ionicons name="eye" size={28} color="#FFFFFF" />
+              </View>
+              <Text style={styles.visiTitle}>VISI PERUSAHAAN</Text>
+              <Text style={styles.visiDesc}>
+                "CV. Makmur Permata berusaha menjadi salah satu produsen seasoning terkemuka di Indonesia dan Internasional."
+              </Text>
+            </View>
+
+            {/* MISI */}
+            <View style={styles.misiCard}>
+              <View style={styles.misiIconCircle}>
+                <Ionicons name="rocket" size={28} color="#FFFFFF" />
+              </View>
+              <Text style={styles.misiTitle}>MISI PERUSAHAAN</Text>
+              <View style={{ gap: 10, marginTop: 10 }}>
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
+                  <Ionicons name="checkmark-circle" size={18} color="#2E3A23" style={{ marginTop: 2 }} />
+                  <Text style={styles.misiPointText}>
+                    Mengutamakan kepuasan pelanggan dalam memproduksi produk yang berkualitas dan aman.
+                  </Text>
+                </View>
+
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
+                  <Ionicons name="checkmark-circle" size={18} color="#2E3A23" style={{ marginTop: 2 }} />
+                  <Text style={styles.misiPointText}>
+                    Terus menerus melakukan perbaikan dan peningkatan kualitas sistem manajemen keamanan pangan.
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+          </View>
+        </View>
+
+        {/* SECTION: PRODUK KAMI */}
+        <View style={styles.productsSection}>
+          <View style={styles.sectionHeaderCenter}>
+            <View style={styles.sectionTagline}>
+              <Ionicons name="cube-outline" size={14} color="#4A5D3B" />
+              <Text style={styles.sectionTaglineText}>PRODUK UNGGULAN</Text>
+            </View>
+            <Text style={styles.sectionHeadingCenter}>Produk Resmi CV. Makmur Permata</Text>
+            <Text style={styles.sectionSubCenter}>
+              Varian Cabe Bubuk AIDA dan Saus Sambal Cap Swan Terbang kualitas terbaik.
             </Text>
           </View>
 
           <View style={[styles.productsGrid, isDesktop ? styles.productsGridDesktop : styles.productsGridMobile]}>
-            {featuredProducts.map((prod) => (
+            {officialProducts.map((prod) => (
               <View key={prod.id} style={styles.productCard}>
                 <View style={styles.productImageWrap}>
                   <Image source={{ uri: prod.image }} style={styles.productCardImg} resizeMode="cover" />
                   <View style={styles.productBadgeTop}>
-                    <Text style={styles.productBadgeText}>{prod.category || 'TERLARIS'}</Text>
+                    <Text style={styles.productBadgeText}>{prod.brand}</Text>
                   </View>
                 </View>
 
                 <View style={styles.productCardBody}>
                   <Text style={styles.productCardTitle} numberOfLines={1}>{prod.name}</Text>
-                  <Text style={styles.productCardDesc} numberOfLines={2}>{prod.description}</Text>
+                  <Text style={styles.productCardDesc} numberOfLines={2}>{prod.desc}</Text>
 
                   <View style={styles.productPriceRow}>
                     <View>
@@ -313,10 +483,7 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
 
                     <TouchableOpacity
                       style={styles.buyNowMiniBtn}
-                      onPress={() => {
-                        if (onOpenProductDetail) onOpenProductDetail(prod);
-                        else onOpenStore();
-                      }}
+                      onPress={onOpenStore}
                       activeOpacity={0.85}
                     >
                       <Ionicons name="cart-outline" size={16} color="#FFFFFF" />
@@ -327,138 +494,98 @@ export default function LandingWebsiteScreen({ onOpenStore, onOpenProductDetail,
               </View>
             ))}
           </View>
+        </View>
 
-          <View style={{ alignItems: 'center', marginTop: 32 }}>
-            <TouchableOpacity style={styles.heroCtaBtn} onPress={onOpenStore} activeOpacity={0.88}>
-              <Text style={styles.heroCtaText}>LIHAT SELURUH PRODUK ({PRODUCTS.length})</Text>
-              <Ionicons name="arrow-forward-outline" size={18} color="#FFFFFF" />
+        {/* SECTION: WILAYAH PEMASARAN */}
+        <View style={styles.regionsSection}>
+          <View style={styles.sectionHeaderCenter}>
+            <View style={styles.sectionTagline}>
+              <Ionicons name="map-outline" size={14} color="#4A5D3B" />
+              <Text style={styles.sectionTaglineText}>DISTRIBUSI NASIONAL</Text>
+            </View>
+            <Text style={styles.sectionHeadingCenter}>Wilayah Pemasaran Kami</Text>
+            <Text style={styles.sectionSubCenter}>
+              Jaringan distribusi resmi CV. Makmur Permata tersebar di berbagai kota besar di Pulau Jawa dan seluruh Indonesia.
+            </Text>
+          </View>
+
+          <View style={styles.regionsGrid}>
+            {marketingRegions.map((region, idx) => (
+              <View key={idx} style={styles.regionBadge}>
+                <Ionicons name="location" size={14} color="#2E3A23" />
+                <Text style={styles.regionText}>{region}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* LINKTREE & HUBUNGI KAMI BANNER */}
+        <View style={styles.linktreeBanner}>
+          <View style={styles.linktreeContainer}>
+            <Ionicons name="link-outline" size={36} color="#D4B886" />
+            <Text style={styles.linktreeTitle}>Info Kerjasama & Pemesanan Seluruh Cabang</Text>
+            <Text style={styles.linktreeSub}>Hubungi tim pemasaran resmi kami untuk agen, distributor, dan pembelian grosir.</Text>
+
+            <TouchableOpacity style={styles.linktreeBtn} onPress={handleOpenLinktree} activeOpacity={0.85}>
+              <Ionicons name="open-outline" size={18} color="#1C2417" />
+              <Text style={styles.linktreeBtnText}>KLIK LINK PEMESANAN & KERJASAMA</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* RECIPES & COOKING INSPIRATION SECTION */}
-        <View style={styles.recipesSection}>
-          <View style={styles.productsHeaderCenter}>
-            <View style={styles.sectionTagline}>
-              <Ionicons name="restaurant-outline" size={14} color="#4A5D3B" />
-              <Text style={styles.sectionTaglineText}>CHEF & KITCHEN INSPIRATION</Text>
-            </View>
-            <Text style={styles.sectionHeadingCenter}>Inspirasi Resep Khas Tasik</Text>
-            <Text style={styles.sectionSubCenter}>
-              Kreasi masakan lezat yang lebih mudah & harum menggiurkan menggunakan rempah pilihan kami.
-            </Text>
-          </View>
-
-          <View style={[styles.recipesGrid, isDesktop ? styles.recipesGridDesktop : styles.recipesGridMobile]}>
-            <View style={styles.recipeCard}>
-              <Image source={{ uri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80' }} style={styles.recipeImg} />
-              <View style={styles.recipeContent}>
-                <View style={styles.recipeCategoryBadge}>
-                  <Text style={styles.recipeCategoryText}>SEBLAK PEDAS AIDA</Text>
-                </View>
-                <Text style={styles.recipeTitle}>Seblak Kuah Merah Merona khas Tasik</Text>
-                <Text style={styles.recipeDesc}>Perpaduan kerupuk basah, kencur, dan kepedulian Aida Cabai Asli 500g yang menghentak selera.</Text>
-              </View>
-            </View>
-
-            <View style={styles.recipeCard}>
-              <Image source={{ uri: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=500&q=80' }} style={styles.recipeImg} />
-              <View style={styles.recipeContent}>
-                <View style={styles.recipeCategoryBadge}>
-                  <Text style={styles.recipeCategoryText}>BAKSO SAUS BAWANG</Text>
-                </View>
-                <Text style={styles.recipeTitle}>Bakso Kuah Gurih Saus Bawang Ball</Text>
-                <Text style={styles.recipeDesc}>Saus Bawang kental beraroma khas yang menyatu sempurna dalam kuah kaldu sapi hangat.</Text>
-              </View>
-            </View>
-
-            <View style={styles.recipeCard}>
-              <Image source={{ uri: 'https://images.unsplash.com/photo-1601050690597-df0568f70950?w=500&q=80' }} style={styles.recipeImg} />
-              <View style={styles.recipeContent}>
-                <View style={styles.recipeCategoryBadge}>
-                  <Text style={styles.recipeCategoryText}>BUMBU TABUR SNACK</Text>
-                </View>
-                <Text style={styles.recipeTitle}>Cimol & Keripik Pedas Gurih Renyah</Text>
-                <Text style={styles.recipeDesc}>Taburan bumbu lezat dengan rasa stabil yang pas untuk cemilan harian keluarga dan jualan.</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* NEWSLETTER SUBSCRIBE FOOTER BANNER */}
-        <View style={styles.newsletterBanner}>
-          <View style={styles.newsletterContainer}>
-            <Ionicons name="mail-unread-outline" size={36} color="#D4B886" />
-            <Text style={styles.newsletterTitle}>Dapatkan Promo Rempah & Resep Terbaru</Text>
-            <Text style={styles.newsletterSub}>Daftarkan email Anda untuk menerima voucher diskon spesial dari Official Store.</Text>
-
-            <View style={styles.newsletterFormRow}>
-              <TextInput
-                style={styles.newsletterInput}
-                placeholder="Masukkan alamat email Anda..."
-                placeholderTextColor="#94A3B8"
-                value={emailSubscribe}
-                onChangeText={setEmailSubscribe}
-              />
-              <TouchableOpacity style={styles.newsletterSubmitBtn} onPress={handleSubscribe} activeOpacity={0.85}>
-                <Text style={styles.newsletterSubmitText}>Berlangganan</Text>
-              </TouchableOpacity>
-            </View>
-
-            {subscribedSuccess && (
-              <Text style={{ color: '#86EFAC', fontWeight: '800', marginTop: 10 }}>
-                ✓ Terima kasih! Email Anda telah berhasil terdaftar.
-              </Text>
-            )}
-          </View>
-        </View>
-
-        {/* FOOTER */}
+        {/* FOOTER & LOKASI KAMI */}
         <View style={styles.footerBg}>
           <View style={styles.footerContainer}>
             <View style={[styles.footerGrid, isDesktop ? styles.footerGridDesktop : styles.footerGridMobile]}>
               
-              {/* Col 1: Brand Info */}
-              <View style={{ flex: 1.5, minWidth: 240 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                  <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: '#D4B886', justifyContent: 'center', alignItems: 'center' }}>
-                    <Ionicons name="nutrition" size={20} color="#1C2417" />
-                  </View>
-                  <Text style={{ fontSize: 18, fontWeight: '900', color: '#FFFFFF' }}>IDUKKI STYLE STORE</Text>
-                </View>
+              {/* Col 1: Lokasi & Profil */}
+              <View style={{ flex: 1.5, minWidth: 260 }}>
+                <Text style={{ fontSize: 18, fontWeight: '900', color: '#FFFFFF', marginBottom: 12 }}>
+                  CV. MAKMUR PERMATA
+                </Text>
                 <Text style={styles.footerText}>
-                  Produsen & Distributor Resmi Rempah, Cabai Bubuk Aida, & Saus Bawang khas Tasikmalaya. Mengutamakan kualitas & kemurnian cita rasa Indonesia.
+                  Produsen Resmi Cabe Bubuk AIDA & Cap Swan Terbang. Memproduksi saus, sambal, dan seasoning higienis & halal.
                 </Text>
-                <Text style={[styles.footerText, { marginTop: 10 }]}>
-                  📍 Alamat Utama: Jl. Pasir Bokor, Kp. Gunung Jambe, RT/RW 03/09, Cipawitra, Mangkubumi, Tasikmalaya, Jawa Barat.
-                </Text>
+
+                <View style={{ marginTop: 14, gap: 6 }}>
+                  <Text style={styles.footerColTitle}>📍 Lokasi Pabrik & Kantor Pusat:</Text>
+                  <Text style={styles.footerText}>
+                    Jl. Perintis Kemerdekaan No.160, Karsamenak, Kec. Kawalu, Tasikmalaya, Jawa Barat 46182
+                  </Text>
+                </View>
               </View>
 
-              {/* Col 2: Navigation Links */}
-              <View style={{ flex: 1, minWidth: 160 }}>
-                <Text style={styles.footerColTitle}>Pintasan Halaman</Text>
-                <TouchableOpacity onPress={onOpenStore}><Text style={styles.footerLink}>Toko Online Product</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => setActiveMenu('story')}><Text style={styles.footerLink}>Kisah & Warisan</Text></TouchableOpacity>
-                <TouchableOpacity onPress={() => setActiveMenu('recipes')}><Text style={styles.footerLink}>Inspirasi Resep</Text></TouchableOpacity>
-                <TouchableOpacity onPress={handleContactWA}><Text style={styles.footerLink}>Layanan Pelanggan</Text></TouchableOpacity>
-              </View>
-
-              {/* Col 3: Contact & Support */}
+              {/* Col 2: Kontak Resmi */}
               <View style={{ flex: 1, minWidth: 200 }}>
-                <Text style={styles.footerColTitle}>Kontak & Operasional</Text>
-                <Text style={styles.footerText}>📞 WhatsApp: +62 895-2388-8200</Text>
-                <Text style={styles.footerText}>✉️ Email: info@store.aspartech.com</Text>
-                <Text style={styles.footerText}>⏰ Jam Kerja: 07:00 - 22:00 WIB</Text>
+                <Text style={styles.footerColTitle}>📞 Kontak Kami</Text>
+                <Text style={styles.footerText}>Telp 1: +62 265 3367 94</Text>
+                <Text style={styles.footerText}>WA 1: 082119080044</Text>
+                <Text style={styles.footerText}>WA 2: 082218802048</Text>
+                <Text style={styles.footerText}>Email: cvmakmurpermata@pedasalami.com</Text>
+              </View>
+
+              {/* Col 3: Sosial Media */}
+              <View style={{ flex: 1, minWidth: 180 }}>
+                <Text style={styles.footerColTitle}>📱 Media Sosial & Link</Text>
+                <TouchableOpacity onPress={handleOpenInstagram} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                  <Ionicons name="logo-instagram" size={18} color="#D4B886" />
+                  <Text style={{ color: '#FFFFFF', fontSize: 13 }}>@cabebubuk_aida</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={handleOpenLinktree} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="git-network-outline" size={18} color="#D4B886" />
+                  <Text style={{ color: '#D4B886', fontSize: 13, fontWeight: '800' }}>Linktree Kerjasama</Text>
+                </TouchableOpacity>
               </View>
 
             </View>
 
             <View style={styles.footerBottomRow}>
               <Text style={{ fontSize: 12, color: '#94A3B8' }}>
-                © 2026 Official Store Tasikmalaya. All Rights Reserved. Designed in Idukki Spice Luxury Theme.
+                © 2026 CV. Makmur Permata. Hak Cipta Dilindungi Undang-Undang. Designed in Premium Idukki Spice Theme.
               </Text>
               <TouchableOpacity onPress={onOpenStore} activeOpacity={0.8}>
-                <Text style={{ fontSize: 12, fontWeight: '800', color: '#D4B886' }}>← Kembali ke Aplikasi Belanja</Text>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#D4B886' }}>← Ke Aplikasi Toko Online</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -482,7 +609,7 @@ const styles = StyleSheet.create({
   /* Top Announcement Bar */
   announcementBar: {
     backgroundColor: '#2E3A23',
-    paddingVertical: 7,
+    paddingVertical: 8,
     paddingHorizontal: 12,
     alignItems: 'center',
     justifyContent: 'center',
@@ -520,34 +647,34 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#E6DCC9',
+    backgroundColor: '#FEE2E2',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#C8A876',
+    borderColor: '#FECACA',
   },
   logoTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '900',
     color: '#2E3A23',
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
   },
   logoSubtitle: {
-    fontSize: 9.5,
+    fontSize: 9,
     fontWeight: '800',
-    color: '#7C6747',
-    letterSpacing: 1,
+    color: '#D91E28',
+    letterSpacing: 0.5,
   },
   navLinksRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 24,
+    gap: 20,
   },
   navLinkItem: {
     paddingVertical: 4,
   },
   navLinkText: {
-    fontSize: 14,
+    fontSize: 13.5,
     fontWeight: '700',
     color: '#4A5D3B',
   },
@@ -566,13 +693,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: '#4A5D3B',
+    backgroundColor: '#D91E28',
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 20,
-    shadowColor: '#2E3A23',
+    shadowColor: '#D91E28',
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 3,
   },
@@ -627,44 +754,59 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   heroTitle: {
-    fontSize: 44,
+    fontSize: 42,
     fontWeight: '900',
     color: '#1C2417',
-    lineHeight: 52,
+    lineHeight: 50,
     marginBottom: 16,
   },
   heroTitleHighlight: {
-    color: '#4A5D3B',
+    color: '#D91E28',
     fontStyle: 'italic',
   },
   heroSubtitle: {
-    fontSize: 15.5,
+    fontSize: 15,
     color: '#5B6651',
     lineHeight: 24,
-    marginBottom: 26,
+    marginBottom: 24,
     maxWidth: 540,
   },
   heroCtaBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    alignSelf: 'flex-start',
     backgroundColor: '#2E3A23',
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 13,
+    borderRadius: 22,
     shadowColor: '#1C2417',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
     elevation: 4,
   },
   heroCtaText: {
     color: '#FFFFFF',
     fontWeight: '900',
-    fontSize: 14,
-    letterSpacing: 0.8,
+    fontSize: 13.5,
+    letterSpacing: 0.6,
   },
+  heroCtaBtnOutline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 2,
+    borderColor: '#2E3A23',
+    paddingHorizontal: 20,
+    paddingVertical: 11,
+    borderRadius: 22,
+  },
+  heroCtaTextOutline: {
+    color: '#2E3A23',
+    fontWeight: '800',
+    fontSize: 12.5,
+  },
+
   heroBadgesGrid: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -724,12 +866,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 94,
+    height: 94,
+    borderRadius: 47,
     backgroundColor: '#FAF6EF',
     borderWidth: 2,
-    borderColor: '#2E3A23',
+    borderColor: '#D91E28',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -739,15 +881,15 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   stampText: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontWeight: '900',
-    color: '#2E3A23',
+    color: '#D91E28',
     marginTop: 2,
   },
   stampSubText: {
     fontSize: 7,
     fontWeight: '800',
-    color: '#4A5D3B',
+    color: '#2E3A23',
   },
   floatingHighlightCard: {
     position: 'absolute',
@@ -761,7 +903,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.15,
     shadowRadius: 12,
     elevation: 6,
-    maxWidth: 280,
+    maxWidth: 290,
   },
 
   /* VALUE PROPS BAR */
@@ -808,7 +950,7 @@ const styles = StyleSheet.create({
 
   /* SECTION GENERAL */
   sectionContainer: {
-    paddingVertical: 60,
+    paddingVertical: 50,
     paddingHorizontal: 20,
     maxWidth: 1200,
     width: '100%',
@@ -861,53 +1003,183 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   storyParagraph: {
-    fontSize: 15,
+    fontSize: 14.5,
     color: '#5B6651',
-    lineHeight: 24,
+    lineHeight: 23,
     marginBottom: 14,
   },
-  outlineCtaBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    alignSelf: 'flex-start',
-    borderWidth: 2,
-    borderColor: '#2E3A23',
-    paddingHorizontal: 22,
-    paddingVertical: 10,
-    borderRadius: 20,
-    marginTop: 10,
-  },
-  outlineCtaText: {
-    color: '#2E3A23',
-    fontWeight: '800',
-    fontSize: 12.5,
-    letterSpacing: 0.5,
-  },
 
-  /* FEATURED PRODUCTS SECTION */
-  productsSection: {
+  /* KEBIJAKAN MUTU SECTION */
+  kebijakanSection: {
     backgroundColor: '#F3EFE6',
-    paddingVertical: 60,
+    paddingVertical: 50,
     paddingHorizontal: 20,
   },
-  productsHeaderCenter: {
+  sectionHeaderCenter: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 36,
     textAlign: 'center',
   },
   sectionHeadingCenter: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '900',
     color: '#1C2417',
     marginBottom: 10,
     textAlign: 'center',
   },
   sectionSubCenter: {
-    fontSize: 14.5,
+    fontSize: 14,
     color: '#5B6651',
     textAlign: 'center',
-    maxWidth: 600,
+    maxWidth: 680,
+    lineHeight: 22,
+  },
+  kebijakanGrid: {
+    maxWidth: 1200,
+    width: '100%',
+    alignSelf: 'center',
+    gap: 20,
+  },
+  kebijakanGridDesktop: {
+    flexDirection: 'row',
+  },
+  kebijakanGridMobile: {
+    flexDirection: 'column',
+  },
+  kebijakanCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#EAE1D0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  kebijakanNumberBadge: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#2E3A23',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  kebijakanNumberText: {
+    color: '#D4B886',
+    fontWeight: '900',
+    fontSize: 16,
+  },
+  kebijakanCardTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#1C2417',
+    marginBottom: 8,
+  },
+  kebijakanCardDesc: {
+    fontSize: 13,
+    color: '#5B6651',
+    lineHeight: 20,
+  },
+  directorBadgeBox: {
+    maxWidth: 500,
+    alignSelf: 'center',
+    marginTop: 30,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5,
+    borderColor: '#C8A876',
+    borderRadius: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+
+  /* VISI MISI SECTION */
+  visiMisiSection: {
+    paddingVertical: 50,
+    paddingHorizontal: 20,
+    maxWidth: 1200,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  visiMisiRow: {
+    gap: 24,
+  },
+  visiMisiDesktopRow: {
+    flexDirection: 'row',
+  },
+  visiMisiMobileCol: {
+    flexDirection: 'column',
+  },
+  visiCard: {
+    flex: 1,
+    backgroundColor: '#2E3A23',
+    borderRadius: 20,
+    padding: 28,
+  },
+  visiIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(212, 184, 134, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  visiTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#D4B886',
+    marginBottom: 10,
+    letterSpacing: 1,
+  },
+  visiDesc: {
+    fontSize: 15,
+    color: '#FFFFFF',
+    lineHeight: 24,
+    fontStyle: 'italic',
+  },
+  misiCard: {
+    flex: 1.2,
+    backgroundColor: '#FAF6EF',
+    borderRadius: 20,
+    padding: 28,
+    borderWidth: 2,
+    borderColor: '#C8A876',
+  },
+  misiIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#2E3A23',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  misiTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#2E3A23',
+    marginBottom: 10,
+    letterSpacing: 1,
+  },
+  misiPointText: {
+    fontSize: 14,
+    color: '#1C2417',
+    lineHeight: 22,
+    flex: 1,
+  },
+
+  /* PRODUK KAMI SECTION */
+  productsSection: {
+    backgroundColor: '#F3EFE6',
+    paddingVertical: 50,
+    paddingHorizontal: 20,
   },
   productsGrid: {
     maxWidth: 1200,
@@ -949,7 +1221,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     left: 10,
-    backgroundColor: '#2E3A23',
+    backgroundColor: '#D91E28',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -963,7 +1235,7 @@ const styles = StyleSheet.create({
     padding: 14,
   },
   productCardTitle: {
-    fontSize: 14.5,
+    fontSize: 14,
     fontWeight: '800',
     color: '#1C2417',
     marginBottom: 4,
@@ -995,7 +1267,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#4A5D3B',
+    backgroundColor: '#2E3A23',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -1006,77 +1278,52 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  /* RECIPES SECTION */
-  recipesSection: {
-    paddingVertical: 60,
+  /* WILAYAH PEMASARAN SECTION */
+  regionsSection: {
+    paddingVertical: 50,
     paddingHorizontal: 20,
     maxWidth: 1200,
     width: '100%',
     alignSelf: 'center',
   },
-  recipesGrid: {
-    gap: 20,
-  },
-  recipesGridDesktop: {
+  regionsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 10,
   },
-  recipesGridMobile: {
-    flexDirection: 'column',
-  },
-  recipeCard: {
-    flex: 1,
+  regionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#EAE1D0',
+    borderWidth: 1.5,
+    borderColor: '#C8A876',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
-  recipeImg: {
-    width: '100%',
-    height: 180,
-  },
-  recipeContent: {
-    padding: 16,
-  },
-  recipeCategoryBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#EAE1D0',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    marginBottom: 8,
-  },
-  recipeCategoryText: {
-    fontSize: 9.5,
+  regionText: {
+    fontSize: 13,
     fontWeight: '800',
     color: '#2E3A23',
   },
-  recipeTitle: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#1C2417',
-    marginBottom: 6,
-  },
-  recipeDesc: {
-    fontSize: 13,
-    color: '#5B6651',
-    lineHeight: 18,
-  },
 
-  /* NEWSLETTER */
-  newsletterBanner: {
+  /* LINKTREE BANNER */
+  linktreeBanner: {
     backgroundColor: '#2E3A23',
     paddingVertical: 40,
     paddingHorizontal: 20,
   },
-  newsletterContainer: {
+  linktreeContainer: {
     maxWidth: 680,
     width: '100%',
     alignSelf: 'center',
     alignItems: 'center',
     textAlign: 'center',
   },
-  newsletterTitle: {
+  linktreeTitle: {
     color: '#FFFFFF',
     fontSize: 22,
     fontWeight: '900',
@@ -1084,37 +1331,26 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textAlign: 'center',
   },
-  newsletterSub: {
+  linktreeSub: {
     color: '#D4B886',
     fontSize: 13.5,
     textAlign: 'center',
     marginBottom: 20,
   },
-  newsletterFormRow: {
+  linktreeBtn: {
     flexDirection: 'row',
-    width: '100%',
-    gap: 8,
-  },
-  newsletterInput: {
-    flex: 1,
-    height: 44,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    fontSize: 13.5,
-    color: '#1C2417',
-  },
-  newsletterSubmitBtn: {
-    backgroundColor: '#D4B886',
-    borderRadius: 22,
-    paddingHorizontal: 22,
-    justifyContent: 'center',
     alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#D4B886',
+    paddingHorizontal: 24,
+    paddingVertical: 13,
+    borderRadius: 24,
   },
-  newsletterSubmitText: {
+  linktreeBtnText: {
     color: '#1C2417',
     fontWeight: '900',
     fontSize: 13.5,
+    letterSpacing: 0.5,
   },
 
   /* FOOTER */
@@ -1143,17 +1379,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     color: '#D4B886',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   footerText: {
     fontSize: 12.5,
     color: '#94A3B8',
     lineHeight: 20,
-  },
-  footerLink: {
-    fontSize: 13,
-    color: '#CBD5E1',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   footerBottomRow: {
     flexDirection: 'row',
