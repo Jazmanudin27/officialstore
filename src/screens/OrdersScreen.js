@@ -114,6 +114,51 @@ export default function OrdersScreen({
     );
   };
 
+  const handleCancelOrder = (order) => {
+    Alert.alert(
+      'Batalkan Pesanan',
+      `Apakah Anda yakin ingin membatalkan pesanan ${order.id || order.nomorPesanan}?`,
+      [
+        { text: 'Kembali', style: 'cancel' },
+        {
+          text: 'Ya, Batalkan',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const targetId = order.dbId || order.id;
+              await apiService.updateOrderStatus(targetId, { status: 'cancelled' });
+
+              try {
+                const s = storage.getItem('official_store_orders');
+                if (s) {
+                  let localOrders = JSON.parse(s);
+                  localOrders = localOrders.map((o) =>
+                    (o.id === order.id || o.dbId === targetId)
+                      ? {
+                          ...o,
+                          status: 'cancelled',
+                          statusLabel: 'Dibatalkan',
+                          statusBg: '#F1F5F9',
+                          statusColor: '#64748B',
+                        }
+                      : o
+                  );
+                  storage.setItem('official_store_orders', JSON.stringify(localOrders));
+                }
+              } catch (e) {}
+
+              setSelectedOrderForDetail(null);
+              fetchOrders(false);
+              Alert.alert('Pesanan Dibatalkan', 'Pesanan Anda telah berhasil dibatalkan.');
+            } catch (err) {
+              Alert.alert('Gagal', 'Terjadi kesalahan saat membatalkan pesanan.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Top Red Header (Matching Promo screen) */}
@@ -291,7 +336,21 @@ export default function OrdersScreen({
                         </TouchableOpacity>
                       )}
 
-                      {order.status === 'dikirim' && (
+                      {(order.status === 'menunggu' || order.status === 'diproses' || order.status === 'processing' || order.status === 'pending') && (
+                        <TouchableOpacity
+                          style={styles.cancelOrderBtn}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleCancelOrder(order);
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="close-circle-outline" size={14} color="#DC2626" />
+                          <Text style={styles.cancelOrderBtnText}>Batalkan</Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {(order.status === 'dikirim' || order.status === 'shipped') && (
                         <TouchableOpacity
                           style={styles.trackBtn}
                           onPress={(e) => {
@@ -304,17 +363,19 @@ export default function OrdersScreen({
                         </TouchableOpacity>
                       )}
 
-                      <TouchableOpacity
-                        style={styles.reorderBtn}
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          handleReorder(order);
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        <Ionicons name="repeat" size={14} color={COLORS.white} />
-                        <Text style={styles.reorderBtnText}>Beli Lagi</Text>
-                      </TouchableOpacity>
+                      {(order.status === 'selesai' || order.status === 'completed') && (
+                        <TouchableOpacity
+                          style={styles.reorderBtn}
+                          onPress={(e) => {
+                            e.stopPropagation();
+                            handleReorder(order);
+                          }}
+                          activeOpacity={0.8}
+                        >
+                          <Ionicons name="repeat" size={14} color={COLORS.white} />
+                          <Text style={styles.reorderBtnText}>Beli Lagi</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -334,6 +395,7 @@ export default function OrdersScreen({
           setPayingOrder(ord);
         }}
         onReorder={(ord) => handleReorder(ord)}
+        onCancelOrder={(ord) => handleCancelOrder(ord)}
       />
 
       {/* Payment Screen Modal when Bayar Sekarang is clicked */}
@@ -568,6 +630,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#475569',
+  },
+  cancelOrderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  cancelOrderBtnText: {
+    color: '#DC2626',
+    fontWeight: '800',
+    fontSize: 12,
   },
   payBtn: {
     flexDirection: 'row',

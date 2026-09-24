@@ -22,22 +22,12 @@ export default function OrderDetailModal({
   order,
   onPayNow,
   onReorder,
+  onCancelOrder,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
   if (!visible || !order) return null;
-
-  const handleContactAdminWA = () => {
-    const phone = '62895238888200';
-    const text = `Halo Admin Official Store! Saya mau menanyakan status pesanan saya dengan nomor ID: *${order.id}*`;
-    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.open(url, '_blank');
-    } else {
-      Linking.openURL(url).catch(() => {});
-    }
-  };
 
   const getStatusBanner = () => {
     if (order.status === 'menunggu') {
@@ -99,6 +89,13 @@ export default function OrderDetailModal({
     (sum, it) => sum + Number(it.price || 0) * Number(it.quantity || 1),
     0
   );
+
+  const canCancel =
+    order.status === 'menunggu' ||
+    order.status === 'diproses' ||
+    order.status === 'processing' ||
+    order.status === 'pending';
+  const isCompleted = order.status === 'selesai' || order.status === 'completed';
 
   return (
     <Modal
@@ -250,32 +247,39 @@ export default function OrderDetailModal({
                 </View>
               </View>
             </View>
-
-            {/* Customer Care / Support Card */}
-            <TouchableOpacity
-              style={styles.supportCard}
-              onPress={handleContactAdminWA}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="logo-whatsapp" size={22} color="#25D366" />
-              <Text style={styles.supportText}>Butuh Bantuan? Chat Admin WhatsApp</Text>
-            </TouchableOpacity>
           </ScrollView>
 
           {/* Bottom Action Footer */}
-          <View style={styles.bottomFooter}>
-            <TouchableOpacity
-              style={styles.reorderFooterBtn}
-              onPress={() => {
-                onClose();
-                if (onReorder) onReorder(order);
-              }}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="repeat" size={18} color={COLORS.white} />
-              <Text style={styles.reorderFooterText}>Beli Lagi Produk Ini</Text>
-            </TouchableOpacity>
-          </View>
+          {(canCancel || isCompleted) && (
+            <View style={styles.bottomFooter}>
+              {canCancel && (
+                <TouchableOpacity
+                  style={styles.cancelFooterBtn}
+                  onPress={() => {
+                    if (onCancelOrder) onCancelOrder(order);
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="close-circle-outline" size={18} color="#DC2626" />
+                  <Text style={styles.cancelFooterText}>Batalkan Pesanan Ini</Text>
+                </TouchableOpacity>
+              )}
+
+              {isCompleted && (
+                <TouchableOpacity
+                  style={styles.reorderFooterBtn}
+                  onPress={() => {
+                    onClose();
+                    if (onReorder) onReorder(order);
+                  }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons name="repeat" size={18} color={COLORS.white} />
+                  <Text style={styles.reorderFooterText}>Beli Lagi Produk Ini</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -513,20 +517,20 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#D91E28',
   },
-  supportCard: {
+  cancelFooterBtn: {
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1.5,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+    height: 46,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#DCFCE7',
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-    borderRadius: 12,
-    padding: 12,
+    alignItems: 'center',
     gap: 8,
   },
-  supportText: {
-    color: '#15803D',
-    fontSize: 13.5,
+  cancelFooterText: {
+    color: '#DC2626',
+    fontSize: 15,
     fontWeight: '800',
   },
   bottomFooter: {
