@@ -17,6 +17,12 @@ async function testConnection() {
   try {
     const connection = await pool.getConnection();
     console.log('✅ Berhasil terhubung ke database MySQL (officialstore)');
+    try {
+      await connection.query('ALTER TABLE users MODIFY email VARCHAR(100) DEFAULT NULL');
+      await connection.query('ALTER TABLE users MODIFY password_hash VARCHAR(255) DEFAULT NULL');
+    } catch (e) {
+      // Ignore alter warning
+    }
     connection.release();
     return true;
   } catch (error) {

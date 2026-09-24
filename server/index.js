@@ -340,10 +340,11 @@ app.all(['/api/auth/register', '/api/register'], async (req, res) => {
         [namaLengkap, userId]
       );
     } else {
-      // Insert user baru
+      // Insert user baru dengan email default / fallback
+      const userEmail = (req.body && req.body.email) ? req.body.email.trim() : `${cleanPhone}@officialstore.com`;
       const [insertUser] = await connection.query(
-        'INSERT INTO users (nama_lengkap, nomor_telepon, role, poin_member) VALUES (?, ?, "buyer", 500)',
-        [namaLengkap, cleanPhone]
+        'INSERT INTO users (nama_lengkap, nomor_telepon, email, role, poin_member) VALUES (?, ?, ?, "buyer", 500)',
+        [namaLengkap, cleanPhone, userEmail]
       );
       userId = insertUser.insertId;
     }
