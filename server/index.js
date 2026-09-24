@@ -598,6 +598,7 @@ app.post('/api/payment/create-snap-token', async (req, res) => {
       customerPhone = '089523888200',
       customerEmail = 'pelanggan@officialstore.com',
       items = [],
+      enabledPayments,
     } = req.body || {};
 
     const serverKey = process.env.MIDTRANS_SERVER_KEY || 'SB-Mid-server-oRFj2p6jrFzxUVGwO6Tj6w8B';
@@ -631,6 +632,7 @@ app.post('/api/payment/create-snap-token', async (req, res) => {
         email: customerEmail,
       },
       item_details: formattedItems.length > 0 ? formattedItems : undefined,
+      enabled_payments: Array.isArray(enabledPayments) && enabledPayments.length > 0 ? enabledPayments : undefined,
     };
 
     const midtransRes = await fetch(snapApiUrl, {
