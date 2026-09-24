@@ -47,7 +47,22 @@ import PageTransition from './src/components/navigation/PageTransition';
 function AppContent() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
-  const [showSplash, setShowSplash] = useState(true);
+  // Deteksi URL /website atau ?website=1
+  const isWebsiteRoute = (() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const path = (window.location.pathname || '').toLowerCase();
+      const search = (window.location.search || '').toLowerCase();
+      return (
+        path.startsWith('/website') ||
+        search.includes('website=1') ||
+        search.includes('mode=website')
+      );
+    }
+    return false;
+  })();
+
+  const [showSplash, setShowSplash] = useState(!isWebsiteRoute);
+  const [searchQuery, setSearchQuery] = useState('');
   const [currentUser, setCurrentUser] = useState(null);
   const [adminUser, setAdminUser] = useState(null);
   const [storeSettings, setStoreSettings] = useState(null);
@@ -138,21 +153,6 @@ function AppContent() {
     return false;
   })();
 
-  // Deteksi URL /website atau ?website=1
-  const isWebsiteRoute = (() => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const path = (window.location.pathname || '').toLowerCase();
-      const search = (window.location.search || '').toLowerCase();
-      return (
-        path.startsWith('/website') ||
-        search.includes('website=1') ||
-        search.includes('mode=website')
-      );
-    }
-    return false;
-  })();
-
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -474,8 +474,8 @@ function AppContent() {
     <SafeAreaView style={styles.safeArea}>
       <ExpoStatusBar style="light" backgroundColor={COLORS.primaryRed} />
 
-      {/* Animated E-Commerce Splash Screen */}
-      {showSplash && <SplashScreen storeSettings={storeSettings} onFinish={() => setShowSplash(false)} />}
+      {/* Animated E-Commerce Splash Screen (Bypassed on Website landing page) */}
+      {showSplash && activeTab !== 'website' && <SplashScreen storeSettings={storeSettings} onFinish={() => setShowSplash(false)} />}
 
       {/* Header (Continuous on Desktop, Home-only on Mobile, Hidden on Website view) */}
       {(isDesktop || activeTab === 'home') && activeTab !== 'website' && (
