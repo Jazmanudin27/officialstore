@@ -168,6 +168,32 @@ export const apiService = {
         const serverKey = 'SB-Mid-server-oRFj2p6jrFzxUVGwO6Tj6w8B';
         const clientKey = 'SB-Mid-client-gtkZiSrCZjZHYwwZ';
         const authHeader = 'Basic ' + (typeof btoa !== 'undefined' ? btoa(serverKey + ':') : Buffer.from(serverKey + ':').toString('base64'));
+        let formattedItems = (payload.items || []).map((it, idx) => ({
+          id: String(it.id || idx + 1),
+          price: parseInt(it.price, 10) || 1000,
+          quantity: parseInt(it.quantity, 10) || 1,
+          name: String(it.name || 'Produk Official Store').slice(0, 50),
+        }));
+
+        const itemsSum = formattedItems.reduce((sum, it) => sum + it.price * it.quantity, 0);
+        const amount = Math.max(1000, parseInt(payload.grossAmount, 10) || 10000);
+        const diff = amount - itemsSum;
+        if (diff > 0) {
+          formattedItems.push({
+            id: 'SHIPPING_OR_FEES',
+            price: diff,
+            quantity: 1,
+            name: 'Ongkos Kirim & Biaya Layanan',
+          });
+        } else if (diff < 0) {
+          formattedItems.push({
+            id: 'DISCOUNT',
+            price: diff,
+            quantity: 1,
+            name: 'Diskon Voucher',
+          });
+        }
+
         const snapRes = await fetch('https://app.sandbox.midtrans.com/snap/v1/transactions', {
           method: 'POST',
           headers: {
@@ -178,18 +204,14 @@ export const apiService = {
           body: JSON.stringify({
             transaction_details: {
               order_id: payload.orderId || `INV-${Date.now()}`,
-              gross_amount: Math.max(1000, parseInt(payload.grossAmount, 10) || 10000),
+              gross_amount: amount,
             },
             customer_details: {
               first_name: payload.customerName || 'Pelanggan Official Store',
               phone: payload.customerPhone || '089523888200',
             },
-            item_details: (payload.items || []).map((it, idx) => ({
-              id: String(it.id || idx + 1),
-              price: parseInt(it.price, 10) || 1000,
-              quantity: parseInt(it.quantity, 10) || 1,
-              name: String(it.name || 'Produk Official Store').slice(0, 50),
-            })),
+            item_details: formattedItems.length > 0 ? formattedItems : undefined,
+            enabled_payments: Array.isArray(payload.enabledPayments) && payload.enabledPayments.length > 0 ? payload.enabledPayments : undefined,
           }),
         });
         const snapJson = await snapRes.json();

@@ -614,12 +614,30 @@ app.post('/api/payment/create-snap-token', async (req, res) => {
 
     const authHeader = 'Basic ' + Buffer.from(serverKey.trim() + ':').toString('base64');
 
-    const formattedItems = items.map((it, idx) => ({
+    let formattedItems = items.map((it, idx) => ({
       id: String(it.id || idx + 1),
       price: parseInt(it.price, 10) || 1000,
       quantity: parseInt(it.quantity, 10) || 1,
       name: String(it.name || 'Produk Official Store').slice(0, 50),
     }));
+
+    const itemsSum = formattedItems.reduce((sum, it) => sum + it.price * it.quantity, 0);
+    const diff = amount - itemsSum;
+    if (diff > 0) {
+      formattedItems.push({
+        id: 'SHIPPING_OR_FEES',
+        price: diff,
+        quantity: 1,
+        name: 'Ongkos Kirim & Biaya Layanan',
+      });
+    } else if (diff < 0) {
+      formattedItems.push({
+        id: 'DISCOUNT',
+        price: diff,
+        quantity: 1,
+        name: 'Diskon Voucher',
+      });
+    }
 
     const payload = {
       transaction_details: {
