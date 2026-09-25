@@ -380,6 +380,8 @@ function AppContent() {
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
             onSelectProduct={(product) => setSelectedProduct(product)}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
           />
         );
       case 'wishlist':
@@ -426,6 +428,8 @@ function AppContent() {
             openCart={() => setIsCartOpen(true)}
             cartCount={totalCartCount}
             onOpenAdmin={() => setIsAdminOpen(true)}
+            onRefresh={handleRefresh}
+            refreshing={refreshing}
           />
         );
       case 'home':

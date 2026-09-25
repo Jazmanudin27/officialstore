@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   useWindowDimensions,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
@@ -28,6 +29,8 @@ export default function PromoScreen({
   openCart,
   cartCount = 0,
   onSelectProduct,
+  onRefresh,
+  refreshing = false,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -35,6 +38,17 @@ export default function PromoScreen({
   const itemWidthPercent = `${100 / numColumns}%`;
 
   const [activePromoTab, setActivePromoTab] = useState('harga_spesial');
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+
+  const handlePullDownRefresh = async () => {
+    setInternalRefreshing(true);
+    if (onRefresh) {
+      await onRefresh();
+    }
+    setTimeout(() => {
+      setInternalRefreshing(false);
+    }, 800);
+  };
 
   // Products Data for "Harga Spesial"
   const hargaSpesialProducts = [
@@ -246,7 +260,20 @@ export default function PromoScreen({
         </View>
       )}
 
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || internalRefreshing}
+            onRefresh={handlePullDownRefresh}
+            colors={['#D91E28', '#0284C7']}
+            tintColor="#D91E28"
+            title="Memuat promo terbaru..."
+            titleColor="#64748B"
+          />
+        }
+      >
         {/* Desktop Header Title Banner */}
         {isDesktop && (
           <View style={styles.desktopBannerHeader}>

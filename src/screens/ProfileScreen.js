@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Alert,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
@@ -23,8 +24,21 @@ export default function ProfileScreen({
   openCart,
   cartCount = 0,
   onOpenAdmin,
+  onRefresh,
+  refreshing = false,
 }) {
   const isLoggedIn = !!user;
+  const [internalRefreshing, setInternalRefreshing] = useState(false);
+
+  const handlePullDownRefresh = async () => {
+    setInternalRefreshing(true);
+    if (onRefresh) {
+      await onRefresh();
+    }
+    setTimeout(() => {
+      setInternalRefreshing(false);
+    }, 800);
+  };
 
   const handleLogoutConfirm = () => {
     sweetAlert({
@@ -61,7 +75,20 @@ export default function ProfileScreen({
         </View>
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing || internalRefreshing}
+            onRefresh={handlePullDownRefresh}
+            colors={['#D91E28', '#0284C7']}
+            tintColor="#D91E28"
+            title="Memuat profil..."
+            titleColor="#64748B"
+          />
+        }
+      >
         {/* Top Header Card */}
         <View style={styles.profileHeaderCard}>
           {isLoggedIn ? (
