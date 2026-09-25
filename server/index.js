@@ -50,6 +50,19 @@ function sanitizePhone(phone) {
   return clean;
 }
 
+// Helper to safely match order_id (INT) or nomor_pesanan (VARCHAR) without MySQL DOUBLE truncation error
+function getOrderWhereClause(orderId, paramArray) {
+  const cleanId = String(orderId || '').trim();
+  const isNumeric = /^\d+$/.test(cleanId);
+  if (isNumeric) {
+    paramArray.push(parseInt(cleanId, 10), cleanId);
+    return ' (order_id = ? OR nomor_pesanan = ?) ';
+  } else {
+    paramArray.push(cleanId);
+    return ' (nomor_pesanan = ?) ';
+  }
+}
+
 // =====================================================
 // AUTHENTICATION API (PHONE & OTP)
 // =====================================================
@@ -832,9 +845,11 @@ app.post('/api/payment/midtrans-notification', async (req, res) => {
     }
 
     if (order_id && newStatus !== 'pending') {
+      const params = [newStatus];
+      const whereClause = getOrderWhereClause(order_id, params);
       await pool.query(
-        'UPDATE orders SET status_pesanan = ? WHERE nomor_pesanan = ? OR order_id = ?',
-        [newStatus, order_id, order_id.replace(/^INV-/, '')]
+        `UPDATE orders SET status_pesanan = ? WHERE ${whereClause}`,
+        params
       );
     }
 
@@ -1590,14 +1605,18 @@ app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, r
     }
 
     try {
+      const params1 = [dbStatus, targetPayment, trackingNumber || null, courier || null];
+      const where1 = getOrderWhereClause(orderId, params1);
       await pool.query(
-        'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), metode_pembayaran = COALESCE(?, metode_pembayaran), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ? OR nomor_pesanan = ?',
-        [dbStatus, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
+        `UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), metode_pembayaran = COALESCE(?, metode_pembayaran), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE ${where1}`,
+        params1
       );
     } catch (colErr) {
+      const params2 = [dbStatus, trackingNumber || null, courier || null];
+      const where2 = getOrderWhereClause(orderId, params2);
       await pool.query(
-        'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ? OR nomor_pesanan = ?',
-        [dbStatus, trackingNumber || null, courier || null, orderId, orderId]
+        `UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE ${where2}`,
+        params2
       );
     }
 
@@ -1614,9 +1633,12 @@ app.all(['/api/orders/:id/address', '/api/admin/orders/:id/address'], async (req
     const orderId = req.params.id;
     const { address } = req.body;
 
+    const params = [address || null];
+    const whereClause = getOrderWhereClause(orderId, params);
+
     await pool.query(
-      'UPDATE orders SET snapshot_alamat_kirim = ? WHERE order_id = ? OR nomor_pesanan = ?',
-      [address || null, orderId, orderId]
+      `UPDATE orders SET snapshot_alamat_kirim = ? WHERE ${whereClause}`,
+      params
     );
 
     res.json({ status: 'ok', message: 'Alamat pengiriman pesanan berhasil diperbarui!' });
@@ -2007,23 +2029,27 @@ app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, r
     }
 
     try {
+      const params1 = [dbStatus, targetPayment, trackingNumber || null, courier || null];
+      const where1 = getOrderWhereClause(orderId, params1);
       await pool.query(
         `UPDATE orders SET 
           status_pesanan = COALESCE(?, status_pesanan),
           metode_pembayaran = COALESCE(?, metode_pembayaran),
           resi_pengiriman = COALESCE(?, resi_pengiriman),
           kurir_pengiriman = COALESCE(?, kurir_pengiriman)
-        WHERE order_id = ? OR nomor_pesanan = ?`,
-        [dbStatus, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
+        WHERE ${where1}`,
+        params1
       );
     } catch (colErr) {
+      const params2 = [dbStatus, trackingNumber || null, courier || null];
+      const where2 = getOrderWhereClause(orderId, params2);
       await pool.query(
         `UPDATE orders SET 
           status_pesanan = COALESCE(?, status_pesanan),
           resi_pengiriman = COALESCE(?, resi_pengiriman),
           kurir_pengiriman = COALESCE(?, kurir_pengiriman)
-        WHERE order_id = ? OR nomor_pesanan = ?`,
-        [dbStatus, trackingNumber || null, courier || null, orderId, orderId]
+        WHERE ${where2}`,
+        params2
       );
     }
 
