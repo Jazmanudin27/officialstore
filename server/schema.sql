@@ -146,6 +146,7 @@ CREATE TABLE IF NOT EXISTS orders (
     nomor_pesanan VARCHAR(50) UNIQUE NOT NULL,
     user_id INT,
     tipe_pesanan ENUM('delivery', 'pickup') DEFAULT 'delivery',
+    metode_pembayaran VARCHAR(100) DEFAULT NULL,
     address_id INT DEFAULT NULL,
     snapshot_alamat_kirim TEXT DEFAULT NULL,
     store_id INT DEFAULT NULL,

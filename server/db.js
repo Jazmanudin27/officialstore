@@ -20,6 +20,7 @@ async function testConnection() {
     try {
       await connection.query('ALTER TABLE users MODIFY email VARCHAR(100) DEFAULT NULL');
       await connection.query('ALTER TABLE users MODIFY password_hash VARCHAR(255) DEFAULT NULL');
+      await connection.query('ALTER TABLE orders ADD COLUMN metode_pembayaran VARCHAR(100) DEFAULT NULL');
     } catch (e) {
       // Ignore alter warning
     }

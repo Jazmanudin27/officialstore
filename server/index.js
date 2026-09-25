@@ -1574,10 +1574,32 @@ app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, r
     const { status, trackingNumber, courier, paymentMethod, metodePembayaran } = req.body || {};
     const targetPayment = paymentMethod || metodePembayaran || null;
 
-    await pool.query(
-      'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), metode_pembayaran = COALESCE(?, metode_pembayaran), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ? OR nomor_pesanan = ?',
-      [status || null, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
-    );
+    let dbStatus = status || null;
+    if (status === 'diproses' || status === 'processing' || status === 'paid') {
+      dbStatus = 'processing';
+    } else if (status === 'menunggu' || status === 'pending') {
+      dbStatus = 'pending';
+    } else if (status === 'dikemas' || status === 'packing') {
+      dbStatus = 'ready_for_pickup';
+    } else if (status === 'dikirim' || status === 'shipped') {
+      dbStatus = 'shipped';
+    } else if (status === 'selesai' || status === 'completed') {
+      dbStatus = 'completed';
+    } else if (status === 'batal' || status === 'cancelled') {
+      dbStatus = 'cancelled';
+    }
+
+    try {
+      await pool.query(
+        'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), metode_pembayaran = COALESCE(?, metode_pembayaran), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ? OR nomor_pesanan = ?',
+        [dbStatus, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
+      );
+    } catch (colErr) {
+      await pool.query(
+        'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ? OR nomor_pesanan = ?',
+        [dbStatus, trackingNumber || null, courier || null, orderId, orderId]
+      );
+    }
 
     res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui!' });
   } catch (error) {
@@ -1969,15 +1991,41 @@ app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, r
     const { status, trackingNumber, courier, paymentMethod, metodePembayaran } = req.body || {};
     const targetPayment = paymentMethod || metodePembayaran || null;
 
-    await pool.query(
-      `UPDATE orders SET 
-        status_pesanan = COALESCE(?, status_pesanan),
-        metode_pembayaran = COALESCE(?, metode_pembayaran),
-        resi_pengiriman = COALESCE(?, resi_pengiriman),
-        kurir_pengiriman = COALESCE(?, kurir_pengiriman)
-      WHERE order_id = ? OR nomor_pesanan = ?`,
-      [status || null, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
-    );
+    let dbStatus = status || null;
+    if (status === 'diproses' || status === 'processing' || status === 'paid') {
+      dbStatus = 'processing';
+    } else if (status === 'menunggu' || status === 'pending') {
+      dbStatus = 'pending';
+    } else if (status === 'dikemas' || status === 'packing') {
+      dbStatus = 'ready_for_pickup';
+    } else if (status === 'dikirim' || status === 'shipped') {
+      dbStatus = 'shipped';
+    } else if (status === 'selesai' || status === 'completed') {
+      dbStatus = 'completed';
+    } else if (status === 'batal' || status === 'cancelled') {
+      dbStatus = 'cancelled';
+    }
+
+    try {
+      await pool.query(
+        `UPDATE orders SET 
+          status_pesanan = COALESCE(?, status_pesanan),
+          metode_pembayaran = COALESCE(?, metode_pembayaran),
+          resi_pengiriman = COALESCE(?, resi_pengiriman),
+          kurir_pengiriman = COALESCE(?, kurir_pengiriman)
+        WHERE order_id = ? OR nomor_pesanan = ?`,
+        [dbStatus, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
+      );
+    } catch (colErr) {
+      await pool.query(
+        `UPDATE orders SET 
+          status_pesanan = COALESCE(?, status_pesanan),
+          resi_pengiriman = COALESCE(?, resi_pengiriman),
+          kurir_pengiriman = COALESCE(?, kurir_pengiriman)
+        WHERE order_id = ? OR nomor_pesanan = ?`,
+        [dbStatus, trackingNumber || null, courier || null, orderId, orderId]
+      );
+    }
 
     res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui ke database' });
   } catch (error) {

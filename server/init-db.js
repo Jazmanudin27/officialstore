@@ -24,7 +24,7 @@ async function initDatabase() {
     await connection.query(schemaSql);
     console.log('✅ Skema tabel berhasil dibuat/diverifikasi.');
 
-    // Auto-migrate column data types to LONGTEXT for Base64 uploaded images
+    // Auto-migrate column data types to LONGTEXT for Base64 uploaded images & add missing columns
     try {
       await connection.query('ALTER TABLE officialstore.products MODIFY gambar_utama LONGTEXT');
       await connection.query('ALTER TABLE officialstore.store_settings MODIFY logo_url LONGTEXT');
@@ -32,6 +32,13 @@ async function initDatabase() {
       console.log('✅ Kolom gambar_utama, logo_url, dan url_gambar berhasil di-migrate ke LONGTEXT.');
     } catch (errCol) {
       console.warn('ℹ️ Skip column alter:', errCol.message);
+    }
+
+    try {
+      await connection.query('ALTER TABLE officialstore.orders ADD COLUMN metode_pembayaran VARCHAR(100) DEFAULT NULL');
+      console.log('✅ Kolom metode_pembayaran berhasil ditambahkan ke tabel orders.');
+    } catch (errCol) {
+      // Column already exists or table not created yet
     }
 
     // 3. Cek apakah tabel products sudah memiliki 16 produk lengkap
