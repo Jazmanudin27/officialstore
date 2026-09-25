@@ -22,7 +22,12 @@
       }
     },
     "web": {
-      "favicon": "./assets/Offical Store.png"
+      "favicon": "./assets/Offical Store.png",
+      "name": "Official Store",
+      "shortName": "Official Store",
+      "themeColor": "#D91E28",
+      "backgroundColor": "#0F172A",
+      "display": "standalone"
     }
   }
 }

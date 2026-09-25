@@ -1,0 +1,23 @@
+{
+  "name": "Official Store Tasikmalaya",
+  "short_name": "Official Store",
+  "description": "Aplikasi Resmi Bumbu Aida, Saus Swan & Kebutuhan Dapur Tasikmalaya",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#D91E28",
+  "icons": [
+    {
+      "src": "/assets/Offical Store.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/Offical Store.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
