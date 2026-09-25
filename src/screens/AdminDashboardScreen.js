@@ -556,27 +556,58 @@ export default function AdminDashboardScreen({
     (p?.sku && String(p.sku).toLowerCase().includes((productSearch || '').toLowerCase()))
   );
 
+  const isCodOrder = (ord) => {
+    const pm = String(
+      ord?.paymentMethod || ord?.metodePembayaran || ord?.payment_method || ord?.catatanPesanan || ''
+    ).toLowerCase();
+    return pm.includes('cod') || pm.includes('tempat') || ord?.isCod === true;
+  };
+
   const filteredOrders = (Array.isArray(orders) ? orders : []).filter((o) => {
     const st = String(o?.status || '').toLowerCase().trim();
+    const isCod = isCodOrder(o);
+
     if (orderStatusFilter === 'all') return true;
-    if (orderStatusFilter === 'pending' || orderStatusFilter === 'unprocessed') {
-      return st === 'pending' || st === 'menunggu' || st === 'unprocessed' || st === 'belum_diproses';
+
+    // 1. Menunggu Pembayaran (Pesanan Non-COD yang belum dibayar)
+    if (orderStatusFilter === 'unpaid' || orderStatusFilter === 'menunggu_pembayaran') {
+      return !isCod && (st === 'menunggu' || st === 'pending' || st === 'unpaid' || st === 'belum_bayar');
     }
+
+    // 2. Belum Diproses (Pesanan COD baru ATAU Pesanan Non-COD yang sudah dibayar tetapi belum diterima admin)
+    if (orderStatusFilter === 'pending' || orderStatusFilter === 'unprocessed' || orderStatusFilter === 'belum_diproses') {
+      if (isCod) {
+        return st === 'menunggu' || st === 'pending' || st === 'unprocessed' || st === 'belum_diproses';
+      } else {
+        return st === 'paid' || st === 'sudah_bayar' || st === 'terbayar' || st === 'unprocessed' || st === 'belum_diproses';
+      }
+    }
+
+    // 3. Diproses (Pesanan yang sudah diklik Terima Pesanan oleh Admin)
     if (orderStatusFilter === 'processing' || orderStatusFilter === 'diproses') {
       return st === 'processing' || st === 'diproses';
     }
+
+    // 4. Dikemas (Pesanan yang sedang dikemas)
     if (orderStatusFilter === 'packing' || orderStatusFilter === 'dikemas') {
       return st === 'packing' || st === 'dikemas';
     }
+
+    // 5. Dikirim (Pesanan dalam pengiriman kurir)
     if (orderStatusFilter === 'shipped' || orderStatusFilter === 'dikirim') {
       return st === 'shipped' || st === 'dikirim';
     }
+
+    // 6. Selesai (Pesanan selesai)
     if (orderStatusFilter === 'completed' || orderStatusFilter === 'selesai') {
       return st === 'completed' || st === 'selesai';
     }
+
+    // 7. Dibatalkan (Pesanan dibatalkan)
     if (orderStatusFilter === 'cancelled' || orderStatusFilter === 'dibatalkan') {
       return st === 'cancelled' || st === 'dibatalkan';
     }
+
     return st === orderStatusFilter;
   });
 
@@ -849,7 +880,7 @@ export default function AdminDashboardScreen({
 
               {/* Status Filter Horizontal */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orderFilterScroll}>
-                {['all', 'pending', 'processing', 'packing', 'shipped', 'completed', 'cancelled'].map((st) => (
+                {['all', 'unpaid', 'pending', 'processing', 'packing', 'shipped', 'completed', 'cancelled'].map((st) => (
                   <TouchableOpacity
                     key={st}
                     style={[styles.filterPill, orderStatusFilter === st && styles.filterPillActive]}
@@ -859,6 +890,8 @@ export default function AdminDashboardScreen({
                     <Text style={[styles.filterPillText, orderStatusFilter === st && styles.filterPillTextActive]}>
                       {st === 'all'
                         ? 'Semua'
+                        : st === 'unpaid'
+                        ? 'Menunggu Pembayaran'
                         : st === 'pending'
                         ? 'Belum Diproses'
                         : st === 'processing'
@@ -911,6 +944,8 @@ export default function AdminDashboardScreen({
                             ? { backgroundColor: '#F3E8FF' }
                             : ord.status === 'processing' || ord.status === 'diproses'
                             ? { backgroundColor: '#DBEAFE' }
+                            : (!isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unpaid' || ord.status === 'belum_bayar'))
+                            ? { backgroundColor: '#FEF3C7' }
                             : { backgroundColor: '#FEE2E2' },
                         ]}
                       >
@@ -920,9 +955,12 @@ export default function AdminDashboardScreen({
                           (ord.status === 'shipped' || ord.status === 'dikirim') && { color: '#0284C7' },
                           (ord.status === 'packing' || ord.status === 'dikemas') && { color: '#7C3AED' },
                           (ord.status === 'processing' || ord.status === 'diproses') && { color: '#2563EB' },
-                          (ord.status === 'pending' || ord.status === 'menunggu') && { color: '#DC2626' },
+                          (!isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unpaid' || ord.status === 'belum_bayar')) && { color: '#D97706' },
+                          ((isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu')) || ord.status === 'paid' || ord.status === 'sudah_bayar') && { color: '#DC2626' },
                         ]}>
-                          {ord.status === 'pending' || ord.status === 'menunggu'
+                          {!isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unpaid' || ord.status === 'belum_bayar')
+                            ? 'MENUNGGU PEMBAYARAN'
+                            : (isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu')) || ord.status === 'paid' || ord.status === 'sudah_bayar'
                             ? 'BELUM DIPROSES'
                             : ord.status === 'processing' || ord.status === 'diproses'
                             ? 'DIPROSES'
