@@ -48,7 +48,6 @@ export default function Header({
 
   const navTabs = [
     { id: 'home', label: 'Beranda', icon: 'home-outline' },
-    { id: 'website', label: 'Website Profil', icon: 'globe-outline' },
     { id: 'belanja', label: 'Belanja', icon: 'storefront-outline' },
     { id: 'promo', label: 'Promo Spesial', icon: 'pricetag-outline' },
     { id: 'pesanan', label: 'Pesanan Saya', icon: 'document-text-outline' },

@@ -277,8 +277,6 @@ export default function LandingWebsiteScreen({ products = [], onOpenStore, onOpe
                     </View>
                     <View>
                       <Text style={{ fontSize: 13, fontWeight: '900', color: '#1C2417' }}>CV. MAKMUR PERMATA</Text>
-                      <Text style={{ fontSize: 11, color: '#64748B' }}>Tasikmalaya, Jawa Barat</Text>
-                      <Text style={{ fontSize: 11.5, fontWeight: '800', color: BRAND_RED, marginTop: 2 }}>Produsen Seasoning Terpercaya</Text>
                     </View>
                   </View>
                 </View>

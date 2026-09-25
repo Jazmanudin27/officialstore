@@ -174,7 +174,7 @@ function AppContent() {
     apiService.getUserOrders(currentUser?.id || 1).then((orders) => {
       if (Array.isArray(orders)) {
         const count = orders.filter(
-          (o) => o.status === 'menunggu' || o.status === 'diproses' || o.status === 'dikirim'
+          (o) => o.status === 'menunggu' || o.status === 'pending' || o.status === 'diproses' || o.status === 'processing' || o.status === 'dikemas' || o.status === 'packing' || o.status === 'dikirim' || o.status === 'shipped'
         ).length;
         setActiveOrderCount(count);
       }

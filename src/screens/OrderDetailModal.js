@@ -40,17 +40,27 @@ export default function OrderDetailModal({
         subtitle: 'Mohon lakukan pembayaran untuk memproses pesanan Anda.',
         actionBtn: true,
       };
-    } else if (order.status === 'diproses') {
+    } else if (order.status === 'diproses' || order.status === 'processing') {
       return {
-        bg: '#FEF3C7',
-        border: '#FDE68A',
-        icon: 'cube-outline',
-        iconColor: '#D97706',
-        title: order.statusLabel || 'Pesanan Sedang Diproses',
-        subtitle: 'Penjual sedang menyiapkan & mengemas produk pesanan Anda.',
+        bg: '#DBEAFE',
+        border: '#BFDBFE',
+        icon: 'clipboard-outline',
+        iconColor: '#2563EB',
+        title: order.statusLabel || 'Pesanan Diterima & Sedang Diproses',
+        subtitle: 'Penjual telah menerima pesanan Anda dan siap untuk mengemas.',
         actionBtn: false,
       };
-    } else if (order.status === 'dikirim') {
+    } else if (order.status === 'dikemas' || order.status === 'packing') {
+      return {
+        bg: '#F3E8FF',
+        border: '#DDD6FE',
+        icon: 'cube-outline',
+        iconColor: '#7C3AED',
+        title: 'Pesanan Sedang Dikemas',
+        subtitle: 'Penjual sedang membungkus & mengemas paket pesanan Anda.',
+        actionBtn: false,
+      };
+    } else if (order.status === 'dikirim' || order.status === 'shipped') {
       return {
         bg: '#E0F2FE',
         border: '#BAE6FD',

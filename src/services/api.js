@@ -564,10 +564,37 @@ export const apiService = {
   // 15. Admin: Update Order Status
   async updateOrderStatus(id, statusData) {
     try {
+      let localOrders = [];
+      try {
+        const stored = storage.getItem('official_store_orders');
+        if (stored) localOrders = JSON.parse(stored);
+      } catch (e) {}
+
+      const targetStatus = typeof statusData === 'object' ? statusData.status : statusData;
+      const trackingNumber = typeof statusData === 'object' ? statusData.trackingNumber : null;
+
+      localOrders = localOrders.map((o) => {
+        if (String(o.id) === String(id) || String(o.nomorPesanan) === String(id) || String(o.orderId) === String(id)) {
+          return {
+            ...o,
+            status: targetStatus,
+            trackingNumber: trackingNumber || o.trackingNumber,
+            statusLabel: targetStatus === 'diproses' ? 'Sedang Diproses' : targetStatus === 'dikemas' ? 'Sedang Dikemas' : targetStatus === 'dikirim' ? 'Dalam Pengiriman' : targetStatus === 'selesai' ? 'Pesanan Selesai' : o.statusLabel,
+          };
+        }
+        return o;
+      });
+
+      try {
+        storage.setItem('official_store_orders', JSON.stringify(localOrders));
+      } catch (e) {}
+    } catch (e) {}
+
+    try {
       const response = await fetch(`${BASE_URL}/api/admin/orders/${id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(statusData),
+        body: JSON.stringify(typeof statusData === 'object' ? statusData : { status: statusData }),
       });
       return await response.json();
     } catch (e) {

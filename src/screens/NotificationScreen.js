@@ -170,16 +170,19 @@ export default function NotificationScreen({ visible, onClose, user, onGoToOrder
                   </View>
 
                   {activeOrders.map((order) => {
-                    const isUnpaid = order.status === 'menunggu';
-                    const isProcessing = order.status === 'diproses';
-                    const isShipping = order.status === 'dikirim';
+                    const isUnpaid = order.status === 'menunggu' || order.status === 'pending';
+                    const isProcessing = order.status === 'diproses' || order.status === 'processing';
+                    const isPacking = order.status === 'dikemas' || order.status === 'packing';
+                    const isShipping = order.status === 'dikirim' || order.status === 'shipped';
 
-                    const statusBg = isUnpaid ? '#FEE2E2' : isProcessing ? '#FEF3C7' : '#E0F2FE';
-                    const statusColor = isUnpaid ? '#DC2626' : isProcessing ? '#D97706' : '#0284C7';
+                    const statusBg = isUnpaid ? '#FEE2E2' : isProcessing ? '#DBEAFE' : isPacking ? '#F3E8FF' : '#E0F2FE';
+                    const statusColor = isUnpaid ? '#DC2626' : isProcessing ? '#2563EB' : isPacking ? '#7C3AED' : '#0284C7';
                     const statusTitle = isUnpaid
                       ? 'Belum Bayar — Mohon Selesaikan Pembayaran'
                       : isProcessing
-                      ? 'Sedang Diproses Penjual'
+                      ? 'Pesanan Diterima & Sedang Diproses'
+                      : isPacking
+                      ? 'Sedang Dikemas Penjual'
                       : 'Dalam Pengiriman Kurir';
 
                     const actionBtnLabel = isUnpaid ? 'Bayar Sekarang' : 'Detail Pesanan';

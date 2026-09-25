@@ -474,13 +474,20 @@ export default function AdminDashboardScreen({
 
   // Update Order Status
   const handleUpdateOrderStatus = (orderId, newStatus) => {
-    Alert.alert('Ubah Status Pesanan', `Ubah status pesanan #${orderId} menjadi "${newStatus}"?`, [
+    const labels = {
+      diproses: 'Terima Pesanan (Diproses)',
+      dikemas: 'Kemas Pesanan (Dikemas)',
+      dikirim: 'Kirim Pesanan (Dikirim)',
+      selesai: 'Selesai Pesanan (Selesai)',
+    };
+    const targetLabel = labels[newStatus] || newStatus;
+    Alert.alert('Ubah Status Pesanan', `Ubah status pesanan #${orderId} menjadi "${targetLabel}"?`, [
       { text: 'Batal', style: 'cancel' },
       {
         text: 'Ya, Ubah',
         onPress: async () => {
           let trackingNumber = undefined;
-          if (newStatus === 'shipped') {
+          if (newStatus === 'shipped' || newStatus === 'dikirim') {
             trackingNumber = `REG-${Date.now().toString().slice(-8)}`;
           }
           await apiService.updateOrderStatus(orderId, { status: newStatus, trackingNumber });
@@ -497,9 +504,29 @@ export default function AdminDashboardScreen({
     (p?.sku && String(p.sku).toLowerCase().includes((productSearch || '').toLowerCase()))
   );
 
-  const filteredOrders = (Array.isArray(orders) ? orders : []).filter((o) =>
-    orderStatusFilter === 'all' ? true : o?.status === orderStatusFilter
-  );
+  const filteredOrders = (Array.isArray(orders) ? orders : []).filter((o) => {
+    const st = String(o?.status || '').toLowerCase().trim();
+    if (orderStatusFilter === 'all') return true;
+    if (orderStatusFilter === 'pending' || orderStatusFilter === 'unprocessed') {
+      return st === 'pending' || st === 'menunggu' || st === 'unprocessed' || st === 'belum_diproses';
+    }
+    if (orderStatusFilter === 'processing' || orderStatusFilter === 'diproses') {
+      return st === 'processing' || st === 'diproses';
+    }
+    if (orderStatusFilter === 'packing' || orderStatusFilter === 'dikemas') {
+      return st === 'packing' || st === 'dikemas';
+    }
+    if (orderStatusFilter === 'shipped' || orderStatusFilter === 'dikirim') {
+      return st === 'shipped' || st === 'dikirim';
+    }
+    if (orderStatusFilter === 'completed' || orderStatusFilter === 'selesai') {
+      return st === 'completed' || st === 'selesai';
+    }
+    if (orderStatusFilter === 'cancelled' || orderStatusFilter === 'dibatalkan') {
+      return st === 'cancelled' || st === 'dibatalkan';
+    }
+    return st === orderStatusFilter;
+  });
 
   const filteredBranches = (Array.isArray(storesList) ? storesList : []).filter((st) =>
     (st?.name || '').toLowerCase().includes((branchSearch || '').toLowerCase()) ||
@@ -781,7 +808,7 @@ export default function AdminDashboardScreen({
                       {st === 'all'
                         ? 'Semua'
                         : st === 'pending'
-                        ? 'Menunggu'
+                        ? 'Belum Diproses'
                         : st === 'processing'
                         ? 'Diproses'
                         : st === 'packing'
@@ -830,14 +857,30 @@ export default function AdminDashboardScreen({
                             ? { backgroundColor: '#E0F2FE' }
                             : ord.status === 'packing' || ord.status === 'dikemas'
                             ? { backgroundColor: '#F3E8FF' }
-                            : { backgroundColor: '#FEF3C7' },
+                            : ord.status === 'processing' || ord.status === 'diproses'
+                            ? { backgroundColor: '#DBEAFE' }
+                            : { backgroundColor: '#FEE2E2' },
                         ]}
                       >
                         <Text style={[
                           styles.statusBadgeText,
-                          (ord.status === 'packing' || ord.status === 'dikemas') && { color: '#8B5CF6' }
+                          (ord.status === 'completed' || ord.status === 'selesai') && { color: '#16A34A' },
+                          (ord.status === 'shipped' || ord.status === 'dikirim') && { color: '#0284C7' },
+                          (ord.status === 'packing' || ord.status === 'dikemas') && { color: '#7C3AED' },
+                          (ord.status === 'processing' || ord.status === 'diproses') && { color: '#2563EB' },
+                          (ord.status === 'pending' || ord.status === 'menunggu') && { color: '#DC2626' },
                         ]}>
-                          {(ord.statusLabel || ord.status || 'DIPROSES').toUpperCase()}
+                          {ord.status === 'pending' || ord.status === 'menunggu'
+                            ? 'BELUM DIPROSES'
+                            : ord.status === 'processing' || ord.status === 'diproses'
+                            ? 'DIPROSES'
+                            : ord.status === 'packing' || ord.status === 'dikemas'
+                            ? 'DIKEMAS'
+                            : ord.status === 'shipped' || ord.status === 'dikirim'
+                            ? 'DIKIRIM'
+                            : ord.status === 'completed' || ord.status === 'selesai'
+                            ? 'SELESAI'
+                            : (ord.statusLabel || ord.status || 'DIPROSES').toUpperCase()}
                         </Text>
                       </View>
                     </View>
@@ -857,16 +900,54 @@ export default function AdminDashboardScreen({
                       </View>
                     </View>
 
-                    {/* Order Status Controller Action */}
+                    {/* Order Status Controller Action (4 Tombol Berurutan) */}
                     <View style={styles.orderActionRow}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 2 }}>
                         <Ionicons name="options-outline" size={13} color="#64748B" />
                         <Text style={styles.updateLabel}>Ubah Status:</Text>
                       </View>
 
-                      {/* Terima & Kemas Button */}
+                      {/* 1. Terima Pesanan (diproses) */}
                       {(() => {
-                        const isCurrent = (ord.status === 'processing' || ord.status === 'menunggu' || ord.status === 'diproses');
+                        const isCurrent = (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unprocessed');
+                        const isDone = (ord.status === 'processing' || ord.status === 'diproses' || ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
+                        
+                        return (
+                          <TouchableOpacity
+                            style={[
+                              styles.statusActionBtn,
+                              isCurrent
+                                ? { backgroundColor: '#2563EB', borderColor: '#1D4ED8', shadowColor: '#2563EB', shadowOpacity: 0.35, elevation: 4 }
+                                : isDone
+                                ? { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }
+                                : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
+                            ]}
+                            onPress={(e) => {
+                              e.stopPropagation();
+                              handleUpdateOrderStatus(ord.dbId || ord.id, 'diproses');
+                            }}
+                            activeOpacity={0.75}
+                          >
+                            <Ionicons
+                              name={isDone ? "checkmark-circle" : "clipboard"}
+                              size={14}
+                              color={isCurrent ? "#FFFFFF" : isDone ? "#2563EB" : "#64748B"}
+                            />
+                            <Text
+                              style={[
+                                styles.statusActionText,
+                                { color: isCurrent ? '#FFFFFF' : isDone ? '#2563EB' : '#64748B' },
+                              ]}
+                            >
+                              {isDone ? 'Sudah Diterima' : 'Terima Pesanan'}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })()}
+
+                      {/* 2. Kemas Pesanan (dikemas) */}
+                      {(() => {
+                        const isCurrent = (ord.status === 'processing' || ord.status === 'diproses');
                         const isDone = (ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
                         
                         return (
@@ -881,7 +962,7 @@ export default function AdminDashboardScreen({
                             ]}
                             onPress={(e) => {
                               e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'packing');
+                              handleUpdateOrderStatus(ord.dbId || ord.id, 'dikemas');
                             }}
                             activeOpacity={0.75}
                           >
@@ -896,13 +977,13 @@ export default function AdminDashboardScreen({
                                 { color: isCurrent ? '#FFFFFF' : isDone ? '#7C3AED' : '#64748B' },
                               ]}
                             >
-                              {isDone ? 'Sudah Dikemas' : 'Terima & Kemas'}
+                              {isDone ? 'Sudah Dikemas' : 'Kemas Pesanan'}
                             </Text>
                           </TouchableOpacity>
                         );
                       })()}
 
-                      {/* Kirim Resi Button */}
+                      {/* 3. Kirim Pesanan (dikirim) */}
                       {(() => {
                         const isCurrent = (ord.status === 'packing' || ord.status === 'dikemas');
                         const isDone = (ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
@@ -919,7 +1000,7 @@ export default function AdminDashboardScreen({
                             ]}
                             onPress={(e) => {
                               e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'shipped');
+                              handleUpdateOrderStatus(ord.dbId || ord.id, 'dikirim');
                             }}
                             activeOpacity={0.75}
                           >
@@ -934,13 +1015,13 @@ export default function AdminDashboardScreen({
                                 { color: isCurrent ? '#FFFFFF' : isDone ? '#0284C7' : '#64748B' },
                               ]}
                             >
-                              {isDone ? 'Sudah Dikirim' : 'Kirim Resi'}
+                              {isDone ? 'Sudah Dikirim' : 'Kirim Pesanan'}
                             </Text>
                           </TouchableOpacity>
                         );
                       })()}
 
-                      {/* Selesai Button */}
+                      {/* 4. Selesai Pesanan (selesai) */}
                       {(() => {
                         const isCurrent = (ord.status === 'shipped' || ord.status === 'dikirim');
                         const isDone = (ord.status === 'completed' || ord.status === 'selesai');
@@ -955,7 +1036,7 @@ export default function AdminDashboardScreen({
                             ]}
                             onPress={(e) => {
                               e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'completed');
+                              handleUpdateOrderStatus(ord.dbId || ord.id, 'selesai');
                             }}
                             activeOpacity={0.75}
                           >
@@ -970,7 +1051,7 @@ export default function AdminDashboardScreen({
                                 { color: isCurrent || isDone ? '#FFFFFF' : '#64748B' },
                               ]}
                             >
-                              {isDone ? 'Selesai ✓' : 'Selesai'}
+                              {isDone ? 'Selesai ✓' : 'Selesai Pesanan'}
                             </Text>
                           </TouchableOpacity>
                         );
