@@ -1082,20 +1082,16 @@ export default function AdminDashboardScreen({
                           <Text style={styles.updateLabel}>Ubah Status:</Text>
                         </View>
 
-                        {/* 1. Terima Pesanan (diproses) */}
+                        {/* 1. Terima Pesanan (diproses) - Sembunyikan tombol 'Sudah Diterima' jika sudah di filter diproses */}
                         {(() => {
                           const isCurrent = (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unprocessed');
-                          const isDone = (ord.status === 'processing' || ord.status === 'diproses' || ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
+                          if (!isCurrent) return null;
                           
                           return (
                             <TouchableOpacity
                               style={[
                                 styles.statusActionBtn,
-                                isCurrent
-                                  ? { backgroundColor: '#2563EB', borderColor: '#1D4ED8', shadowColor: '#2563EB', shadowOpacity: 0.35, elevation: 4 }
-                                  : isDone
-                                  ? { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }
-                                  : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
+                                { backgroundColor: '#2563EB', borderColor: '#1D4ED8', shadowColor: '#2563EB', shadowOpacity: 0.35, elevation: 4 }
                               ]}
                               onPress={(e) => {
                                 e.stopPropagation();
@@ -1104,17 +1100,17 @@ export default function AdminDashboardScreen({
                               activeOpacity={0.75}
                             >
                               <Ionicons
-                                name={isDone ? "checkmark-circle" : "clipboard"}
+                                name="clipboard"
                                 size={14}
-                                color={isCurrent ? "#FFFFFF" : isDone ? "#2563EB" : "#64748B"}
+                                color="#FFFFFF"
                               />
                               <Text
                                 style={[
                                   styles.statusActionText,
-                                  { color: isCurrent ? '#FFFFFF' : isDone ? '#2563EB' : '#64748B' },
+                                  { color: '#FFFFFF' },
                                 ]}
                               >
-                                {isDone ? 'Sudah Diterima' : 'Terima Pesanan'}
+                                Terima Pesanan
                               </Text>
                             </TouchableOpacity>
                           );
