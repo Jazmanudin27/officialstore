@@ -1037,17 +1037,15 @@ export default function AdminDashboardScreen({
                         ]}>
                           {!isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unpaid' || ord.status === 'belum_bayar')
                             ? 'MENUNGGU PEMBAYARAN'
-                            : (isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu')) || ord.status === 'paid' || ord.status === 'sudah_bayar'
+                            : (ord.status === 'processing' || ord.status === 'diproses' || ord.status === 'paid' || ord.status === 'sudah_bayar' || (isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu')))
                             ? 'BELUM DIPROSES'
-                            : ord.status === 'processing' || ord.status === 'diproses'
-                            ? 'DIPROSES'
                             : ord.status === 'packing' || ord.status === 'dikemas'
                             ? 'DIKEMAS'
                             : ord.status === 'shipped' || ord.status === 'dikirim'
                             ? 'DIKIRIM'
                             : ord.status === 'completed' || ord.status === 'selesai'
                             ? 'SELESAI'
-                            : (ord.statusLabel || ord.status || 'DIPROSES').toUpperCase()}
+                            : (ord.statusLabel || ord.status || 'BELUM DIPROSES').toUpperCase()}
                         </Text>
                       </View>
                     </View>

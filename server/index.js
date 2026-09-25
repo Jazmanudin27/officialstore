@@ -1507,9 +1507,9 @@ app.get('/api/admin/orders', async (req, res) => {
       );
 
       const isCodOrder = ord.note && ord.note.toUpperCase().includes('COD');
-      let statusLabel = isCodOrder ? 'Sedang Diproses (COD)' : 'Sedang Diproses';
-      let statusColor = '#D97706';
-      let statusBg = '#FEF3C7';
+      let statusLabel = isCodOrder ? 'Belum Diproses (COD)' : 'Belum Diproses';
+      let statusColor = '#0284C7';
+      let statusBg = '#E0F2FE';
       let formattedStatus = 'diproses';
 
       if (ord.status === 'pending') {
