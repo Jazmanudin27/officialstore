@@ -591,6 +591,38 @@ export default function AdminDashboardScreen({
     return pm.includes('cod') || pm.includes('tempat') || ord?.isCod === true;
   };
 
+  const orderCounts = React.useMemo(() => {
+    const acc = { all: 0, unpaid: 0, pending: 0, processing: 0, packing: 0, shipped: 0, completed: 0, cancelled: 0 };
+    (Array.isArray(orders) ? orders : []).forEach((o) => {
+      acc.all++;
+      const st = String(o?.status || '').toLowerCase().trim();
+      const pm = String(
+        o?.paymentMethod || o?.metodePembayaran || o?.payment_method || o?.catatanPesanan || ''
+      ).toLowerCase();
+      const isCod = pm.includes('cod') || pm.includes('tempat') || o?.isCod === true;
+
+      if (!isCod && (st === 'menunggu' || st === 'pending' || st === 'unpaid' || st === 'belum_bayar')) {
+        acc.unpaid++;
+      } else if (
+        (isCod && (st === 'menunggu' || st === 'pending' || st === 'unprocessed' || st === 'belum_diproses')) ||
+        (!isCod && (st === 'paid' || st === 'sudah_bayar' || st === 'terbayar' || st === 'unprocessed' || st === 'belum_diproses'))
+      ) {
+        acc.pending++;
+      } else if (st === 'processing' || st === 'diproses') {
+        acc.processing++;
+      } else if (st === 'packing' || st === 'dikemas') {
+        acc.packing++;
+      } else if (st === 'shipped' || st === 'dikirim') {
+        acc.shipped++;
+      } else if (st === 'completed' || st === 'selesai') {
+        acc.completed++;
+      } else if (st === 'cancelled' || st === 'dibatalkan' || st === 'batal' || st.includes('batal') || st.includes('cancel')) {
+        acc.cancelled++;
+      }
+    });
+    return acc;
+  }, [orders]);
+
   const filteredOrders = (Array.isArray(orders) ? orders : []).filter((o) => {
     const st = String(o?.status || '').toLowerCase().trim();
     const isCod = isCodOrder(o);
@@ -632,8 +664,8 @@ export default function AdminDashboardScreen({
     }
 
     // 7. Dibatalkan (Pesanan dibatalkan)
-    if (orderStatusFilter === 'cancelled' || orderStatusFilter === 'dibatalkan') {
-      return st === 'cancelled' || st === 'dibatalkan';
+    if (orderStatusFilter === 'cancelled' || orderStatusFilter === 'dibatalkan' || orderStatusFilter === 'batal') {
+      return st === 'cancelled' || st === 'dibatalkan' || st === 'batal' || st.includes('batal') || st.includes('cancel');
     }
 
     return st === orderStatusFilter;
@@ -906,32 +938,89 @@ export default function AdminDashboardScreen({
             <View style={styles.sectionWrap}>
               <Text style={styles.sectionTitle}>📋 Kelola Pesanan Masuk</Text>
 
+              {/* Ringkasan Notifikasi Jumlah Pesanan */}
+              <View style={{ backgroundColor: '#F8FAFC', padding: 14, borderRadius: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
+                  <Ionicons name="notifications-circle" size={20} color="#D91E28" />
+                  <Text style={{ fontSize: 13, fontWeight: '800', color: COLORS.textDark }}>
+                    Notifikasi & Ringkasan Pesanan ({orderCounts.all})
+                  </Text>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', gap: 8 }}>
+                  <View style={{ backgroundColor: '#FEF3C7', borderColor: '#FDE68A', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#D97706' }}>{orderCounts.unpaid}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>Menunggu Bayar</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#FEE2E2', borderColor: '#FECACA', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#DC2626' }}>{orderCounts.pending}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#B91C1C' }}>Belum Diproses</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#DBEAFE', borderColor: '#BFDBFE', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#2563EB' }}>{orderCounts.processing}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#1D4ED8' }}>Diproses</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#F3E8FF', borderColor: '#E9D5FF', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#7C3AED' }}>{orderCounts.packing}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#6D28D9' }}>Dikemas</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#E0F2FE', borderColor: '#BAE6FD', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#0284C7' }}>{orderCounts.shipped}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#0369A1' }}>Dikirim</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#16A34A' }}>{orderCounts.completed}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#15803D' }}>Selesai</Text>
+                  </View>
+                  <View style={{ backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
+                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#64748B' }}>{orderCounts.cancelled}</Text>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>Dibatalkan</Text>
+                  </View>
+                </ScrollView>
+              </View>
+
               {/* Status Filter Horizontal */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orderFilterScroll}>
-                {['all', 'unpaid', 'pending', 'processing', 'packing', 'shipped', 'completed', 'cancelled'].map((st) => (
+                {[
+                  { id: 'all', label: 'Semua', count: orderCounts.all },
+                  { id: 'unpaid', label: 'Menunggu Pembayaran', count: orderCounts.unpaid },
+                  { id: 'pending', label: 'Belum Diproses', count: orderCounts.pending },
+                  { id: 'processing', label: 'Diproses', count: orderCounts.processing },
+                  { id: 'packing', label: 'Dikemas', count: orderCounts.packing },
+                  { id: 'shipped', label: 'Dikirim', count: orderCounts.shipped },
+                  { id: 'completed', label: 'Selesai', count: orderCounts.completed },
+                  { id: 'cancelled', label: 'Dibatalkan', count: orderCounts.cancelled },
+                ].map((st) => (
                   <TouchableOpacity
-                    key={st}
-                    style={[styles.filterPill, orderStatusFilter === st && styles.filterPillActive]}
-                    onPress={() => setOrderStatusFilter(st)}
+                    key={st.id}
+                    style={[
+                      styles.filterPill,
+                      orderStatusFilter === st.id && styles.filterPillActive,
+                      { flexDirection: 'row', alignItems: 'center', gap: 6 },
+                    ]}
+                    onPress={() => setOrderStatusFilter(st.id)}
                     activeOpacity={0.7}
                   >
-                    <Text style={[styles.filterPillText, orderStatusFilter === st && styles.filterPillTextActive]}>
-                      {st === 'all'
-                        ? 'Semua'
-                        : st === 'unpaid'
-                        ? 'Menunggu Pembayaran'
-                        : st === 'pending'
-                        ? 'Belum Diproses'
-                        : st === 'processing'
-                        ? 'Diproses'
-                        : st === 'packing'
-                        ? 'Dikemas'
-                        : st === 'shipped'
-                        ? 'Dikirim'
-                        : st === 'completed'
-                        ? 'Selesai'
-                        : 'Dibatalkan'}
+                    <Text style={[styles.filterPillText, orderStatusFilter === st.id && styles.filterPillTextActive]}>
+                      {st.label}
                     </Text>
+                    <View
+                      style={{
+                        backgroundColor: orderStatusFilter === st.id ? '#FFFFFF' : '#E2E8F0',
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '800',
+                          color: orderStatusFilter === st.id ? '#D91E28' : '#475569',
+                        }}
+                      >
+                        {st.count}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 ))}
               </ScrollView>

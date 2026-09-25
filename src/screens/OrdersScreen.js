@@ -66,13 +66,27 @@ export default function OrdersScreen({
     fetchOrders(true);
   }, [fetchOrders, activeTab]);
 
+  const userOrderCounts = React.useMemo(() => {
+    const c = { semua: 0, menunggu: 0, diproses: 0, dikirim: 0, selesai: 0, batal: 0 };
+    (Array.isArray(orders) ? orders : []).forEach((o) => {
+      c.semua++;
+      const st = String(o?.status || '').toLowerCase().trim();
+      if (st === 'menunggu' || st === 'pending' || st === 'unpaid' || st === 'belum_bayar' || st.includes('belum')) c.menunggu++;
+      else if (st === 'diproses' || st === 'processing' || st === 'packing' || st === 'dikemas' || st.includes('proses')) c.diproses++;
+      else if (st === 'dikirim' || st === 'shipped' || st.includes('kirim')) c.dikirim++;
+      else if (st === 'selesai' || st === 'completed') c.selesai++;
+      else if (st === 'batal' || st === 'cancelled' || st === 'dibatalkan' || st.includes('batal') || st.includes('cancel')) c.batal++;
+    });
+    return c;
+  }, [orders]);
+
   const tabs = [
-    { id: 'semua', label: 'Semua' },
-    { id: 'menunggu', label: 'Belum Bayar' },
-    { id: 'diproses', label: 'Diproses' },
-    { id: 'dikirim', label: 'Dikirim' },
-    { id: 'selesai', label: 'Selesai' },
-    { id: 'batal', label: 'Dibatalkan' },
+    { id: 'semua', label: 'Semua', count: userOrderCounts.semua },
+    { id: 'menunggu', label: 'Belum Bayar', count: userOrderCounts.menunggu },
+    { id: 'diproses', label: 'Diproses', count: userOrderCounts.diproses },
+    { id: 'dikirim', label: 'Dikirim', count: userOrderCounts.dikirim },
+    { id: 'selesai', label: 'Selesai', count: userOrderCounts.selesai },
+    { id: 'batal', label: 'Dibatalkan', count: userOrderCounts.batal },
   ];
 
   const onRefresh = () => {
@@ -83,11 +97,11 @@ export default function OrdersScreen({
   const filteredOrders = orders.filter((order) => {
     const st = String(order.status || '').toLowerCase().trim();
     if (activeTab === 'semua') return true;
-    if (activeTab === 'menunggu') return st === 'menunggu' || st === 'pending' || st.includes('menunggu') || st.includes('belum');
-    if (activeTab === 'diproses') return st === 'diproses' || st === 'processing' || st.includes('proses');
+    if (activeTab === 'menunggu') return st === 'menunggu' || st === 'pending' || st === 'unpaid' || st === 'belum_bayar' || st.includes('belum');
+    if (activeTab === 'diproses') return st === 'diproses' || st === 'processing' || st === 'packing' || st === 'dikemas' || st.includes('proses');
     if (activeTab === 'dikirim') return st === 'dikirim' || st === 'shipped' || st.includes('kirim');
     if (activeTab === 'selesai') return st === 'selesai' || st === 'completed';
-    if (activeTab === 'batal') return st === 'batal' || st === 'cancelled';
+    if (activeTab === 'batal') return st === 'batal' || st === 'cancelled' || st === 'dibatalkan' || st.includes('batal') || st.includes('cancel');
     return true;
   });
 
@@ -222,13 +236,35 @@ export default function OrdersScreen({
                 return (
                   <TouchableOpacity
                     key={tab.id}
-                    style={[styles.tabItem, isActive && styles.tabActive]}
+                    style={[
+                      styles.tabItem,
+                      isActive && styles.tabActive,
+                      { flexDirection: 'row', alignItems: 'center', gap: 6 },
+                    ]}
                     onPress={() => setActiveTab(tab.id)}
                     activeOpacity={0.7}
                   >
                     <Text style={[styles.tabText, isActive && styles.tabTextActive]}>
                       {tab.label}
                     </Text>
+                    <View
+                      style={{
+                        backgroundColor: isActive ? 'rgba(255,255,255,0.25)' : '#E2E8F0',
+                        paddingHorizontal: 7,
+                        paddingVertical: 2,
+                        borderRadius: 10,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '800',
+                          color: isActive ? '#FFFFFF' : '#475569',
+                        }}
+                      >
+                        {tab.count}
+                      </Text>
+                    </View>
                   </TouchableOpacity>
                 );
               })}
