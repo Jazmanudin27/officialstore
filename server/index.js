@@ -1567,15 +1567,16 @@ app.get('/api/admin/orders', async (req, res) => {
   }
 });
 
-// 15. Admin: Update Order Status & Resi (Supports POST and PUT)
+// 15. Admin & User: Update Order Status, Payment Method & Resi (Supports POST and PUT)
 app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, res) => {
   try {
     const orderId = req.params.id;
-    const { status, trackingNumber, courier } = req.body;
+    const { status, trackingNumber, courier, paymentMethod, metodePembayaran } = req.body || {};
+    const targetPayment = paymentMethod || metodePembayaran || null;
 
     await pool.query(
-      'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ?',
-      [status || null, trackingNumber || null, courier || null, orderId]
+      'UPDATE orders SET status_pesanan = COALESCE(?, status_pesanan), metode_pembayaran = COALESCE(?, metode_pembayaran), resi_pengiriman = COALESCE(?, resi_pengiriman), kurir_pengiriman = COALESCE(?, kurir_pengiriman) WHERE order_id = ? OR nomor_pesanan = ?',
+      [status || null, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
     );
 
     res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui!' });
@@ -1965,13 +1966,17 @@ app.get('/api/admin/orders', async (req, res) => {
 app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, res) => {
   try {
     const orderId = req.params.id;
-    const { status, trackingNumber } = req.body;
+    const { status, trackingNumber, courier, paymentMethod, metodePembayaran } = req.body || {};
+    const targetPayment = paymentMethod || metodePembayaran || null;
+
     await pool.query(
       `UPDATE orders SET 
         status_pesanan = COALESCE(?, status_pesanan),
-        resi_pengiriman = COALESCE(?, resi_pengiriman)
+        metode_pembayaran = COALESCE(?, metode_pembayaran),
+        resi_pengiriman = COALESCE(?, resi_pengiriman),
+        kurir_pengiriman = COALESCE(?, kurir_pengiriman)
       WHERE order_id = ? OR nomor_pesanan = ?`,
-      [status || null, trackingNumber || null, orderId, orderId]
+      [status || null, targetPayment, trackingNumber || null, courier || null, orderId, orderId]
     );
 
     res.json({ status: 'ok', message: 'Status pesanan berhasil diperbarui ke database' });

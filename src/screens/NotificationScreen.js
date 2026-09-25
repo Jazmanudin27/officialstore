@@ -318,6 +318,7 @@ export default function NotificationScreen({ visible, onClose, user, onGoToOrder
       <PaymentScreen
         visible={!!payingOrder}
         onClose={() => setPayingOrder(null)}
+        existingOrder={payingOrder}
         finalTotal={payingOrder?.totalAmount || 0}
         subtotal={payingOrder?.productTotal || payingOrder?.totalAmount || 0}
         deliveryFee={payingOrder?.shippingFee || 0}

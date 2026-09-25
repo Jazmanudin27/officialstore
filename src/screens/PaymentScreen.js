@@ -77,6 +77,7 @@ const PAYMENT_METHODS = [
 export default function PaymentScreen({
   visible,
   onClose,
+  existingOrder,
   finalTotal = 0,
   subtotal = 0,
   deliveryFee = 0,
@@ -105,38 +106,43 @@ export default function PaymentScreen({
 
   const processMidtransPayment = async () => {
     setIsLoadingPayment(true);
-    const orderId = `INV-${Date.now().toString().slice(-8)}`;
-    const customerName = selectedAddress
-      ? selectedAddress.recipient || selectedAddress.nama_penerima || 'Pelanggan Official Store'
-      : 'Pelanggan Official Store';
-    const customerPhone = selectedAddress
-      ? selectedAddress.phone || selectedAddress.nomor_telepon || '089523888200'
-      : '089523888200';
+    const isExistingOrder = !!existingOrder;
+    const orderId = isExistingOrder
+      ? existingOrder.nomorPesanan || existingOrder.id || existingOrder.orderId
+      : `INV-${Date.now().toString().slice(-8)}`;
 
     const addressText = selectedAddress?.addressLine1 || selectedAddress?.alamat || user?.alamat || 'Alamat Kirim Utama';
     const recipientText = selectedAddress?.recipient || selectedAddress?.nama_penerima || user?.namaLengkap || 'Pelanggan Official Store';
     const phoneText = selectedAddress?.phone || selectedAddress?.nomor_telepon || user?.phone || '089523888200';
 
-    // 1. DAHULU SIMPAN PESANAN LANGSUNG KE DATABASE MYSQL
+    // 1. JIKA PESANAN SUDAH ADA, UPDATE STATUSNYA. JIKA PESANAN BARU, SIMPAN KE DATABASE.
     try {
-      await apiService.createOrder({
-        nomorPesanan: orderId,
-        userId: user?.id || 1,
-        tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
-        metodePembayaran: selectedMethodObj.name,
-        statusPesanan: 'pending',
-        status: 'menunggu',
-        totalHargaProduk: subtotal,
-        ongkosKirim: deliveryFee,
-        diskonVoucher: discountAmount,
-        totalPembayaran: finalTotal,
-        address: addressText,
-        snapshotAlamatKirim: addressText,
-        recipient: recipientText,
-        phone: phoneText,
-        catatanPesanan: `Midtrans Snap Order (${selectedMethodObj.name}) ${orderId}`,
-        items: cartItems,
-      });
+      if (isExistingOrder) {
+        await apiService.updateOrderStatus(orderId, {
+          status: 'diproses',
+          paymentMethod: selectedMethodObj.name,
+          metodePembayaran: selectedMethodObj.name,
+        });
+      } else {
+        await apiService.createOrder({
+          nomorPesanan: orderId,
+          userId: user?.id || 1,
+          tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
+          metodePembayaran: selectedMethodObj.name,
+          statusPesanan: 'pending',
+          status: 'menunggu',
+          totalHargaProduk: subtotal,
+          ongkosKirim: deliveryFee,
+          diskonVoucher: discountAmount,
+          totalPembayaran: finalTotal,
+          address: addressText,
+          snapshotAlamatKirim: addressText,
+          recipient: recipientText,
+          phone: phoneText,
+          catatanPesanan: `Midtrans Snap Order (${selectedMethodObj.name}) ${orderId}`,
+          items: cartItems,
+        });
+      }
     } catch (dbErr) {
       console.warn('Order save error:', dbErr.message);
     }
@@ -198,10 +204,10 @@ export default function PaymentScreen({
           finishOrder(`Midtrans Redirect (${selectedMethodObj.name})`);
         }
       } else {
-        finishOrder(`Pesanan Dibuat (${selectedMethodObj.name})`);
+        finishOrder(`Pesanan (${selectedMethodObj.name})`);
       }
     } catch (err) {
-      finishOrder(`Pesanan Dibuat (${selectedMethodObj.name})`);
+      finishOrder(`Pesanan (${selectedMethodObj.name})`);
     } finally {
       setIsLoadingPayment(false);
     }
@@ -209,31 +215,45 @@ export default function PaymentScreen({
 
   const processCodPayment = async () => {
     setIsLoadingPayment(true);
-    const orderId = `INV-${Date.now().toString().slice(-8)}`;
+    const isExistingOrder = !!existingOrder;
+    const orderId = isExistingOrder
+      ? existingOrder.nomorPesanan || existingOrder.id || existingOrder.orderId
+      : `INV-${Date.now().toString().slice(-8)}`;
+
     const addressText = selectedAddress?.addressLine1 || selectedAddress?.alamat || user?.alamat || 'Alamat Kirim Utama';
     const recipientText = selectedAddress?.recipient || selectedAddress?.nama_penerima || user?.namaLengkap || 'Pelanggan Official Store';
     const phoneText = selectedAddress?.phone || selectedAddress?.nomor_telepon || user?.phone || '089523888200';
 
     try {
-      await apiService.createOrder({
-        nomorPesanan: orderId,
-        userId: user?.id || 1,
-        tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
-        metodePembayaran: 'cod',
-        paymentMethod: 'COD (Bayar di Tempat)',
-        statusPesanan: 'pending',
-        status: 'pending',
-        totalHargaProduk: subtotal,
-        ongkosKirim: deliveryFee,
-        diskonVoucher: discountAmount,
-        totalPembayaran: finalTotal,
-        address: addressText,
-        snapshotAlamatKirim: addressText,
-        recipient: recipientText,
-        phone: phoneText,
-        catatanPesanan: `COD (Bayar di Tempat)`,
-        items: cartItems,
-      });
+      if (isExistingOrder) {
+        // PERBARUI PESANAN LAMA DARI BELUM BAYAR MENJADI DIPROSES VIA COD
+        await apiService.updateOrderStatus(orderId, {
+          status: 'diproses',
+          paymentMethod: 'COD (Bayar di Tempat)',
+          metodePembayaran: 'COD (Bayar di Tempat)',
+        });
+      } else {
+        // SIMPAN PESANAN BARU
+        await apiService.createOrder({
+          nomorPesanan: orderId,
+          userId: user?.id || 1,
+          tipePesanan: selectedAddress?.isPickup ? 'pickup' : 'delivery',
+          metodePembayaran: 'cod',
+          paymentMethod: 'COD (Bayar di Tempat)',
+          statusPesanan: 'pending',
+          status: 'pending',
+          totalHargaProduk: subtotal,
+          ongkosKirim: deliveryFee,
+          diskonVoucher: discountAmount,
+          totalPembayaran: finalTotal,
+          address: addressText,
+          snapshotAlamatKirim: addressText,
+          recipient: recipientText,
+          phone: phoneText,
+          catatanPesanan: `COD (Bayar di Tempat)`,
+          items: cartItems,
+        });
+      }
     } catch (err) {
       console.warn('COD order save warning:', err);
     } finally {
