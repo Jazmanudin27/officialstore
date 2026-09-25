@@ -14,26 +14,26 @@ import { COLORS } from '../constants/theme';
 
 export default function SearchScreen({ visible, onClose, onSelectKeyword }) {
   const [searchText, setSearchText] = useState('');
-  const [history, setHistory] = useState(['vitamin untuk anak', 'tisu wajah']);
+  const [history, setHistory] = useState(['Aida Cabai Bubuk 500gr', 'Saus Swan Pouch 500gr']);
 
   const smartSuggestions = [
-    'saya mau beli daging',
-    'produk bebas gluten',
-    'vitamin untuk anak',
-    'beli dancow fortigro',
+    'Cabai Bubuk Aida 500gr',
+    'Saus Tomat Swan Botol',
+    'Bumbu Tabur Aida Balado',
+    'SaosMe Pouch 500gr',
   ];
 
   const trendingKeywords = [
-    'produk online',
-    'harga super',
-    'buah dan sayur',
-    'soulyu beauty',
-    "wall's tubs hanya 20k",
-    'mega promo unilever',
-    'menstrual hygiene fair',
-    'personal care festival',
-    'masker',
-    'snack sehat',
+    'Aida Cabai Bubuk',
+    'Saus Swan Botol',
+    'SaosMe Pouch 500gr',
+    'Bumbu Tabur Balado',
+    'Aida Dus 500gr',
+    'Saus Tomat Swan',
+    'Cabe Pedas Murni',
+    'Paket Grosir Bumbu',
+    'Aida Kecil 25gr',
+    'Bumbu Dapur Tasik',
   ];
 
   const handleSearchSubmit = (keyword) => {
@@ -61,7 +61,7 @@ export default function SearchScreen({ visible, onClose, onSelectKeyword }) {
           <View style={styles.searchInputBox}>
             <TextInput
               style={styles.searchInput}
-              placeholder="Cari kebutuhan kamu di sini"
+              placeholder="Cari Bumbu Aida, Saus Swan, SaosMe..."
               placeholderTextColor={COLORS.textMuted}
               value={searchText}
               onChangeText={setSearchText}
@@ -80,10 +80,10 @@ export default function SearchScreen({ visible, onClose, onSelectKeyword }) {
           {/* Smart AI Search Banner */}
           <View style={styles.smartBanner}>
             <View style={styles.smartHeader}>
-              <Text style={styles.smartTitle}>Pencarian baru, hasil lebih relevan ✨</Text>
+              <Text style={styles.smartTitle}>Pencarian Produk Official Store ✨</Text>
             </View>
             <Text style={styles.smartSub}>
-              Sekarang kamu bisa mencari produk dengan bahasa sehari-hari, seperti contoh berikut ini.
+              Temukan produk bumbu dapur, saus swan, dan cabai bubuk resmi berkualitas tinggi dengan cepat.
             </Text>
 
             {/* Smart Suggestion Pills */}
@@ -130,12 +130,12 @@ export default function SearchScreen({ visible, onClose, onSelectKeyword }) {
           {/* Mini Promo Card Banner */}
           <View style={styles.promoMiniCard}>
             <View style={styles.promoMiniLeft}>
-              <Text style={styles.promoTag}>Produk Online</Text>
-              <Text style={styles.promoTitle}>HARGA SUPER</Text>
+              <Text style={styles.promoTag}>Official Store Promo</Text>
+              <Text style={styles.promoTitle}>BUMBU & SAUS SUPER</Text>
             </View>
             <View style={styles.promoMiniRight}>
-              <Text style={styles.promoDiscount}>DISKON s.d 55%</Text>
-              <Text style={styles.promoCashback}>+ CASHBACK Rp10.000</Text>
+              <Text style={styles.promoDiscount}>DISKON s.d 50%</Text>
+              <Text style={styles.promoCashback}>+ CASHBACK ONGKIR</Text>
             </View>
           </View>
 
@@ -160,7 +160,7 @@ export default function SearchScreen({ visible, onClose, onSelectKeyword }) {
           <View style={styles.sectionContainer}>
             <Text style={styles.sectionTitle}>Kategori Pilihan 🛒</Text>
             <View style={styles.tagWrap}>
-              {['Susu & Diaper', 'Bumbu Dapur', 'Sabun & Shampoo', 'Cemilan & Drink'].map((cat, idx) => (
+              {['AIDA', 'SAUS SWAN', 'BUMBU TABUR', 'PREMIUM POUCH', 'SAMBAL CABE', 'SAOSME'].map((cat, idx) => (
                 <TouchableOpacity
                   key={idx}
                   style={styles.categoryPill}
