@@ -2147,6 +2147,18 @@ app.post('/api/orders', async (req, res) => {
 const distPath = path.join(__dirname, '../dist');
 const fs = require('fs');
 
+// Explicit SPA routes handler for /admin and /website
+app.get(['/admin', '/admin/*', '/website', '/website/*'], (req, res) => {
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.sendFile(indexPath);
+  }
+  return res.status(404).send('Official Store Admin App dist/index.html not found. Run npm run build.');
+});
+
 app.use(
   express.static(distPath, {
     maxAge: '1h',
