@@ -40,6 +40,7 @@ import AdminAuthScreen from './src/screens/AdminAuthScreen';
 import SplashScreen from './src/components/splash/SplashScreen';
 import LandingWebsiteScreen from './src/screens/LandingWebsiteScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import SweetAlertContainer from './src/components/common/SweetAlert';
 import { storage } from './src/utils/storage';
 
 import PageTransition from './src/components/navigation/PageTransition';
@@ -679,6 +680,9 @@ function AppContent() {
           setActiveTab={setActiveTab}
         />
       )}
+
+      {/* Global SweetAlert Modal */}
+      <SweetAlertContainer />
     </SafeAreaView>
   );
 }

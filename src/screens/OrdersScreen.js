@@ -16,6 +16,7 @@ import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import { apiService } from '../services/api';
 import { storage } from '../utils/storage';
+import { sweetAlert } from '../components/common/SweetAlert';
 import OrderDetailModal from './OrderDetailModal';
 import PaymentScreen from './PaymentScreen';
 
@@ -141,41 +142,30 @@ export default function OrdersScreen({
       setSelectedOrderForDetail(null);
       fetchOrders(false);
 
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('Pesanan Anda telah berhasil dibatalkan.');
-      } else {
-        Alert.alert('Pesanan Dibatalkan', 'Pesanan Anda telah berhasil dibatalkan.');
-      }
+      sweetAlert({
+        type: 'success',
+        title: 'Pesanan Dibatalkan',
+        text: 'Pesanan Anda telah berhasil dibatalkan.',
+      });
     } catch (err) {
-      if (Platform.OS === 'web' && typeof window !== 'undefined') {
-        window.alert('Terjadi kesalahan saat membatalkan pesanan.');
-      } else {
-        Alert.alert('Gagal', 'Terjadi kesalahan saat membatalkan pesanan.');
-      }
+      sweetAlert({
+        type: 'error',
+        title: 'Gagal',
+        text: 'Terjadi kesalahan saat membatalkan pesanan.',
+      });
     }
   };
 
   const handleCancelOrder = (order) => {
-    const msg = `Apakah Anda yakin ingin membatalkan pesanan ${order.id || order.nomorPesanan}?`;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      const confirmed = window.confirm(msg);
-      if (confirmed) {
-        executeCancelOrder(order);
-      }
-    } else {
-      Alert.alert(
-        'Batalkan Pesanan',
-        msg,
-        [
-          { text: 'Kembali', style: 'cancel' },
-          {
-            text: 'Ya, Batalkan',
-            style: 'destructive',
-            onPress: () => executeCancelOrder(order),
-          },
-        ]
-      );
-    }
+    sweetAlert({
+      type: 'warning',
+      title: 'Batalkan Pesanan',
+      text: `Apakah Anda yakin ingin membatalkan pesanan ${order.id || order.nomorPesanan}?`,
+      confirmText: 'Ya, Batalkan',
+      cancelText: 'Kembali',
+      showCancelButton: true,
+      onConfirm: () => executeCancelOrder(order),
+    });
   };
 
   return (

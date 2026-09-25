@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
+import { sweetAlert } from '../components/common/SweetAlert';
 
 export default function ProfileScreen({
   user,
@@ -26,21 +27,17 @@ export default function ProfileScreen({
   const isLoggedIn = !!user;
 
   const handleLogoutConfirm = () => {
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Apakah Anda yakin ingin keluar dari akun Official Store?');
-      if (confirmed && onLogout) {
-        onLogout();
-      }
-    } else {
-      Alert.alert(
-        'Konfirmasi Keluar',
-        'Apakah Anda yakin ingin keluar dari akun Official Store?',
-        [
-          { text: 'Batal', style: 'cancel' },
-          { text: 'Keluar', style: 'destructive', onPress: onLogout },
-        ]
-      );
-    }
+    sweetAlert({
+      type: 'warning',
+      title: 'Konfirmasi Keluar',
+      text: 'Apakah Anda yakin ingin keluar dari akun Official Store?',
+      confirmText: 'Ya, Keluar',
+      cancelText: 'Batal',
+      showCancelButton: true,
+      onConfirm: () => {
+        if (onLogout) onLogout();
+      },
+    });
   };
 
   return (

@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import { apiService } from '../services/api';
+import { sweetAlert } from '../components/common/SweetAlert';
 import OrderDetailModal from './OrderDetailModal';
 
 export default function AdminDashboardScreen({
@@ -235,24 +236,30 @@ export default function AdminDashboardScreen({
   };
 
   const handleDeleteBranch = (branch) => {
-    Alert.alert('Hapus Cabang', `Nonaktifkan cabang "${branch.name}"?`, [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await apiService.deleteAdminStore(branch.id);
-            loadData();
-          } catch (e) {
-            console.warn(e);
-          } finally {
-            setLoading(false);
-          }
-        },
+    sweetAlert({
+      type: 'warning',
+      title: 'Hapus Cabang',
+      text: `Apakah Anda yakin ingin menonaktifkan cabang "${branch.name}"?`,
+      confirmText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      showCancelButton: true,
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await apiService.deleteAdminStore(branch.id);
+          loadData();
+          sweetAlert({
+            type: 'success',
+            title: 'Berhasil',
+            text: `Cabang "${branch.name}" telah dinonaktifkan.`,
+          });
+        } catch (e) {
+          console.warn(e);
+        } finally {
+          setLoading(false);
+        }
       },
-    ]);
+    });
   };
 
   // Open Form Product Modal (Create / Edit)
@@ -404,34 +411,41 @@ export default function AdminDashboardScreen({
 
   // Delete Product
   const handleDeleteProduct = (prod) => {
-    const msg = `Hapus / non-aktifkan produk "${prod.name}"?`;
-    const doDelete = async () => {
-      setLoading(true);
-      try {
-        await apiService.deleteProduct(prod.id);
-        loadData();
-        if (onRefreshProducts) onRefreshProducts();
-      } catch (e) {
-        console.warn(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
-      if (window.confirm(msg)) doDelete();
-    } else {
-      Alert.alert('Konfirmasi Hapus', msg, [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Hapus', style: 'destructive', onPress: doDelete },
-      ]);
-    }
+    sweetAlert({
+      type: 'warning',
+      title: 'Hapus Produk',
+      text: `Apakah Anda yakin ingin menghapus / menonaktifkan produk "${prod.name}"?`,
+      confirmText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      showCancelButton: true,
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          await apiService.deleteProduct(prod.id);
+          loadData();
+          if (onRefreshProducts) onRefreshProducts();
+          sweetAlert({
+            type: 'success',
+            title: 'Berhasil',
+            text: `Produk "${prod.name}" telah dihapus.`,
+          });
+        } catch (e) {
+          console.warn(e);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   // Create Voucher
   const handleSaveVoucher = async () => {
     if (!formVoucherCode || !formVoucherTitle || !formVoucherDiscount) {
-      Alert.alert('Perhatian', 'Kode Voucher, Judul, dan Nilai Diskon wajib diisi.');
+      sweetAlert({
+        type: 'warning',
+        title: 'Perhatian',
+        text: 'Kode Voucher, Judul, dan Nilai Diskon wajib diisi.',
+      });
       return;
     }
 
@@ -447,14 +461,22 @@ export default function AdminDashboardScreen({
     setLoading(true);
     try {
       await apiService.createVoucher(payload);
-      Alert.alert('Sukses', `Voucher "${formVoucherCode.toUpperCase()}" berhasil dibuat!`);
+      sweetAlert({
+        type: 'success',
+        title: 'Berhasil',
+        text: `Voucher "${formVoucherCode.toUpperCase()}" berhasil dibuat!`,
+      });
       setIsVoucherModalOpen(false);
       setFormVoucherCode('');
       setFormVoucherTitle('');
       setFormVoucherDiscount('');
       loadData();
     } catch (e) {
-      Alert.alert('Gagal', e.message);
+      sweetAlert({
+        type: 'error',
+        title: 'Gagal',
+        text: e.message || 'Gagal membuat voucher.',
+      });
     } finally {
       setLoading(false);
     }
@@ -462,20 +484,27 @@ export default function AdminDashboardScreen({
 
   // Delete Voucher
   const handleDeleteVoucher = (vId) => {
-    const msg = 'Apakah Anda yakin ingin menghapus kode voucher ini?';
-    const doDelete = async () => {
-      await apiService.deleteVoucher(vId);
-      loadData();
-    };
-
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
-      if (window.confirm(msg)) doDelete();
-    } else {
-      Alert.alert('Hapus Voucher', msg, [
-        { text: 'Batal', style: 'cancel' },
-        { text: 'Hapus', style: 'destructive', onPress: doDelete },
-      ]);
-    }
+    sweetAlert({
+      type: 'warning',
+      title: 'Hapus Voucher',
+      text: 'Apakah Anda yakin ingin menghapus kode voucher ini?',
+      confirmText: 'Ya, Hapus',
+      cancelText: 'Batal',
+      showCancelButton: true,
+      onConfirm: async () => {
+        try {
+          await apiService.deleteVoucher(vId);
+          loadData();
+          sweetAlert({
+            type: 'success',
+            title: 'Berhasil',
+            text: 'Kode voucher telah dihapus.',
+          });
+        } catch (e) {
+          console.warn(e);
+        }
+      },
+    });
   };
 
   // Update Order Status (Cross-platform Web & Mobile + Instant Local UI State Update)
@@ -527,26 +556,25 @@ export default function AdminDashboardScreen({
       try {
         await apiService.updateOrderStatus(orderId, { status: newStatus, trackingNumber });
         await loadData();
+        sweetAlert({
+          type: 'success',
+          title: 'Status Diperbarui',
+          text: `Status pesanan #${orderId} telah diubah menjadi "${targetLabel}".`,
+        });
       } catch (err) {
         console.warn('⚠️ Gagal update status di backend:', err.message);
       }
     };
 
-    const confirmMsg = `Ubah status pesanan #${orderId} menjadi "${targetLabel}"?`;
-
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
-      if (window.confirm(confirmMsg)) {
-        executeUpdate();
-      }
-    } else {
-      Alert.alert('Ubah Status Pesanan', confirmMsg, [
-        { text: 'Batal', style: 'cancel' },
-        {
-          text: 'Ya, Ubah',
-          onPress: executeUpdate,
-        },
-      ]);
-    }
+    sweetAlert({
+      type: 'confirm',
+      title: 'Ubah Status Pesanan',
+      text: `Ubah status pesanan #${orderId} menjadi "${targetLabel}"?`,
+      confirmText: 'Ya, Ubah Status',
+      cancelText: 'Batal',
+      showCancelButton: true,
+      onConfirm: executeUpdate,
+    });
   };
 
   if (!visible) return null;
