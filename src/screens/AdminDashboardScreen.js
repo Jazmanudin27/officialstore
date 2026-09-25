@@ -938,46 +938,6 @@ export default function AdminDashboardScreen({
             <View style={styles.sectionWrap}>
               <Text style={styles.sectionTitle}>📋 Kelola Pesanan Masuk</Text>
 
-              {/* Ringkasan Notifikasi Jumlah Pesanan */}
-              <View style={{ backgroundColor: '#F8FAFC', padding: 14, borderRadius: 14, marginBottom: 14, borderWidth: 1, borderColor: '#E2E8F0' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                  <Ionicons name="notifications-circle" size={20} color="#D91E28" />
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: COLORS.textDark }}>
-                    Notifikasi & Ringkasan Pesanan ({orderCounts.all})
-                  </Text>
-                </View>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ flexDirection: 'row', gap: 8 }}>
-                  <View style={{ backgroundColor: '#FEF3C7', borderColor: '#FDE68A', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#D97706' }}>{orderCounts.unpaid}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309' }}>Menunggu Bayar</Text>
-                  </View>
-                  <View style={{ backgroundColor: '#FEE2E2', borderColor: '#FECACA', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#DC2626' }}>{orderCounts.pending}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#B91C1C' }}>Belum Diproses</Text>
-                  </View>
-                  <View style={{ backgroundColor: '#DBEAFE', borderColor: '#BFDBFE', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#2563EB' }}>{orderCounts.processing}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#1D4ED8' }}>Diproses</Text>
-                  </View>
-                  <View style={{ backgroundColor: '#F3E8FF', borderColor: '#E9D5FF', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#7C3AED' }}>{orderCounts.packing}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#6D28D9' }}>Dikemas</Text>
-                  </View>
-                  <View style={{ backgroundColor: '#E0F2FE', borderColor: '#BAE6FD', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#0284C7' }}>{orderCounts.shipped}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#0369A1' }}>Dikirim</Text>
-                  </View>
-                  <View style={{ backgroundColor: '#DCFCE7', borderColor: '#BBF7D0', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#16A34A' }}>{orderCounts.completed}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#15803D' }}>Selesai</Text>
-                  </View>
-                  <View style={{ backgroundColor: '#F1F5F9', borderColor: '#E2E8F0', borderWidth: 1, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, alignItems: 'center' }}>
-                    <Text style={{ fontSize: 15, fontWeight: '900', color: '#64748B' }}>{orderCounts.cancelled}</Text>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#475569' }}>Dibatalkan</Text>
-                  </View>
-                </ScrollView>
-              </View>
-
               {/* Status Filter Horizontal */}
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.orderFilterScroll}>
                 {[
