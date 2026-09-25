@@ -1597,6 +1597,66 @@ async function autoMigrateDatabaseColumns() {
 }
 autoMigrateDatabaseColumns();
 
+// Auto-verify & create user_carts table if not existing
+async function ensureUserCartsTable() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_carts (
+          user_id INT PRIMARY KEY,
+          cart_json LONGTEXT NOT NULL,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (err) {
+    console.warn('ensureUserCartsTable warning:', err.message);
+  }
+}
+ensureUserCartsTable();
+
+// User Cart Endpoints (Get & Save per User ID)
+app.get('/api/cart', async (req, res) => {
+  try {
+    await ensureUserCartsTable();
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.json({ status: 'ok', data: [] });
+    }
+    const [rows] = await pool.query('SELECT cart_json FROM user_carts WHERE user_id = ?', [userId]);
+    if (rows && rows.length > 0 && rows[0].cart_json) {
+      try {
+        const items = JSON.parse(rows[0].cart_json);
+        return res.json({ status: 'ok', data: Array.isArray(items) ? items : [] });
+      } catch (e) {
+        return res.json({ status: 'ok', data: [] });
+      }
+    }
+    res.json({ status: 'ok', data: [] });
+  } catch (error) {
+    console.error('Error fetching user cart:', error);
+    res.json({ status: 'ok', data: [] });
+  }
+});
+
+app.post('/api/cart', async (req, res) => {
+  try {
+    await ensureUserCartsTable();
+    const { userId, cartItems } = req.body;
+    if (!userId) {
+      return res.json({ status: 'ok', message: 'Guest cart ignored' });
+    }
+    const jsonStr = JSON.stringify(Array.isArray(cartItems) ? cartItems : []);
+    await pool.query(
+      `INSERT INTO user_carts (user_id, cart_json) VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE cart_json = VALUES(cart_json)`,
+      [userId, jsonStr]
+    );
+    res.json({ status: 'ok', message: 'Keranjang berhasil disimpan ke database!' });
+  } catch (error) {
+    console.error('Error saving user cart:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // 16. Admin: Get & Update Store Settings
 app.get('/api/admin/settings', async (req, res) => {
   try {

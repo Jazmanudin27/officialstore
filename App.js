@@ -289,7 +289,7 @@ function AppContent() {
     getItemQuantity,
     totalCartCount,
     cartTotal,
-  } = useCart();
+  } = useCart(currentUser);
 
   const [checkoutSelectedItems, setCheckoutSelectedItems] = useState([]);
 

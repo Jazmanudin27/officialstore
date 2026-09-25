@@ -1,29 +1,43 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { apiService } from '../services/api';
 import { storage } from '../utils/storage';
 
-const CART_STORAGE_KEY = 'official_store_cart_items';
+export function useCart(user = null) {
+  const [cartItems, setCartItems] = useState([]);
+  const userId = user?.id || null;
+  const isLoadedRef = useRef(false);
 
-export function useCart() {
-  const [cartItems, setCartItems] = useState(() => {
-    try {
-      const saved = storage.getItem(CART_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.warn('Failed to restore cart from storage:', e);
-      return [];
-    }
-  });
-
-  // Auto save to persistent storage whenever cartItems state updates
+  // Load user cart from Database API whenever user logged in changes
   useEffect(() => {
-    try {
-      storage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-    } catch (e) {
-      console.warn('Failed to save cart to storage:', e);
+    isLoadedRef.current = false;
+    if (!userId) {
+      setCartItems([]);
+      isLoadedRef.current = true;
+      return;
     }
-  }, [cartItems]);
+
+    let isMounted = true;
+    apiService.getUserCart(userId).then((items) => {
+      if (isMounted) {
+        setCartItems(Array.isArray(items) ? items : []);
+        isLoadedRef.current = true;
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  // Persist cart to Database whenever cartItems updates (only after initial load)
+  useEffect(() => {
+    if (isLoadedRef.current && userId) {
+      apiService.saveUserCart(userId, cartItems);
+    }
+  }, [cartItems, userId]);
 
   const addToCart = (product) => {
+    if (!product) return;
     setCartItems((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id);
       if (existingItem) {
@@ -56,10 +70,8 @@ export function useCart() {
 
   const clearCart = () => {
     setCartItems([]);
-    try {
-      storage.removeItem(CART_STORAGE_KEY);
-    } catch (e) {
-      console.warn('Failed to remove cart storage:', e);
+    if (userId) {
+      apiService.saveUserCart(userId, []);
     }
   };
 
@@ -73,7 +85,7 @@ export function useCart() {
   };
 
   const totalCartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + (Number(item.price) || 0) * item.quantity, 0);
 
   const getItemQuantity = (productId) => {
     const item = cartItems.find((i) => i.id === productId || i.sku === productId);

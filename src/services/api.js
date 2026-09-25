@@ -123,6 +123,43 @@ export const apiService = {
     return GRID_CATEGORIES;
   },
 
+  // 2.5 Kelola Keranjang Belanja Berdasarkan User ID di Database
+  async getUserCart(userId) {
+    if (!userId) return [];
+    try {
+      const json = await safeFetchJson(`${BASE_URL}/api/cart?userId=${userId}&t=${Date.now()}`);
+      if (json && json.status === 'ok' && Array.isArray(json.data)) {
+        return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Gagal mengambil keranjang user dari database:', e.message);
+    }
+    try {
+      const saved = storage.getItem(`official_store_cart_user_${userId}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  },
+
+  async saveUserCart(userId, cartItems) {
+    if (!userId) return;
+    const items = Array.isArray(cartItems) ? cartItems : [];
+    try {
+      storage.setItem(`official_store_cart_user_${userId}`, JSON.stringify(items));
+    } catch (e) {}
+
+    try {
+      await fetch(`${BASE_URL}/api/cart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, cartItems: items }),
+      });
+    } catch (e) {
+      console.warn('⚠️ Gagal menyimpan keranjang ke database server:', e.message);
+    }
+  },
+
   // 3. Simpan Transaksi Pesanan ke Database
   async createOrder(orderPayload) {
     let localOrders = [];
