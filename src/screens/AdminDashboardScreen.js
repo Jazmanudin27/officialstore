@@ -404,25 +404,28 @@ export default function AdminDashboardScreen({
 
   // Delete Product
   const handleDeleteProduct = (prod) => {
-    Alert.alert('Konfirmasi Hapus', `Hapus / non-aktifkan produk "${prod.name}"?`, [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          setLoading(true);
-          try {
-            await apiService.deleteProduct(prod.id);
-            loadData();
-            if (onRefreshProducts) onRefreshProducts();
-          } catch (e) {
-            console.warn(e);
-          } finally {
-            setLoading(false);
-          }
-        },
-      },
-    ]);
+    const msg = `Hapus / non-aktifkan produk "${prod.name}"?`;
+    const doDelete = async () => {
+      setLoading(true);
+      try {
+        await apiService.deleteProduct(prod.id);
+        loadData();
+        if (onRefreshProducts) onRefreshProducts();
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      if (window.confirm(msg)) doDelete();
+    } else {
+      Alert.alert('Konfirmasi Hapus', msg, [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Hapus', style: 'destructive', onPress: doDelete },
+      ]);
+    }
   };
 
   // Create Voucher
@@ -459,20 +462,23 @@ export default function AdminDashboardScreen({
 
   // Delete Voucher
   const handleDeleteVoucher = (vId) => {
-    Alert.alert('Hapus Voucher', 'Apakah Anda yakin ingin menghapus kode voucher ini?', [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Hapus',
-        style: 'destructive',
-        onPress: async () => {
-          await apiService.deleteVoucher(vId);
-          loadData();
-        },
-      },
-    ]);
+    const msg = 'Apakah Anda yakin ingin menghapus kode voucher ini?';
+    const doDelete = async () => {
+      await apiService.deleteVoucher(vId);
+      loadData();
+    };
+
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      if (window.confirm(msg)) doDelete();
+    } else {
+      Alert.alert('Hapus Voucher', msg, [
+        { text: 'Batal', style: 'cancel' },
+        { text: 'Hapus', style: 'destructive', onPress: doDelete },
+      ]);
+    }
   };
 
-  // Update Order Status
+  // Update Order Status (Cross-platform Web & Mobile + Instant Local UI State Update)
   const handleUpdateOrderStatus = (orderId, newStatus) => {
     const labels = {
       diproses: 'Terima Pesanan (Diproses)',
@@ -481,20 +487,66 @@ export default function AdminDashboardScreen({
       selesai: 'Selesai Pesanan (Selesai)',
     };
     const targetLabel = labels[newStatus] || newStatus;
-    Alert.alert('Ubah Status Pesanan', `Ubah status pesanan #${orderId} menjadi "${targetLabel}"?`, [
-      { text: 'Batal', style: 'cancel' },
-      {
-        text: 'Ya, Ubah',
-        onPress: async () => {
-          let trackingNumber = undefined;
-          if (newStatus === 'shipped' || newStatus === 'dikirim') {
-            trackingNumber = `REG-${Date.now().toString().slice(-8)}`;
+
+    const executeUpdate = async () => {
+      let trackingNumber = undefined;
+      if (newStatus === 'shipped' || newStatus === 'dikirim') {
+        trackingNumber = `REG-${Date.now().toString().slice(-8)}`;
+      }
+
+      // 1. Instant local state update for immediate UI response
+      setOrders((prevOrders) =>
+        (Array.isArray(prevOrders) ? prevOrders : []).map((o) => {
+          if (
+            String(o.id) === String(orderId) ||
+            String(o.dbId) === String(orderId) ||
+            String(o.orderNumber) === String(orderId) ||
+            String(o.nomorPesanan) === String(orderId)
+          ) {
+            return {
+              ...o,
+              status: newStatus,
+              trackingNumber: trackingNumber || o.trackingNumber,
+              statusLabel:
+                newStatus === 'diproses'
+                  ? 'DIPROSES'
+                  : newStatus === 'dikemas'
+                  ? 'DIKEMAS'
+                  : newStatus === 'dikirim'
+                  ? 'DIKIRIM'
+                  : newStatus === 'selesai'
+                  ? 'SELESAI'
+                  : o.statusLabel,
+            };
           }
-          await apiService.updateOrderStatus(orderId, { status: newStatus, trackingNumber });
-          loadData();
+          return o;
+        })
+      );
+
+      // 2. Persist to API & Storage
+      try {
+        await apiService.updateOrderStatus(orderId, { status: newStatus, trackingNumber });
+        await loadData();
+      } catch (err) {
+        console.warn('⚠️ Gagal update status di backend:', err.message);
+      }
+    };
+
+    const confirmMsg = `Ubah status pesanan #${orderId} menjadi "${targetLabel}"?`;
+
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function') {
+      if (window.confirm(confirmMsg)) {
+        executeUpdate();
+      }
+    } else {
+      Alert.alert('Ubah Status Pesanan', confirmMsg, [
+        { text: 'Batal', style: 'cancel' },
+        {
+          text: 'Ya, Ubah',
+          onPress: executeUpdate,
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   if (!visible) return null;
