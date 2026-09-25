@@ -4,15 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../../utils/formatters';
 import { COLORS } from '../../constants/theme';
 
-let motion = null;
-if (Platform.OS === 'web') {
-  try {
-    motion = require('framer-motion').motion;
-  } catch (e) {
-    console.warn('Framer motion load notice:', e);
-  }
-}
-
 export default function ProductCard({
   product,
   onAddToCart,
@@ -23,22 +14,61 @@ export default function ProductCard({
   onSelectProduct,
 }) {
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const translateYAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
+      duration: 350,
+      useNativeDriver: false,
     }).start();
   }, []);
+
+  const handleMouseEnter = () => {
+    if (Platform.OS === 'web') {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1.02,
+          friction: 6,
+          tension: 180,
+          useNativeDriver: false,
+        }),
+        Animated.spring(translateYAnim, {
+          toValue: -5,
+          friction: 6,
+          tension: 180,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (Platform.OS === 'web') {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 6,
+          tension: 180,
+          useNativeDriver: false,
+        }),
+        Animated.spring(translateYAnim, {
+          toValue: 0,
+          friction: 6,
+          tension: 180,
+          useNativeDriver: false,
+        }),
+      ]).start();
+    }
+  };
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, {
       toValue: 0.96,
       friction: 8,
-      tension: 200,
-      useNativeDriver: true,
+      tension: 220,
+      useNativeDriver: false,
     }).start();
   };
 
@@ -47,28 +77,25 @@ export default function ProductCard({
       toValue: 1,
       friction: 5,
       tension: 200,
-      useNativeDriver: true,
+      useNativeDriver: false,
     }).start();
   };
 
-  const CardWrapper = motion ? motion.div : Animated.View;
-  const motionProps = motion
-    ? {
-        initial: { opacity: 0, y: 20, scale: 0.95 },
-        animate: { opacity: 1, y: 0, scale: 1 },
-        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
-        whileHover: { y: -6, scale: 1.02, transition: { duration: 0.2 } },
-        whileTap: { scale: 0.97 },
-      }
-    : {};
-
   return (
-    <CardWrapper
-      {...motionProps}
+    <Animated.View
       style={[
         styles.cardOuter,
-        !motion && { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+        {
+          opacity: fadeAnim,
+          transform: [{ scale: scaleAnim }, { translateY: translateYAnim }],
+        },
       ]}
+      {...(Platform.OS === 'web'
+        ? {
+            onMouseEnter: handleMouseEnter,
+            onMouseLeave: handleMouseLeave,
+          }
+        : {})}
     >
       <TouchableOpacity
         style={styles.card}
@@ -172,7 +199,7 @@ export default function ProductCard({
           )}
         </View>
       </TouchableOpacity>
-    </CardWrapper>
+    </Animated.View>
   );
 }
 
