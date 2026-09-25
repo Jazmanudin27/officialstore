@@ -41,6 +41,7 @@ import SplashScreen from './src/components/splash/SplashScreen';
 import LandingWebsiteScreen from './src/screens/LandingWebsiteScreen';
 import ErrorBoundary from './src/components/ErrorBoundary';
 import SweetAlertContainer from './src/components/common/SweetAlert';
+import PullToRefreshWrapper from './src/components/common/PullToRefreshWrapper';
 import { storage } from './src/utils/storage';
 
 import PageTransition from './src/components/navigation/PageTransition';
@@ -504,6 +505,8 @@ function AppContent() {
           onOpenAuth={() => setIsAuthOpen(true)}
           favoriteCount={favoriteCount}
           onOpenAdmin={() => setIsAdminOpen(true)}
+          onRefresh={handleRefresh}
+          refreshing={refreshing}
         />
       )}
 
@@ -515,9 +518,11 @@ function AppContent() {
           activeTab === 'website' && { paddingBottom: 0, backgroundColor: '#1F080A' },
         ]}
       >
-        <PageTransition activeTab={activeTab}>
-          {renderTabContent()}
-        </PageTransition>
+        <PullToRefreshWrapper onRefresh={handleRefresh} refreshing={refreshing}>
+          <PageTransition activeTab={activeTab}>
+            {renderTabContent()}
+          </PageTransition>
+        </PullToRefreshWrapper>
       </View>
 
       {/* Interactive Search Screen Modal */}

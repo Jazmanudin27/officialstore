@@ -38,6 +38,8 @@ export default function Header({
   onOpenAuth = () => {},
   favoriteCount = 0,
   onOpenAdmin = () => {},
+  onRefresh = null,
+  refreshing = false,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
@@ -318,6 +320,12 @@ export default function Header({
             </TouchableOpacity>
 
             <View style={styles.actionRow}>
+              {onRefresh && (
+                <TouchableOpacity style={styles.iconBtn} onPress={onRefresh} activeOpacity={0.7}>
+                  <Ionicons name="reload-outline" size={20} color={COLORS.white} />
+                </TouchableOpacity>
+              )}
+
               {user?.role === 'admin' && (
                 <TouchableOpacity
                   onPress={onOpenAdmin}
