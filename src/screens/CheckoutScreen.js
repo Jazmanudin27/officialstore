@@ -163,43 +163,34 @@ export default function CheckoutScreen({
         console.warn('Order save error:', dbErr.message);
       }
 
-      if (snapRes && snapRes.token) {
-        // Trigger Snap Popup di browser web
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          const launchSnapModal = () => {
-            if (window.snap) {
-              window.snap.pay(snapRes.token, {
-                onSuccess: (result) => {
-                  finishOrder('Midtrans (Pembayaran Berhasil)');
-                },
-                onPending: (result) => {
-                  finishOrder('Midtrans (Menunggu Pembayaran)');
-                },
-                onError: (result) => {
-                  Alert.alert('Pembayaran Gagal', 'Proses pembayaran Midtrans tidak berhasil.');
-                },
-                onClose: () => {
-                  console.log('Snap popup closed by user');
-                },
-              });
-            } else if (snapRes.redirectUrl) {
-              window.open(snapRes.redirectUrl, '_blank');
-              finishOrder('Midtrans Sandbox Redirect');
-            }
-          };
-
-          if (!window.snap) {
-            const script = document.createElement('script');
-            script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-            script.setAttribute('data-client-key', snapRes.clientKey || 'SB-Mid-client-gtkZiSrCZjZHYwwZ');
-            script.onload = launchSnapModal;
-            document.head.appendChild(script);
-          } else {
-            launchSnapModal();
+      if (snapRes && (snapRes.token || snapRes.redirectUrl)) {
+        if (typeof window !== 'undefined' && window.snap && typeof window.snap.pay === 'function' && snapRes.token) {
+          try {
+            window.snap.pay(snapRes.token, {
+              onSuccess: (result) => {
+                finishOrder('Midtrans (Pembayaran Berhasil)');
+              },
+              onPending: (result) => {
+                finishOrder('Midtrans (Menunggu Pembayaran)');
+              },
+              onError: (result) => {
+                finishOrder('Midtrans (Belum Bayar)');
+              },
+              onClose: () => {
+                finishOrder('Midtrans (Belum Bayar)');
+              },
+            });
+            return;
+          } catch (snapErr) {
+            console.warn('Snap pay error:', snapErr.message);
           }
-        } else if (snapRes.redirectUrl) {
-          window.open(snapRes.redirectUrl, '_blank');
+        }
+
+        if (snapRes.redirectUrl && typeof window !== 'undefined') {
+          window.location.href = snapRes.redirectUrl;
           finishOrder('Midtrans Payment Redirect');
+        } else {
+          finishOrder('Midtrans Payment');
         }
       } else {
         throw new Error('Gagal mendapatkan token transaksi Midtrans.');

@@ -163,45 +163,35 @@ export default function PaymentScreen({
         })),
       });
 
-      if (snapRes && snapRes.token) {
-        if (Platform.OS === 'web' && typeof window !== 'undefined') {
-          const launchSnapModal = () => {
-            if (window.snap) {
-              window.snap.pay(snapRes.token, {
-                onSuccess: (result) => {
-                  finishOrder(`Midtrans (${selectedMethodObj.name})`);
-                },
-                onPending: (result) => {
-                  finishOrder(`Midtrans (${selectedMethodObj.name} - Menunggu Pembayaran)`);
-                },
-                onError: (result) => {
-                  finishOrder(`Midtrans (${selectedMethodObj.name} - Belum Bayar)`);
-                },
-                onClose: () => {
-                  finishOrder(`Midtrans (${selectedMethodObj.name} - Belum Bayar)`);
-                },
-              });
-            } else if (snapRes.redirectUrl) {
-              window.open(snapRes.redirectUrl, '_blank');
-              finishOrder(`Midtrans Redirect (${selectedMethodObj.name})`);
-            }
-          };
-
-          if (!window.snap) {
-            const script = document.createElement('script');
-            script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-            script.setAttribute(
-              'data-client-key',
-              snapRes.clientKey || 'SB-Mid-client-gtkZiSrCZjZHYwwZ'
-            );
-            script.onload = launchSnapModal;
-            document.head.appendChild(script);
-          } else {
-            launchSnapModal();
+      if (snapRes && (snapRes.token || snapRes.redirectUrl)) {
+        if (typeof window !== 'undefined' && window.snap && typeof window.snap.pay === 'function' && snapRes.token) {
+          try {
+            window.snap.pay(snapRes.token, {
+              onSuccess: (result) => {
+                finishOrder(`Midtrans (${selectedMethodObj.name})`);
+              },
+              onPending: (result) => {
+                finishOrder(`Midtrans (${selectedMethodObj.name} - Menunggu Pembayaran)`);
+              },
+              onError: (result) => {
+                finishOrder(`Midtrans (${selectedMethodObj.name} - Belum Bayar)`);
+              },
+              onClose: () => {
+                finishOrder(`Midtrans (${selectedMethodObj.name} - Belum Bayar)`);
+              },
+            });
+            return;
+          } catch (snapErr) {
+            console.warn('Snap pay error:', snapErr.message);
           }
-        } else if (snapRes.redirectUrl) {
-          window.open(snapRes.redirectUrl, '_blank');
-          finishOrder(`Midtrans Redirect (${selectedMethodObj.name})`);
+        }
+
+        // Direct redirect fallback to Midtrans payment gateway (100% reliable on mobile browsers)
+        if (snapRes.redirectUrl && typeof window !== 'undefined') {
+          window.location.href = snapRes.redirectUrl;
+          finishOrder(`Midtrans (${selectedMethodObj.name})`);
+        } else {
+          finishOrder(`Pesanan (${selectedMethodObj.name})`);
         }
       } else {
         finishOrder(`Pesanan (${selectedMethodObj.name})`);
