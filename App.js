@@ -575,10 +575,13 @@ function AppContent() {
         onOpenAddress={handleOpenAddressFromCheckout}
         onOpenVoucher={handleOpenVoucherFromCheckout}
         user={currentUser}
+        onCompleteCheckout={() => {
+          clearCart();
+          setCheckoutSelectedItems([]);
+          setSelectedVoucher(null);
+        }}
         onOrderSuccess={() => {
-          const itemsToRemove =
-            checkoutSelectedItems.length > 0 ? checkoutSelectedItems : cartItems;
-          removePurchasedItems(itemsToRemove);
+          clearCart();
           setCheckoutSelectedItems([]);
           setSelectedVoucher(null);
         }}

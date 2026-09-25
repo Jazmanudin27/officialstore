@@ -20,6 +20,7 @@ import AddressModal from './AddressModal';
 import VoucherScreen from './VoucherScreen';
 import PaymentScreen from './PaymentScreen';
 import apiService from '../services/api';
+import { sweetAlert } from '../components/common/SweetAlert';
 
 const COURIER_OPTIONS = [
   {
@@ -211,25 +212,17 @@ export default function CheckoutScreen({
   };
 
   const finishOrder = (method) => {
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.alert(`🎉 Pesanan Berhasil Diproses!\n\nTerima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal Pembayaran: ${formatRupiah(finalTotal)}`);
-      if (onCompleteCheckout) onCompleteCheckout();
-      onClose();
-    } else {
-      Alert.alert(
-        '🎉 Pesanan Berhasil Diproses!',
-        `Terima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal: ${formatRupiah(finalTotal)}`,
-        [
-          {
-            text: 'Selesai',
-            onPress: () => {
-              if (onCompleteCheckout) onCompleteCheckout();
-              onClose();
-            },
-          },
-        ]
-      );
-    }
+    if (onCompleteCheckout) onCompleteCheckout();
+    if (onOrderSuccess) onOrderSuccess();
+    sweetAlert({
+      type: 'success',
+      title: '🎉 Pesanan Berhasil Diproses!',
+      text: `Terima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal Pembayaran: ${formatRupiah(finalTotal)}`,
+      confirmText: 'Selesai',
+      onConfirm: () => {
+        onClose();
+      },
+    });
   };
 
   const processPayment = (method) => {

@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
 import apiService from '../services/api';
+import { sweetAlert } from '../components/common/SweetAlert';
 
 const PAYMENT_METHODS = [
   {
@@ -242,22 +243,16 @@ export default function PaymentScreen({
   };
 
   const finishOrder = (method) => {
-    const msg = `🎉 Pesanan Berhasil Diproses!\n\nTerima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal Pembayaran: ${formatRupiah(finalTotal)}`;
-    if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.alert(msg);
-      if (onCompleteCheckout) onCompleteCheckout();
-      onClose();
-    } else {
-      Alert.alert('🎉 Pesanan Berhasil Diproses!', msg, [
-        {
-          text: 'Selesai',
-          onPress: () => {
-            if (onCompleteCheckout) onCompleteCheckout();
-            onClose();
-          },
-        },
-      ]);
-    }
+    if (onCompleteCheckout) onCompleteCheckout();
+    sweetAlert({
+      type: 'success',
+      title: '🎉 Pesanan Berhasil Diproses!',
+      text: `Terima kasih! Pesanan Anda telah dibuat menggunakan ${method}.\nTotal Pembayaran: ${formatRupiah(finalTotal)}`,
+      confirmText: 'Selesai',
+      onConfirm: () => {
+        onClose();
+      },
+    });
   };
 
   if (!visible) return null;
