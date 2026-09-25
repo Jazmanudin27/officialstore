@@ -1067,163 +1067,172 @@ export default function AdminDashboardScreen({
                       </View>
                     </View>
 
-                    {/* Order Status Controller Action (4 Tombol Berurutan) */}
-                    <View style={styles.orderActionRow}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 2 }}>
-                        <Ionicons name="options-outline" size={13} color="#64748B" />
-                        <Text style={styles.updateLabel}>Ubah Status:</Text>
+                    {/* Order Status Controller Action (Sembunyikan tombol Ubah Status jika Menunggu Pembayaran) */}
+                    {(!isCodOrder(ord) && (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unpaid' || ord.status === 'belum_bayar')) ? (
+                      <View style={styles.waitingNoticeContainer}>
+                        <Ionicons name="time-outline" size={15} color="#D97706" />
+                        <Text style={styles.waitingNoticeText}>
+                          Menunggu pembayaran dari pelanggan. Tombol ubah status disembunyikan.
+                        </Text>
                       </View>
+                    ) : (
+                      <View style={styles.orderActionRow}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginRight: 2 }}>
+                          <Ionicons name="options-outline" size={13} color="#64748B" />
+                          <Text style={styles.updateLabel}>Ubah Status:</Text>
+                        </View>
 
-                      {/* 1. Terima Pesanan (diproses) */}
-                      {(() => {
-                        const isCurrent = (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unprocessed');
-                        const isDone = (ord.status === 'processing' || ord.status === 'diproses' || ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
-                        
-                        return (
-                          <TouchableOpacity
-                            style={[
-                              styles.statusActionBtn,
-                              isCurrent
-                                ? { backgroundColor: '#2563EB', borderColor: '#1D4ED8', shadowColor: '#2563EB', shadowOpacity: 0.35, elevation: 4 }
-                                : isDone
-                                ? { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }
-                                : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
-                            ]}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'diproses');
-                            }}
-                            activeOpacity={0.75}
-                          >
-                            <Ionicons
-                              name={isDone ? "checkmark-circle" : "clipboard"}
-                              size={14}
-                              color={isCurrent ? "#FFFFFF" : isDone ? "#2563EB" : "#64748B"}
-                            />
-                            <Text
+                        {/* 1. Terima Pesanan (diproses) */}
+                        {(() => {
+                          const isCurrent = (ord.status === 'pending' || ord.status === 'menunggu' || ord.status === 'unprocessed');
+                          const isDone = (ord.status === 'processing' || ord.status === 'diproses' || ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
+                          
+                          return (
+                            <TouchableOpacity
                               style={[
-                                styles.statusActionText,
-                                { color: isCurrent ? '#FFFFFF' : isDone ? '#2563EB' : '#64748B' },
+                                styles.statusActionBtn,
+                                isCurrent
+                                  ? { backgroundColor: '#2563EB', borderColor: '#1D4ED8', shadowColor: '#2563EB', shadowOpacity: 0.35, elevation: 4 }
+                                  : isDone
+                                  ? { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }
+                                  : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
                               ]}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleUpdateOrderStatus(ord.dbId || ord.id, 'diproses');
+                              }}
+                              activeOpacity={0.75}
                             >
-                              {isDone ? 'Sudah Diterima' : 'Terima Pesanan'}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })()}
+                              <Ionicons
+                                name={isDone ? "checkmark-circle" : "clipboard"}
+                                size={14}
+                                color={isCurrent ? "#FFFFFF" : isDone ? "#2563EB" : "#64748B"}
+                              />
+                              <Text
+                                style={[
+                                  styles.statusActionText,
+                                  { color: isCurrent ? '#FFFFFF' : isDone ? '#2563EB' : '#64748B' },
+                                ]}
+                              >
+                                {isDone ? 'Sudah Diterima' : 'Terima Pesanan'}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })()}
 
-                      {/* 2. Kemas Pesanan (dikemas) */}
-                      {(() => {
-                        const isCurrent = (ord.status === 'processing' || ord.status === 'diproses');
-                        const isDone = (ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
-                        
-                        return (
-                          <TouchableOpacity
-                            style={[
-                              styles.statusActionBtn,
-                              isCurrent
-                                ? { backgroundColor: '#7C3AED', borderColor: '#6D28D9', shadowColor: '#7C3AED', shadowOpacity: 0.35, elevation: 4 }
-                                : isDone
-                                ? { backgroundColor: '#F3E8FF', borderColor: '#DDD6FE' }
-                                : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
-                            ]}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'dikemas');
-                            }}
-                            activeOpacity={0.75}
-                          >
-                            <Ionicons
-                              name={isDone ? "checkmark-circle" : "cube"}
-                              size={14}
-                              color={isCurrent ? "#FFFFFF" : isDone ? "#7C3AED" : "#64748B"}
-                            />
-                            <Text
+                        {/* 2. Kemas Pesanan (dikemas) */}
+                        {(() => {
+                          const isCurrent = (ord.status === 'processing' || ord.status === 'diproses');
+                          const isDone = (ord.status === 'packing' || ord.status === 'dikemas' || ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
+                          
+                          return (
+                            <TouchableOpacity
                               style={[
-                                styles.statusActionText,
-                                { color: isCurrent ? '#FFFFFF' : isDone ? '#7C3AED' : '#64748B' },
+                                styles.statusActionBtn,
+                                isCurrent
+                                  ? { backgroundColor: '#7C3AED', borderColor: '#6D28D9', shadowColor: '#7C3AED', shadowOpacity: 0.35, elevation: 4 }
+                                  : isDone
+                                  ? { backgroundColor: '#F3E8FF', borderColor: '#DDD6FE' }
+                                  : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
                               ]}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleUpdateOrderStatus(ord.dbId || ord.id, 'dikemas');
+                              }}
+                              activeOpacity={0.75}
                             >
-                              {isDone ? 'Sudah Dikemas' : 'Kemas Pesanan'}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })()}
+                              <Ionicons
+                                name={isDone ? "checkmark-circle" : "cube"}
+                                size={14}
+                                color={isCurrent ? "#FFFFFF" : isDone ? "#7C3AED" : "#64748B"}
+                              />
+                              <Text
+                                style={[
+                                  styles.statusActionText,
+                                  { color: isCurrent ? '#FFFFFF' : isDone ? '#7C3AED' : '#64748B' },
+                                ]}
+                              >
+                                {isDone ? 'Sudah Dikemas' : 'Kemas Pesanan'}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })()}
 
-                      {/* 3. Kirim Pesanan (dikirim) */}
-                      {(() => {
-                        const isCurrent = (ord.status === 'packing' || ord.status === 'dikemas');
-                        const isDone = (ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
-                        
-                        return (
-                          <TouchableOpacity
-                            style={[
-                              styles.statusActionBtn,
-                              isCurrent
-                                ? { backgroundColor: '#0284C7', borderColor: '#0369A1', shadowColor: '#0284C7', shadowOpacity: 0.35, elevation: 4 }
-                                : isDone
-                                ? { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD' }
-                                : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
-                            ]}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'dikirim');
-                            }}
-                            activeOpacity={0.75}
-                          >
-                            <Ionicons
-                              name={isDone ? "checkmark-circle" : "paper-plane"}
-                              size={14}
-                              color={isCurrent ? "#FFFFFF" : isDone ? "#0284C7" : "#64748B"}
-                            />
-                            <Text
+                        {/* 3. Kirim Pesanan (dikirim) */}
+                        {(() => {
+                          const isCurrent = (ord.status === 'packing' || ord.status === 'dikemas');
+                          const isDone = (ord.status === 'shipped' || ord.status === 'dikirim' || ord.status === 'completed' || ord.status === 'selesai');
+                          
+                          return (
+                            <TouchableOpacity
                               style={[
-                                styles.statusActionText,
-                                { color: isCurrent ? '#FFFFFF' : isDone ? '#0284C7' : '#64748B' },
+                                styles.statusActionBtn,
+                                isCurrent
+                                  ? { backgroundColor: '#0284C7', borderColor: '#0369A1', shadowColor: '#0284C7', shadowOpacity: 0.35, elevation: 4 }
+                                  : isDone
+                                  ? { backgroundColor: '#E0F2FE', borderColor: '#BAE6FD' }
+                                  : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
                               ]}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleUpdateOrderStatus(ord.dbId || ord.id, 'dikirim');
+                              }}
+                              activeOpacity={0.75}
                             >
-                              {isDone ? 'Sudah Dikirim' : 'Kirim Pesanan'}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })()}
+                              <Ionicons
+                                name={isDone ? "checkmark-circle" : "paper-plane"}
+                                size={14}
+                                color={isCurrent ? "#FFFFFF" : isDone ? "#0284C7" : "#64748B"}
+                              />
+                              <Text
+                                style={[
+                                  styles.statusActionText,
+                                  { color: isCurrent ? '#FFFFFF' : isDone ? '#0284C7' : '#64748B' },
+                                ]}
+                              >
+                                {isDone ? 'Sudah Dikirim' : 'Kirim Pesanan'}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })()}
 
-                      {/* 4. Selesai Pesanan (selesai) */}
-                      {(() => {
-                        const isCurrent = (ord.status === 'shipped' || ord.status === 'dikirim');
-                        const isDone = (ord.status === 'completed' || ord.status === 'selesai');
-                        
-                        return (
-                          <TouchableOpacity
-                            style={[
-                              styles.statusActionBtn,
-                              isCurrent || isDone
-                                ? { backgroundColor: '#10B981', borderColor: '#059669', shadowColor: '#10B981', shadowOpacity: 0.35, elevation: 4 }
-                                : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
-                            ]}
-                            onPress={(e) => {
-                              e.stopPropagation();
-                              handleUpdateOrderStatus(ord.dbId || ord.id, 'selesai');
-                            }}
-                            activeOpacity={0.75}
-                          >
-                            <Ionicons
-                              name="checkmark-done-circle"
-                              size={14}
-                              color={isCurrent || isDone ? "#FFFFFF" : "#64748B"}
-                            />
-                            <Text
+                        {/* 4. Selesai Pesanan (selesai) */}
+                        {(() => {
+                          const isCurrent = (ord.status === 'shipped' || ord.status === 'dikirim');
+                          const isDone = (ord.status === 'completed' || ord.status === 'selesai');
+                          
+                          return (
+                            <TouchableOpacity
                               style={[
-                                styles.statusActionText,
-                                { color: isCurrent || isDone ? '#FFFFFF' : '#64748B' },
+                                styles.statusActionBtn,
+                                isCurrent || isDone
+                                  ? { backgroundColor: '#10B981', borderColor: '#059669', shadowColor: '#10B981', shadowOpacity: 0.35, elevation: 4 }
+                                  : { backgroundColor: '#FFFFFF', borderColor: '#E2E8F0' },
                               ]}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleUpdateOrderStatus(ord.dbId || ord.id, 'selesai');
+                              }}
+                              activeOpacity={0.75}
                             >
-                              {isDone ? 'Selesai ✓' : 'Selesai Pesanan'}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })()}
-                    </View>
+                              <Ionicons
+                                name="checkmark-done-circle"
+                                size={14}
+                                color={isCurrent || isDone ? "#FFFFFF" : "#64748B"}
+                              />
+                              <Text
+                                style={[
+                                  styles.statusActionText,
+                                  { color: isCurrent || isDone ? '#FFFFFF' : '#64748B' },
+                                ]}
+                              >
+                                {isDone ? 'Selesai ✓' : 'Selesai Pesanan'}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })()}
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ))
               )}
@@ -2349,6 +2358,23 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: '#F1F5F9',
+  },
+  waitingNoticeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  waitingNoticeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#D97706',
   },
   updateLabel: {
     fontSize: 11,
