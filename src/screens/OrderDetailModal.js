@@ -170,7 +170,7 @@ export default function OrderDetailModal({
                       {order.type === 'pickup' ? 'Ambil di Toko (Pickup)' : 'Kirim ke Alamat'}
                     </Text>
                   </View>
-                  {order.courier && (
+                  {order.courier && (order.status === 'shipped' || order.status === 'dikirim' || order.status === 'completed' || order.status === 'selesai') && (
                     <Text style={styles.courierText}>Kurir: {order.courier}</Text>
                   )}
                 </View>
