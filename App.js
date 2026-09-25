@@ -605,6 +605,12 @@ function AppContent() {
         onClose={handleCloseAddress}
         onSelectAddress={(addr) => {
           setSelectedAddress(addr);
+          if (currentUser && addr && addr.addressLine1 && !addr.isPickup) {
+            handleSaveUserSession({
+              ...currentUser,
+              alamat: addr.addressLine1,
+            });
+          }
           handleCloseAddress();
         }}
         selectedAddress={selectedAddress}

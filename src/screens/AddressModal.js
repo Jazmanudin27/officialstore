@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../constants/theme';
+import { apiService } from '../services/api';
 
 export default function AddressModal({
   visible,
@@ -62,22 +63,7 @@ export default function AddressModal({
   };
 
   const [addressList, setAddressList] = useState(() => getInitialAddresses(user));
-
-  React.useEffect(() => {
-    setAddressList(getInitialAddresses(user));
-  }, [user]);
-
-  React.useEffect(() => {
-    if (selectedAddress?.isPickup) {
-      setFulfillmentMode('pickup');
-      if (selectedAddress?.id) setSelectedStoreId(selectedAddress.id);
-    } else if (selectedAddress?.id) {
-      setFulfillmentMode('delivery');
-      setSelectedAddressId(selectedAddress.id);
-    }
-  }, [selectedAddress]);
-
-  const stores = [
+  const [storesList, setStoresList] = useState([
     {
       id: 's1',
       name: 'PERINTIS 158',
@@ -106,9 +92,65 @@ export default function AddressModal({
       distance: '1,80 km',
       hours: '06:30 - 22:00',
     },
-  ];
+  ]);
 
-  const filteredStores = stores.filter(
+  useEffect(() => {
+    // Synchronize stores from database
+    apiService.getAdminStores()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const formatted = data.map((st, index) => ({
+            id: String(st.id || `s${index + 1}`),
+            name: st.name || st.nama_toko || 'Cabang Official Store',
+            address: st.address || st.alamat_toko || 'Tasikmalaya',
+            distance: `${(0.15 + index * 0.4).toFixed(2).replace('.', ',')} km`,
+            hours: st.hours || st.jam_operasional || '07:00 - 22:00',
+          }));
+          setStoresList(formatted);
+        }
+      })
+      .catch((e) => console.warn('Failed to load dynamic store branches:', e));
+
+    // Load user addresses from database
+    if (user?.id) {
+      apiService.getUserAddresses(user.id)
+        .then((dbAddrs) => {
+          if (Array.isArray(dbAddrs) && dbAddrs.length > 0) {
+            const formatted = dbAddrs.map((a) => ({
+              id: String(a.id),
+              title: a.title || 'Rumah',
+              isUtama: !!a.isUtama,
+              recipient: a.recipient || user.namaLengkap,
+              phone: a.phone || user.phone || '',
+              addressLine1: a.addressLine1 || a.address || '',
+              addressLine2: a.addressLine2 || 'Alamat Tersimpan Database',
+              note: a.note || null,
+            }));
+            setAddressList(formatted);
+          } else {
+            setAddressList(getInitialAddresses(user));
+          }
+        })
+        .catch((e) => {
+          console.warn('Failed to fetch addresses from database:', e);
+          setAddressList(getInitialAddresses(user));
+        });
+    } else {
+      setAddressList(getInitialAddresses(user));
+    }
+  }, [user, visible]);
+
+  useEffect(() => {
+    if (selectedAddress?.isPickup) {
+      setFulfillmentMode('pickup');
+      if (selectedAddress?.id) setSelectedStoreId(selectedAddress.id);
+    } else if (selectedAddress?.id) {
+      setFulfillmentMode('delivery');
+      setSelectedAddressId(selectedAddress.id);
+    }
+  }, [selectedAddress]);
+
+  const filteredStores = storesList.filter(
     (s) =>
       s.name.toLowerCase().includes(storeSearchText.toLowerCase()) ||
       s.address.toLowerCase().includes(storeSearchText.toLowerCase())
@@ -164,16 +206,39 @@ export default function AddressModal({
     setIsFormOpen(true);
   };
 
-  const handleSaveForm = () => {
+  const handleSaveForm = async () => {
     if (!formRecipient.trim() || !formAddressLine1.trim()) {
       alert('Mohon lengkapi Nama Penerima dan Alamat Lengkap.');
       return;
     }
+
+    const payload = {
+      addressId: editingAddrId,
+      label: formTitle || 'Rumah',
+      recipient: formRecipient.trim(),
+      phone: formPhone.trim(),
+      addressLine1: formAddressLine1.trim(),
+      note: formNote ? formNote.trim() : null,
+      isUtama: editingAddrId ? (addressList.find((a) => a.id === editingAddrId)?.isUtama || false) : addressList.length === 0,
+    };
+
+    if (user?.id) {
+      try {
+        const res = await apiService.saveUserAddress(user.id, payload);
+        if (res && res.data && res.data.id) {
+          payload.addressId = String(res.data.id);
+        }
+      } catch (e) {
+        console.warn('Gagal menyimpan alamat ke database server:', e);
+      }
+    }
+
     if (editingAddrId) {
       const updated = addressList.map((item) =>
         item.id === editingAddrId
           ? {
               ...item,
+              id: payload.addressId || item.id,
               title: formTitle,
               recipient: formRecipient,
               phone: formPhone,
@@ -184,11 +249,11 @@ export default function AddressModal({
           : item
       );
       setAddressList(updated);
-      const updatedItem = updated.find((a) => a.id === editingAddrId);
+      const updatedItem = updated.find((a) => a.id === (payload.addressId || editingAddrId));
       if (updatedItem) handleSelectAddress(updatedItem);
     } else {
       const newAddr = {
-        id: `addr_${Date.now()}`,
+        id: payload.addressId || `addr_${Date.now()}`,
         title: formTitle || 'Alamat Baru',
         isUtama: addressList.length === 0,
         recipient: formRecipient,
@@ -204,12 +269,29 @@ export default function AddressModal({
     setIsFormOpen(false);
   };
 
-  const handleMakeUtama = (addr) => {
+  const handleMakeUtama = async (addr) => {
     const updated = addressList.map((item) => ({
       ...item,
       isUtama: item.id === addr.id,
     }));
     setAddressList(updated);
+
+    if (user?.id) {
+      try {
+        await apiService.saveUserAddress(user.id, {
+          addressId: addr.id,
+          label: addr.title,
+          recipient: addr.recipient,
+          phone: addr.phone,
+          addressLine1: addr.addressLine1,
+          note: addr.note,
+          isUtama: true,
+        });
+      } catch (e) {
+        console.warn('Gagal set alamat utama ke database:', e);
+      }
+    }
+
     const target = updated.find((a) => a.id === addr.id);
     if (target) handleSelectAddress(target);
   };

@@ -432,6 +432,38 @@ export const apiService = {
     }
   },
 
+  // 6.5 Ambil & Simpan Alamat User dari MySQL Database
+  async getUserAddresses(userId) {
+    if (!userId) return [];
+    try {
+      const json = await safeFetchJson(`${BASE_URL}/api/user/addresses?userId=${userId}&t=${Date.now()}`);
+      if (json && json.status === 'ok' && Array.isArray(json.data)) {
+        return json.data;
+      }
+    } catch (e) {
+      console.warn('ℹ️ Gagal mengambil alamat user dari database:', e.message);
+    }
+    return [];
+  },
+
+  async saveUserAddress(userId, addressData) {
+    try {
+      const response = await fetch(`${BASE_URL}/api/user/address/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...addressData }),
+      });
+      const json = await response.json();
+      if (response.ok && json.status === 'ok') {
+        return json;
+      }
+      throw new Error(json.message || 'Gagal menyimpan alamat ke database');
+    } catch (e) {
+      console.warn('⚠️ Gagal menyimpan alamat user ke database:', e.message);
+      return { status: 'ok', fallback: true };
+    }
+  },
+
   // Admin Login (Validasi Langsung dari Database MySQL Server)
   async adminLogin(credentials) {
     try {

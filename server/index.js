@@ -398,6 +398,62 @@ app.all(['/api/auth/register', '/api/register'], async (req, res) => {
   }
 });
 
+// C.2. Ambil Semua Alamat User dari MySQL Database
+app.get(['/api/user/addresses', '/api/user/addresses/:userId'], async (req, res) => {
+  try {
+    const userId = req.params.userId || req.query.userId || 1;
+    const [rows] = await pool.query(
+      'SELECT address_id AS id, label_alamat AS title, nama_penerima AS recipient, nomor_telepon AS phone, alamat_lengkap AS addressLine1, catatan_patokan AS note, is_utama AS isUtama FROM user_addresses WHERE user_id = ? ORDER BY is_utama DESC, address_id DESC',
+      [userId]
+    );
+    res.json({ status: 'ok', data: rows });
+  } catch (error) {
+    console.error('Error fetching user addresses:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
+// C.3. Simpan atau Update Alamat User ke MySQL Database
+app.all(['/api/user/address', '/api/user/address/save'], async (req, res) => {
+  const connection = await pool.getConnection();
+  try {
+    const { userId, addressId, label, recipient, phone, addressLine1, note, isUtama } = req.body || {};
+    const targetUserId = userId || 1;
+    if (!recipient || !addressLine1) {
+      return res.status(400).json({ status: 'error', message: 'Nama Penerima dan Alamat Lengkap wajib diisi.' });
+    }
+
+    await connection.beginTransaction();
+
+    if (isUtama) {
+      await connection.query('UPDATE user_addresses SET is_utama = FALSE WHERE user_id = ?', [targetUserId]);
+    }
+
+    let resultAddressId = addressId;
+    if (addressId && !String(addressId).startsWith('user_addr_') && !String(addressId).startsWith('addr_')) {
+      await connection.query(
+        'UPDATE user_addresses SET label_alamat = ?, nama_penerima = ?, nomor_telepon = ?, alamat_lengkap = ?, catatan_patokan = ?, is_utama = ? WHERE address_id = ? AND user_id = ?',
+        [label || 'Rumah', recipient, phone || '', addressLine1, note || null, isUtama ? 1 : 0, addressId, targetUserId]
+      );
+    } else {
+      const [insertRes] = await connection.query(
+        'INSERT INTO user_addresses (user_id, label_alamat, nama_penerima, nomor_telepon, alamat_lengkap, catatan_patokan, is_utama) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [targetUserId, label || 'Rumah', recipient, phone || '', addressLine1, note || null, isUtama !== undefined ? (isUtama ? 1 : 0) : 1]
+      );
+      resultAddressId = insertRes.insertId;
+    }
+
+    await connection.commit();
+    res.json({ status: 'ok', message: 'Alamat berhasil disimpan ke database!', data: { id: resultAddressId } });
+  } catch (error) {
+    await connection.rollback();
+    console.error('Error save user address:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  } finally {
+    connection.release();
+  }
+});
+
 // 3. Ambil semua kategori
 app.get('/api/categories', async (req, res) => {
   try {
