@@ -101,33 +101,36 @@ export default function PullToRefreshWrapper({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Animated Pull Down Indicator Header (Web & Mobile Web) */}
+      {/* Absolute Floating Pull Refresh Indicator (Does NOT shift layout position) */}
       {(pullDistance > 0 || isRefreshing) && Platform.OS === 'web' && (
         <View
           style={[
-            styles.pullHeader,
-            { height: Math.max(pullDistance, isRefreshing ? 50 : 0) },
+            styles.floatingOverlayContainer,
+            { top: isRefreshing ? 14 : Math.min(6 + pullDistance * 0.5, 45) },
           ]}
+          pointerEvents="none"
         >
-          {isRefreshing ? (
-            <View style={styles.pullHeaderContent}>
-              <ActivityIndicator size="small" color="#D91E28" />
-              <Text style={styles.pullHeaderText}>{title}</Text>
-            </View>
-          ) : (
-            <View style={styles.pullHeaderContent}>
-              <Ionicons
-                name={pullDistance >= 40 ? 'arrow-up-circle' : 'arrow-down-circle'}
-                size={20}
-                color="#D91E28"
-              />
-              <Text style={styles.pullHeaderText}>
-                {pullDistance >= 40
-                  ? 'Lepaskan untuk memuat ulang'
-                  : 'Tarik ke bawah untuk memuat ulang'}
-              </Text>
-            </View>
-          )}
+          <View style={styles.floatingCapsule}>
+            {isRefreshing ? (
+              <>
+                <ActivityIndicator size="small" color="#D91E28" />
+                <Text style={styles.floatingText}>{title}</Text>
+              </>
+            ) : (
+              <>
+                <Ionicons
+                  name={pullDistance >= 40 ? 'arrow-up-circle' : 'arrow-down-circle'}
+                  size={18}
+                  color="#D91E28"
+                />
+                <Text style={styles.floatingText}>
+                  {pullDistance >= 40
+                    ? 'Lepaskan untuk memuat'
+                    : 'Tarik ke bawah untuk memuat'}
+                </Text>
+              </>
+            )}
+          </View>
         </View>
       )}
 
@@ -137,24 +140,33 @@ export default function PullToRefreshWrapper({
 }
 
 const styles = StyleSheet.create({
-  pullHeader: {
-    width: '100%',
-    backgroundColor: '#FEF2F2',
-    justifyContent: 'center',
+  floatingOverlayContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    overflow: 'hidden',
-    borderBottomWidth: 1,
-    borderBottomColor: '#FCA5A5',
-    zIndex: 999,
+    justifyContent: 'center',
+    zIndex: 99999,
   },
-  pullHeaderContent: {
+  floatingCapsule: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 25,
     gap: 8,
+    borderWidth: 1.5,
+    borderColor: '#FCA5A5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 8,
   },
-  pullHeaderText: {
-    fontSize: 13,
-    fontWeight: '700',
+  floatingText: {
+    fontSize: 12,
+    fontWeight: '800',
     color: '#D91E28',
   },
 });
