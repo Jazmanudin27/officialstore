@@ -405,6 +405,17 @@ export default function OrdersScreen({
         }}
         onReorder={(ord) => handleReorder(ord)}
         onCancelOrder={(ord) => handleCancelOrder(ord)}
+        onUpdateOrderAddress={(orderId, newAddress) => {
+          setOrders((prevOrders) =>
+            (Array.isArray(prevOrders) ? prevOrders : []).map((o) => {
+              if (String(o.id) === String(orderId) || String(o.nomorPesanan) === String(orderId)) {
+                return { ...o, address: newAddress };
+              }
+              return o;
+            })
+          );
+          fetchOrders(false);
+        }}
       />
 
       {/* Payment Screen Modal when Bayar Sekarang is clicked */}

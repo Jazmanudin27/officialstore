@@ -1529,6 +1529,24 @@ app.all(['/api/admin/orders/:id', '/api/admin/orders/:id/status'], async (req, r
   }
 });
 
+// Update Order Address Endpoint
+app.all(['/api/orders/:id/address', '/api/admin/orders/:id/address'], async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { address } = req.body;
+
+    await pool.query(
+      'UPDATE orders SET snapshot_alamat_kirim = ? WHERE order_id = ? OR nomor_pesanan = ?',
+      [address || null, orderId, orderId]
+    );
+
+    res.json({ status: 'ok', message: 'Alamat pengiriman pesanan berhasil diperbarui!' });
+  } catch (error) {
+    console.error('Error updating order address:', error);
+    res.status(500).json({ status: 'error', message: error.message });
+  }
+});
+
 // Auto-verify & create store_settings table if not existing
 async function ensureStoreSettingsTable() {
   try {

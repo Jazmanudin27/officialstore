@@ -639,6 +639,43 @@ export const apiService = {
     }
   },
 
+  // Update Order Address (sebelum pesanan diproses)
+  async updateOrderAddress(id, newAddress) {
+    try {
+      let localOrders = [];
+      try {
+        const stored = storage.getItem('official_store_orders');
+        if (stored) localOrders = JSON.parse(stored);
+      } catch (e) {}
+
+      localOrders = localOrders.map((o) => {
+        if (String(o.id) === String(id) || String(o.nomorPesanan) === String(id) || String(o.orderId) === String(id)) {
+          return {
+            ...o,
+            address: newAddress,
+            snapshotAlamatKirim: newAddress,
+          };
+        }
+        return o;
+      });
+
+      try {
+        storage.setItem('official_store_orders', JSON.stringify(localOrders));
+      } catch (e) {}
+    } catch (e) {}
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/orders/${id}/address`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address: newAddress }),
+      });
+      return await response.json();
+    } catch (e) {
+      return { status: 'ok', message: 'Alamat pesanan diperbarui' };
+    }
+  },
+
   // 16. Admin & Public: Store Settings
   async getStoreSettings() {
     try {

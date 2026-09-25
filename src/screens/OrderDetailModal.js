@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,13 @@ import {
   Linking,
   Platform,
   useWindowDimensions,
+  TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../utils/formatters';
 import { COLORS } from '../constants/theme';
+import { apiService } from '../services/api';
+import { sweetAlert } from '../components/common/SweetAlert';
 
 export default function OrderDetailModal({
   visible,
@@ -23,11 +26,65 @@ export default function OrderDetailModal({
   onPayNow,
   onReorder,
   onCancelOrder,
+  onUpdateOrderAddress,
 }) {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [addressInput, setAddressInput] = useState(order?.address || '');
+  const [currentAddress, setCurrentAddress] = useState(order?.address || '');
+
+  useEffect(() => {
+    setAddressInput(order?.address || '');
+    setCurrentAddress(order?.address || '');
+    setIsEditingAddress(false);
+  }, [order?.address, order?.id]);
+
   if (!visible || !order) return null;
+
+  const isCanEditAddress =
+    order.status === 'pending' ||
+    order.status === 'menunggu' ||
+    order.status === 'unpaid' ||
+    order.status === 'belum_bayar' ||
+    order.status === 'unprocessed' ||
+    order.status === 'belum_diproses';
+
+  const handleSaveAddress = async () => {
+    if (!addressInput || !addressInput.trim()) {
+      sweetAlert({
+        type: 'warning',
+        title: 'Perhatian',
+        text: 'Alamat pengiriman tidak boleh kosong.',
+      });
+      return;
+    }
+
+    try {
+      await apiService.updateOrderAddress(order.id || order.nomorPesanan, addressInput.trim());
+      setCurrentAddress(addressInput.trim());
+      if (order) {
+        order.address = addressInput.trim();
+        order.snapshotAlamatKirim = addressInput.trim();
+      }
+      setIsEditingAddress(false);
+      if (onUpdateOrderAddress) {
+        onUpdateOrderAddress(order.id || order.nomorPesanan, addressInput.trim());
+      }
+      sweetAlert({
+        type: 'success',
+        title: 'Alamat Diperbarui',
+        text: 'Alamat pengiriman pesanan Anda telah berhasil diperbarui.',
+      });
+    } catch (e) {
+      sweetAlert({
+        type: 'error',
+        title: 'Gagal',
+        text: 'Gagal memperbarui alamat pengiriman.',
+      });
+    }
+  };
 
   const getStatusBanner = () => {
     if (order.status === 'menunggu') {
@@ -158,9 +215,21 @@ export default function OrderDetailModal({
 
             {/* Delivery Address & Recipient Card */}
             <View style={styles.cardContainer}>
-              <View style={styles.cardHeaderRow}>
-                <Ionicons name="location-outline" size={20} color="#D91E28" />
-                <Text style={styles.cardHeaderTitle}>Info Pengiriman & Alamat</Text>
+              <View style={[styles.cardHeaderRow, { justifyContent: 'space-between' }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="location-outline" size={20} color="#D91E28" />
+                  <Text style={styles.cardHeaderTitle}>Info Pengiriman & Alamat</Text>
+                </View>
+                {isCanEditAddress && !isEditingAddress && (
+                  <TouchableOpacity
+                    style={styles.editAddrBadge}
+                    onPress={() => setIsEditingAddress(true)}
+                    activeOpacity={0.75}
+                  >
+                    <Ionicons name="create-outline" size={13} color="#0284C7" />
+                    <Text style={styles.editAddrBadgeText}>Ubah Alamat</Text>
+                  </TouchableOpacity>
+                )}
               </View>
 
               <View style={styles.cardContent}>
@@ -175,7 +244,39 @@ export default function OrderDetailModal({
                   )}
                 </View>
 
-                <Text style={styles.addressLine}>{order.address}</Text>
+                {!isEditingAddress ? (
+                  <Text style={styles.addressLine}>{currentAddress || order.address}</Text>
+                ) : (
+                  <View style={styles.editAddressFormBox}>
+                    <Text style={styles.editAddressLabel}>Tuliskan Alamat Pengiriman Baru:</Text>
+                    <TextInput
+                      style={styles.editAddressTextInput}
+                      value={addressInput}
+                      onChangeText={setAddressInput}
+                      placeholder="Masukkan alamat pengiriman baru secara lengkap..."
+                      multiline
+                      numberOfLines={3}
+                    />
+                    <View style={styles.editAddressBtnRow}>
+                      <TouchableOpacity
+                        style={styles.cancelAddressBtn}
+                        onPress={() => {
+                          setAddressInput(currentAddress || order.address);
+                          setIsEditingAddress(false);
+                        }}
+                      >
+                        <Text style={styles.cancelAddressBtnText}>Batal</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.saveAddressBtn}
+                        onPress={handleSaveAddress}
+                      >
+                        <Text style={styles.saveAddressBtnText}>Simpan Alamat Baru</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
                 <Text style={styles.dateLine}>Tanggal Transaksi: {order.date}</Text>
               </View>
             </View>
@@ -563,5 +664,75 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 15,
     fontWeight: '800',
+  },
+  editAddrBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  editAddrBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#0284C7',
+  },
+  editAddressFormBox: {
+    marginTop: 8,
+    marginBottom: 8,
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  editAddressLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+    marginBottom: 6,
+  },
+  editAddressTextInput: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 13,
+    color: '#0F172A',
+    minHeight: 60,
+    textAlignVertical: 'top',
+  },
+  editAddressBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 10,
+  },
+  cancelAddressBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#E2E8F0',
+  },
+  cancelAddressBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  saveAddressBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: '#0284C7',
+  },
+  saveAddressBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
