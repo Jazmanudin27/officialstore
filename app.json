@@ -4,10 +4,10 @@
     "slug": "official-store",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/Offical Store.png",
+    "icon": "./assets/official-store-logo.png",
     "userInterfaceStyle": "dark",
     "splash": {
-      "image": "./assets/Offical Store.png",
+      "image": "./assets/official-store-logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#0F172A"
     },
@@ -18,11 +18,11 @@
       "package": "com.officialstore.app",
       "adaptiveIcon": {
         "backgroundColor": "#0F172A",
-        "foregroundImage": "./assets/Offical Store.png"
+        "foregroundImage": "./assets/official-store-logo.png"
       }
     },
     "web": {
-      "favicon": "./assets/Offical Store.png",
+      "favicon": "./assets/official-store-logo.png",
       "name": "Official Store",
       "shortName": "Official Store",
       "themeColor": "#D91E28",

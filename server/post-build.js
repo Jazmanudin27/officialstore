@@ -3,17 +3,27 @@ const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..');
 const distDir = path.join(rootDir, 'dist');
-const assetsSource = path.join(rootDir, 'assets', 'Offical Store.png');
+const assetsSource = path.join(rootDir, 'assets', 'official-store-logo.png');
 const manifestSource = path.join(rootDir, 'public', 'manifest.json');
 
 console.log('🔧 Running post-build PWA HD Icon Injection...');
 
 if (fs.existsSync(distDir)) {
-  // 1. Copy HD PNG Icons (512x512 and 192x192)
+  // 1. Copy HD PNG Icons (512x512, 192x192, favicon, etc.)
   if (fs.existsSync(assetsSource)) {
     fs.copyFileSync(assetsSource, path.join(distDir, 'icon-512.png'));
     fs.copyFileSync(assetsSource, path.join(distDir, 'icon-192.png'));
-    console.log('✅ Copied HD icon-512.png & icon-192.png to dist/');
+    fs.copyFileSync(assetsSource, path.join(distDir, 'favicon.png'));
+    fs.copyFileSync(assetsSource, path.join(distDir, 'apple-touch-icon.png'));
+    
+    // Also copy to dist/assets if directory exists
+    const distAssetsDir = path.join(distDir, 'assets');
+    if (!fs.existsSync(distAssetsDir)) {
+      fs.mkdirSync(distAssetsDir, { recursive: true });
+    }
+    fs.copyFileSync(assetsSource, path.join(distAssetsDir, 'official-store-logo.png'));
+
+    console.log('✅ Copied HD official-store-logo.png to dist/ (icon-512.png, icon-192.png, favicon.png, apple-touch-icon.png)');
   }
 
   // 2. Copy manifest.json
