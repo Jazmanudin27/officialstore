@@ -1,8 +1,17 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, Image, TouchableOpacity, StyleSheet, Platform, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { formatRupiah } from '../../utils/formatters';
 import { COLORS } from '../../constants/theme';
+
+let motion = null;
+if (Platform.OS === 'web') {
+  try {
+    motion = require('framer-motion').motion;
+  } catch (e) {
+    console.warn('Framer motion load notice:', e);
+  }
+}
 
 export default function ProductCard({
   product,
@@ -13,120 +22,180 @@ export default function ProductCard({
   onToggleFavorite,
   onSelectProduct,
 }) {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.96,
+      friction: 8,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 5,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const CardWrapper = motion ? motion.div : Animated.View;
+  const motionProps = motion
+    ? {
+        initial: { opacity: 0, y: 20, scale: 0.95 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] },
+        whileHover: { y: -6, scale: 1.02, transition: { duration: 0.2 } },
+        whileTap: { scale: 0.97 },
+      }
+    : {};
+
   return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() => onSelectProduct && onSelectProduct(product)}
-      activeOpacity={0.85}
+    <CardWrapper
+      {...motionProps}
+      style={[
+        styles.cardOuter,
+        !motion && { opacity: fadeAnim, transform: [{ scale: scaleAnim }] },
+      ]}
     >
-      {/* Image & Badges Container */}
-      <View style={styles.imageContainer}>
-        <Image source={{ uri: product.image }} style={styles.productImage} resizeMode="cover" />
-        
-        {product.officialBadge && (
-          <View style={styles.officialBadge}>
-            <Ionicons name="checkmark-circle" size={12} color={COLORS.white} />
-            <Text style={styles.officialText}>Official</Text>
-          </View>
-        )}
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => onSelectProduct && onSelectProduct(product)}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.88}
+      >
+        {/* Image & Badges Container */}
+        <View style={styles.imageContainer}>
+          <Image source={{ uri: product.image }} style={styles.productImage} resizeMode="cover" />
 
-        <TouchableOpacity
-          style={styles.favoriteButton}
-          onPress={(e) => {
-            onToggleFavorite(product.id);
-          }}
-          activeOpacity={0.7}
-        >
-          <Ionicons
-            name={isFavorite ? 'heart' : 'heart-outline'}
-            size={18}
-            color={isFavorite ? COLORS.primaryRed : COLORS.textGray}
-          />
-        </TouchableOpacity>
+          {product.officialBadge && (
+            <View style={styles.officialBadge}>
+              <Ionicons name="checkmark-circle" size={12} color={COLORS.white} />
+              <Text style={styles.officialText}>Official</Text>
+            </View>
+          )}
 
-        {product.discount && (
-          <View style={styles.discountBadge}>
-            <Text style={styles.discountText}>{product.discount}</Text>
-          </View>
-        )}
-      </View>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={(e) => {
+              if (e && e.stopPropagation) e.stopPropagation();
+              onToggleFavorite(product.id);
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={isFavorite ? 'heart' : 'heart-outline'}
+              size={18}
+              color={isFavorite ? COLORS.primaryRed : COLORS.textGray}
+            />
+          </TouchableOpacity>
 
-      {/* Content Container */}
-      <View style={styles.detailsContainer}>
-        <Text style={styles.productName} numberOfLines={2}>
-          {product.name}
-        </Text>
-
-        {/* Rating & Sold Count */}
-        <View style={styles.metaRow}>
-          <View style={styles.ratingBox}>
-            <Ionicons name="star" size={12} color="#F59E0B" />
-            <Text style={styles.ratingText}>{product.rating}</Text>
-          </View>
-          <Text style={styles.soldText}>Terjual {product.sold}</Text>
-        </View>
-
-        {/* Price Section */}
-        <View style={styles.priceContainer}>
-          <Text style={styles.priceText}>{formatRupiah(product.price)}</Text>
-          {product.originalPrice && (
-            <Text style={styles.originalPriceText}>
-              {formatRupiah(product.originalPrice)}
-            </Text>
+          {product.discount && (
+            <View style={styles.discountBadge}>
+              <Text style={styles.discountText}>{product.discount}</Text>
+            </View>
           )}
         </View>
 
-        {/* Stepper if in Cart, else "+ Beli" Button */}
-        {cartQuantity > 0 ? (
-          <View style={styles.cardStepperRow}>
-            <TouchableOpacity
-              style={styles.cardStepperBtn}
-              onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, cartQuantity - 1)}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={cartQuantity === 1 ? 'trash-outline' : 'remove'}
-                size={14}
-                color="#D91E28"
-              />
-            </TouchableOpacity>
+        {/* Content Container */}
+        <View style={styles.detailsContainer}>
+          <Text style={styles.productName} numberOfLines={2}>
+            {product.name}
+          </Text>
 
-            <Text style={styles.cardStepperValue}>{cartQuantity}</Text>
-
-            <TouchableOpacity
-              style={styles.cardStepperBtn}
-              onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, cartQuantity + 1)}
-              activeOpacity={0.7}
-            >
-              <Ionicons name="add" size={14} color="#D91E28" />
-            </TouchableOpacity>
+          {/* Rating & Sold Count */}
+          <View style={styles.metaRow}>
+            <View style={styles.ratingBox}>
+              <Ionicons name="star" size={12} color="#F59E0B" />
+              <Text style={styles.ratingText}>{product.rating}</Text>
+            </View>
+            <Text style={styles.soldText}>Terjual {product.sold}</Text>
           </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => onAddToCart(product)}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="cart" size={15} color={COLORS.white} />
-            <Text style={styles.addButtonText}>+ Beli</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    </TouchableOpacity>
+
+          {/* Price Section */}
+          <View style={styles.priceContainer}>
+            <Text style={styles.priceText}>{formatRupiah(product.price)}</Text>
+            {product.originalPrice && (
+              <Text style={styles.originalPriceText}>
+                {formatRupiah(product.originalPrice)}
+              </Text>
+            )}
+          </View>
+
+          {/* Stepper if in Cart, else "+ Beli" Button */}
+          {cartQuantity > 0 ? (
+            <View style={styles.cardStepperRow}>
+              <TouchableOpacity
+                style={styles.cardStepperBtn}
+                onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, cartQuantity - 1)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name={cartQuantity === 1 ? 'trash-outline' : 'remove'}
+                  size={14}
+                  color="#D91E28"
+                />
+              </TouchableOpacity>
+
+              <Text style={styles.cardStepperValue}>{cartQuantity}</Text>
+
+              <TouchableOpacity
+                style={styles.cardStepperBtn}
+                onPress={() => onUpdateQuantity && onUpdateQuantity(product.id, cartQuantity + 1)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add" size={14} color="#D91E28" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => onAddToCart(product)}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="cart" size={15} color={COLORS.white} />
+              <Text style={styles.addButtonText}>+ Beli</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    </CardWrapper>
   );
 }
 
 const styles = StyleSheet.create({
+  cardOuter: {
+    flex: 1,
+    marginHorizontal: 6,
+    marginBottom: 14,
+  },
   card: {
     backgroundColor: COLORS.white,
     borderRadius: 14,
     overflow: 'hidden',
-    marginBottom: 14,
     borderWidth: 1,
     borderColor: '#E2E8F0',
     flex: 1,
-    marginHorizontal: 6,
     elevation: 2,
+    ...(Platform.OS === 'web'
+      ? {
+          transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          cursor: 'pointer',
+        }
+      : {}),
   },
   imageContainer: {
     height: 130,
